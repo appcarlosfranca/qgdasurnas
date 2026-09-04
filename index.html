@@ -4650,6 +4650,126 @@ body.qg-neon-disabled-v121[data-qg-role="fiscal"] .qg-side-logo-v115 img{
 }
 </style>
 
+
+<style id="qg-layout-professional-v148">
+/* Desktop/notebook: sidebar contínua e conteúdo sem rupturas. */
+@media (min-width:981px){
+  body[data-qg-role] .app{
+    display:grid!important;
+    grid-template-columns:250px minmax(0,1fr)!important;
+    align-items:start!important;
+    min-height:100dvh!important;
+  }
+  body[data-qg-role] .side{
+    position:sticky!important;
+    top:0!important;
+    width:250px!important;
+    height:100dvh!important;
+    max-height:100dvh!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    padding:18px 16px!important;
+    border-right:1px solid rgba(46,205,255,.14)!important;
+    border-bottom:0!important;
+    background:rgba(1,8,18,.98)!important;
+    display:block!important;
+  }
+  body[data-qg-role] .side #role{
+    width:100%!important;
+    margin:0 0 14px!important;
+  }
+  body[data-qg-role] .side #nav{
+    display:flex!important;
+    flex-direction:column!important;
+    flex-wrap:nowrap!important;
+    gap:4px!important;
+    width:100%!important;
+    overflow:visible!important;
+  }
+  body[data-qg-role] .side #nav button{
+    width:100%!important;
+    min-width:0!important;
+    flex:0 0 auto!important;
+    text-align:left!important;
+    white-space:normal!important;
+    padding:10px 11px!important;
+  }
+  body[data-qg-role] .main{
+    width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    padding:0 18px 28px!important;
+    box-sizing:border-box!important;
+  }
+  body[data-qg-role] .qg-top-v115{
+    margin:0 -18px 12px!important;
+    padding:14px 18px!important;
+    min-height:104px!important;
+  }
+}
+
+/* Tablet/celular: seletor + menu horizontal no topo. */
+@media (max-width:980px){
+  body[data-qg-role] .app{display:block!important}
+  body[data-qg-role] .side{
+    position:sticky!important;
+    top:0!important;
+    z-index:200!important;
+    width:100%!important;
+    height:auto!important;
+    max-height:none!important;
+    display:grid!important;
+    grid-template-columns:minmax(104px,150px) minmax(0,1fr)!important;
+    grid-template-areas:"role nav"!important;
+    gap:6px!important;
+    padding:7px 8px!important;
+    border-right:0!important;
+    border-bottom:1px solid rgba(46,205,255,.16)!important;
+    background:rgba(1,8,18,.98)!important;
+    overflow:hidden!important;
+  }
+  body[data-qg-role] .side #role{
+    grid-area:role!important;
+    width:100%!important;
+    margin:0!important;
+  }
+  body[data-qg-role] .side #nav{
+    grid-area:nav!important;
+    display:flex!important;
+    flex-direction:row!important;
+    flex-wrap:nowrap!important;
+    gap:6px!important;
+    width:100%!important;
+    min-width:0!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    white-space:nowrap!important;
+    padding:1px 0 4px!important;
+  }
+  body[data-qg-role] .side #nav button{
+    flex:0 0 auto!important;
+    width:auto!important;
+    min-width:max-content!important;
+    white-space:nowrap!important;
+    margin:0!important;
+  }
+  body[data-qg-role] .main{
+    width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    padding:0 10px 24px!important;
+  }
+}
+
+/* Tenant editor: cards remain aligned, no visual split. */
+#tenants97 .qg-tenant-admin-grid97{
+  align-items:start!important;
+}
+#tenants97 .card{
+  box-sizing:border-box!important;
+}
+</style>
+
 </head><body>
 <div id="authOverlayV36" class="auth36-overlay">
   <div class="auth36-modal">
@@ -5302,20 +5422,8 @@ body.qg-neon-disabled-v121[data-qg-role="fiscal"] .qg-side-logo-v115 img{
   <div class="card">
     <h2>Clientes e acessos personalizados</h2>
     <p class="note">Cadastre aqui cada cliente. Defina identidade visual, pacote de cargos e os logins que serão usados diretamente nas janelas Fiscal e Coordenação da tela inicial.</p>
-    <div class="qg-tenant-warning97"><b>Homologação multi-cliente:</b> as credenciais são armazenadas com hash. Para isolamento criptográfico de banco em produção, a etapa final deverá migrar os logins para Supabase Auth + RLS.</div>
+    <div class="qg-tenant-warning97"><b>Acessos por cliente:</b> cadastre os logins de Fiscal e Coordenação aqui. Quando o banco multi-cliente estiver ativo no Supabase, as credenciais ficam disponíveis entre dispositivos.</div>
   </div>
-  
-<div class="card" id="tenantTestAccess100" style="margin-top:12px">
-  <h3>Acesso personalizado para teste</h3>
-  <p class="note">Estas credenciais existem apenas para homologação. Use demo.coord diretamente na janela COORDENAÇÃO e demo.fiscal diretamente na janela FISCAL da tela inicial.</p>
-  <div class="qg-test-cred100">
-    <div><span>Coordenação</span><b id="tenantTestCoordLogin100">demo.coord</b><code id="tenantTestCoordPass100">QG2026!teste</code>
-      <button type="button" class="ghost" onclick="qgCopyTextV100('demo.coord')">COPIAR LOGIN</button></div>
-    <div><span>Fiscal</span><b id="tenantTestFiscalLogin100">demo.fiscal</b><code id="tenantTestFiscalPass100">QG2026!teste</code>
-      <button type="button" class="ghost" onclick="qgCopyTextV100('demo.fiscal')">COPIAR LOGIN</button></div>
-  </div>
-  <div id="tenantTestStatus100" class="note" style="margin-top:8px"></div>
-</div>
 <div class="qg-tenant-admin-grid97" style="margin-top:12px">
     <div class="card">
       <h3>Clientes cadastrados</h3>
@@ -6153,7 +6261,7 @@ body.qg-neon-disabled-v121[data-qg-role="fiscal"] .qg-side-logo-v115 img{
     <div class="qg-form-stack">
       <label>Município<select id="f66Mun" onchange="fillFiscalZonesV66()"></select></label>
       <label>Zona<select id="f66Zone" onchange="fillFiscalSectionsV66()"></select></label>
-      <label>Buscar local ou seção<input id="f66Search" placeholder="Ex.: IFS, seção 125..." oninput="fillFiscalSectionsV66()"></label>
+      <label>Buscar local ou seção<input id="f66Search" placeholder="Ex.: IFS, seção 125..." oninput="qgFiscalSearchDebouncedV148()"></label>
     </div>
     <div class="qg-actions" style="margin-top:10px">
       <button type="button" class="ghost" onclick="selectAllVisibleFiscalSectionsV66()">SELECIONAR TODAS VISÍVEIS</button>
@@ -6216,7 +6324,6 @@ body.qg-neon-disabled-v121[data-qg-role="fiscal"] .qg-side-logo-v115 img{
           <div class="qr-control-grid">
             <button class="btn" onclick="startQRScanner()">ABRIR CÂMERA</button>
             <button class="ghost" onclick="stopQRScanner()">FECHAR CÂMERA</button>
-            <button class="ghost" onclick="simulateFiscalQrV68()">SIMULAR QR PARA TESTE</button>
             <div id="qrSupport" class="capture-status warn">Verificando suporte do navegador...</div>
             <div class="note">O fluxo Fiscal utiliza somente a leitura do QR Code do Boletim de Urna.</div>
           </div>
@@ -10186,6 +10293,8 @@ function removeQrPartV32(index){
   renderQrPartsV32();
 }
 function clearQrSetV32(){
+  try{qgQrFrameResetV148()}catch(e){}
+
   qrPartsStateV32=[];
   const i=document.getElementById('qrTseInputV32');if(i)i.value='';
   const s=document.getElementById('qrSummaryV32');if(s)s.innerHTML='<div class="empty-state">Nenhum QR reconstruído.</div>';
@@ -11178,7 +11287,28 @@ function initSectionBaseV17(){
 const QG_PROFILE_MENUS={
   fiscal:[['fiscalSetup66','Configurar minhas seções'],['scan','Ler BU'],['fiscalSections112','Minhas seções'],['fiscalSends112','Meus envios']],
   coordenacao:[['dash','Sala de Guerra'],['mapa63','Mapa operacional'],['faltando63','O que está faltando?'],['sections','Seções'],['reconcile','Reconciliação'],['coverage','Radar'],['pending','Pendências'],['reports','Relatórios']],
-  admin:[['dash','Visão geral'],['tenants97','Clientes e acessos'],['adminCoord96','Painel de apuração'],['realtime88','Tempo real'],['adminBuData83','Dados de BU'],['countScope71','Cargos contabilizados'],['homolog110v64','Teste 110/110'],['campanhas63','Campanhas'],['convites63','Convites fiscais'],['requisitos63','110 requisitos'],['mapa63','Mapa operacional'],['faltando63','O que está faltando?'],['dados59','Dados 2026'],['final53','Homologação Final'],['deploy52','Implantação'],['readiness51','Pré-produção'],['reconcile50','Reconciliação TSE'],['capture42','Captura do BU'],['ocr41','OCR do BU'],['backend_status','Backend'],['ops40','Prontidão produção'],['offline37','Resiliência'],['server_backup38','Backup servidor'],['load39','Carga pesada'],['users36','Usuários'],['qr_tse','QR TSE'],['qr_trust','Confiança QR'],['ui_test','Teste de Interface'],['homologacao','Homologação'],['integrity','Integridade'],['reconcile','Reconciliação'],['protocols','Protocolos'],['coverage','Radar'],['sections','Base eleitoral'],['occurrences','Ocorrências'],['audit','Auditoria'],['diagnostics','Diagnóstico'],['reports','Relatórios'],['homolog','Homologação'],['sim','Simulação'],['backups','Backups'],['admin','Administração']]
+  admin:[
+    ['dash','Visão geral'],
+    ['tenants97','Clientes e acessos'],
+    ['adminCoord96','Painel de apuração'],
+    ['realtime88','Tempo real'],
+    ['adminBuData83','Dados de BU'],
+    ['countScope71','Cargos contabilizados'],
+    ['campanhas63','Campanhas'],
+    ['convites63','Convites fiscais'],
+    ['mapa63','Mapa operacional'],
+    ['faltando63','O que está faltando?'],
+    ['reconcile50','Reconciliação TSE'],
+    ['protocols','Protocolos'],
+    ['coverage','Radar'],
+    ['sections','Base eleitoral'],
+    ['occurrences','Ocorrências'],
+    ['audit','Auditoria'],
+    ['diagnostics','Diagnóstico'],
+    ['reports','Relatórios'],
+    ['backups','Backups'],
+    ['admin','Administração']
+  ]
 };
 
 function qgPersistStateSafe(){
@@ -11647,7 +11777,7 @@ function drawCharts(){
 }
 
 
-const QG_SCHEMA_VERSION = 147;
+const QG_SCHEMA_VERSION = 148;
 
 const QG_DEMO_CREDENTIALS={
   fiscal:{user:'fiscal',pass:'QG2026'},
@@ -12066,6 +12196,9 @@ function handleQRRaw(raw){
     currentCaptureMethod='QR';
     const text=String(raw||'').trim();
     if(!text)throw new Error('QR sem conteúdo.');
+    if(!qgQrFrameAllowedV148(text)){
+      return {recognized:true,complete:!!state.currentBU,duplicate:true,ignoredFrame:true,captured:state.currentBU||null};
+    }
 
     const header=parseQrPartHeaderV32(text);
     state.lastQrRaw=text;
@@ -12107,6 +12240,7 @@ function handleQRRaw(raw){
         /* Fundamental: preenche município, zona, seção, local, cargos configurados,
            candidatos, números e votos ANTES de qualquer conferência adicional. */
         const captured=applyFullQrToFiscalV71(parsed,reconstructed);
+        window.__qgQrFrameGuardV148.finished=true;
         state.lastQrRaw=reconstructed;
 
         try{stopQRScanner()}catch(e){}
@@ -12135,6 +12269,7 @@ function handleQRRaw(raw){
         return {recognized:true,complete:false,alreadySent:true};
       }
       const captured=applyFullQrToFiscalV71(standalone,text);
+      window.__qgQrFrameGuardV148.finished=true;
       window.__qgMultiQrSession92={active:true,total:1,parts:new Map([[1,text]]),fingerprint:'',completed:true,lastSeenRaw:text,lastSeenAt:Date.now()};
       renderMultiQrProgressV92('QR único reconhecido: 1/1. Dados preenchidos automaticamente.');
       if(stateEl)stateEl.textContent='QR 1/1 reconhecido e processado.';
@@ -13970,23 +14105,56 @@ function initFiscalSetupV66(){
   const f=state.fiscalV66;
   const id=document.getElementById('f66Identity');if(id)id.value=f.identity||'';
   const note=document.getElementById('f66Note');if(note)note.value=f.note||'';
+
+  const idx=qgSectionIndexV148();
   const mun=document.getElementById('f66Mun');
   if(mun){
-    const current=mun.value;mun.innerHTML='';
-    const municipios=[...new Set(fullSectionBaseV66().map(x=>x.municipio))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
-    municipios.forEach(x=>mun.add(new Option(x,x)));if(current&&municipios.includes(current))mun.value=current;
+    const current=mun.value;
+    mun.innerHTML='<option value="">Selecione o município...</option>';
+    idx.municipios.forEach(x=>mun.add(new Option(x,x)));
+    if(current&&idx.municipalities.has(current))mun.value=current;
   }
-  fillFiscalZonesV66();renderFiscalSetupV66();
+  fillFiscalZonesV66();
+  renderFiscalSetupV66();
 }
 function fillFiscalZonesV66(){
-  const mun=document.getElementById('f66Mun')?.value||'',z=document.getElementById('f66Zone');if(!z)return;
-  const current=Number(z.value||0);z.innerHTML='';
-  const zones=[...new Set(fullSectionBaseV66().filter(x=>x.municipio===mun).map(x=>Number(x.zona)))].sort((a,b)=>a-b);
-  zones.forEach(x=>z.add(new Option('Zona '+x,x)));if(zones.includes(current))z.value=String(current);fillFiscalSectionsV66();
+  const mun=document.getElementById('f66Mun')?.value||'';
+  const z=document.getElementById('f66Zone');if(!z)return;
+  const current=Number(z.value||0);
+  z.innerHTML='<option value="">Selecione a zona...</option>';
+
+  if(!mun){
+    fillFiscalSectionsV66();
+    return;
+  }
+  const idx=qgSectionIndexV148();
+  const zonesMap=idx.municipalities.get(mun)||new Map();
+  const zones=[...zonesMap.keys()].sort((a,b)=>a-b);
+  zones.forEach(x=>z.add(new Option('Zona '+x,x)));
+  if(zones.includes(current))z.value=String(current);
+  fillFiscalSectionsV66();
 }
 function visibleFiscalBaseV66(){
-  const mun=document.getElementById('f66Mun')?.value||'',zona=Number(document.getElementById('f66Zone')?.value||0),q=normalizeText(document.getElementById('f66Search')?.value||'');
-  return fullSectionBaseV66().filter(x=>(!mun||x.municipio===mun)&&(!zona||Number(x.zona)===zona)&&(!q||normalizeText((x.local||'')+' '+x.secao+' '+x.municipio).includes(q))).sort((a,b)=>Number(a.secao)-Number(b.secao));
+  const mun=document.getElementById('f66Mun')?.value||'';
+  const zona=Number(document.getElementById('f66Zone')?.value||0);
+  const q=normalizeText(document.getElementById('f66Search')?.value||'');
+  const idx=qgSectionIndexV148();
+
+  let rows=[];
+  if(mun){
+    const zones=idx.municipalities.get(mun)||new Map();
+    if(zona)rows=(zones.get(zona)||[]).slice();
+    else for(const list of zones.values())rows.push(...list);
+  }else{
+    /* Do not render all 6k rows before the Fiscal chooses a municipality.
+       This removes the UI freeze on mobile without hiding options. */
+    return [];
+  }
+
+  if(q){
+    rows=rows.filter(x=>normalizeText((x.local||'')+' '+x.secao+' '+x.municipio+' '+x.zona).includes(q));
+  }
+  return rows.sort((a,b)=>Number(a.zona)-Number(b.zona)||Number(a.secao)-Number(b.secao));
 }
 function isSectionReceivedV66(s){
   const id=sectionIdV76(s);
@@ -13995,11 +14163,33 @@ function isSectionReceivedV66(s){
 }
 function fillFiscalSectionsV66(){
   const box=document.getElementById('f66SectionPicker');if(!box)return;
-  const selected=fiscalSelectedSetV66(),rows=visibleFiscalBaseV66();
-  box.innerHTML=rows.map(s=>{
+  const mun=document.getElementById('f66Mun')?.value||'';
+  if(!mun){
+    box.innerHTML='<div class="empty-state">Selecione um município para listar as zonas e seções.</div>';
+    return;
+  }
+
+  const selected=fiscalSelectedSetV66();
+  const rows=visibleFiscalBaseV66();
+  const frag=document.createDocumentFragment();
+
+  if(!rows.length){
+    box.innerHTML='<div class="empty-state">Nenhuma seção encontrada para os filtros informados.</div>';
+    return;
+  }
+
+  box.innerHTML='';
+  for(const s of rows){
     const sid=sectionIdV66(s),rec=isSectionReceivedV66(s);
-    return '<label class="f66-picker-row"><input type="checkbox" class="f66-sec-check" data-id="'+escapeHtml(sid)+'" '+(selected.has(sid)?'checked':'')+'><b>Seção '+Number(s.secao)+'</b><span class="f66-local">'+escapeHtml(s.local||'')+'</span><span class="f66-pill '+(rec?'f66-received':'f66-pending')+'">'+(rec?'RECEBIDA':'PENDENTE')+'</span></label>'
-  }).join('')||'<div class="empty-state">Nenhuma seção encontrada.</div>';
+    const label=document.createElement('label');
+    label.className='f66-picker-row';
+    label.innerHTML='<input type="checkbox" class="f66-sec-check" data-id="'+escapeHtml(sid)+'" '+(selected.has(sid)?'checked':'')+'>'+
+      '<b>Seção '+Number(s.secao)+'</b>'+
+      '<span class="f66-local">'+escapeHtml(s.local||'')+'</span>'+
+      '<span class="f66-pill '+(rec?'f66-received':'f66-pending')+'">'+(rec?'RECEBIDA':'PENDENTE')+'</span>';
+    frag.appendChild(label);
+  }
+  box.appendChild(frag);
 }
 function collectFiscalPickerV66(){return [...document.querySelectorAll('.f66-sec-check')].filter(x=>x.checked).map(x=>x.dataset.id)}
 function selectAllVisibleFiscalSectionsV66(){document.querySelectorAll('.f66-sec-check').forEach(x=>x.checked=true)}
@@ -16561,6 +16751,8 @@ function qgDuplicateMessageV93(kind){
 window.__qgMultiQrSession92={active:false,total:0,parts:new Map(),fingerprint:'',completed:false,lastSeenRaw:'',lastSeenAt:0};
 
 function qgResetMultiQrSessionV92(){
+  try{qgQrFrameResetV148()}catch(e){}
+
   window.__qgMultiQrSession92={active:false,total:0,parts:new Map(),fingerprint:'',completed:false,lastSeenRaw:'',lastSeenAt:0};
   try{clearQrSetV32()}catch(e){}
   renderMultiQrProgressV92();
@@ -16892,9 +17084,24 @@ function qgTenantSlugV97(v){
   return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,50);
 }
 async function qgSha256V97(v){
-  const data=new TextEncoder().encode(String(v||''));
-  const digest=await crypto.subtle.digest('SHA-256',data);
-  return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');
+  const text=String(v||'');
+  try{
+    if(globalThis.crypto?.subtle){
+      const data=new TextEncoder().encode(text);
+      const digest=await crypto.subtle.digest('SHA-256',data);
+      return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');
+    }
+  }catch(e){}
+  /* Fallback for local-file/offline tests. This is a deterministic compatibility
+     hash; production HTTPS uses WebCrypto SHA-256 above. */
+  let h1=0x811c9dc5,h2=0x9e3779b9;
+  for(let i=0;i<text.length;i++){
+    const c=text.charCodeAt(i);
+    h1=Math.imul(h1^c,0x01000193)>>>0;
+    h2=Math.imul(h2+(c^i),0x85ebca6b)>>>0;
+  }
+  const p=n=>n.toString(16).padStart(8,'0');
+  return (p(h1)+p(h2)+p(h1^h2)+p(Math.imul(h1,33)>>>0)+p(Math.imul(h2,97)>>>0)+p((h1+h2)>>>0)+p((h1*17)>>>0)+p((h2*19)>>>0)).slice(0,64);
 }
 function qgCurrentTenantV97(){
   qgTenantEnsureV97();
@@ -17042,16 +17249,14 @@ function qgTenantFormCargosV97(){
 function qgRenderTenantListV97(){
   qgTenantEnsureV97();
   const box=document.getElementById('tenantList97');if(!box)return;
-  box.innerHTML=state.tenantsV97.length?state.tenantsV97.map(t=>{
-    const systemTenant=t.id==='tenant-temp-v102';
+  const tenants=state.tenantsV97.filter(t=>t.id!=='tenant-temp-v102'&&t.id!=='cliente-demo-v100');
+  box.innerHTML=tenants.length?tenants.map(t=>{
     return '<div class="qg-tenant-row97"><div class="meta"><b>'+escapeHtml(t.nome||t.id)+' '+(t.numero?'• '+escapeHtml(t.numero):'')+'</b>'+
       '<small>'+escapeHtml(qgTenantPackageLabelsV97(t))+' • '+(t.active===false?'INATIVO':'ATIVO')+'</small></div>'+
       '<div class="qg-actions">'+
         '<button type="button" class="ghost" onclick="qgEditTenantV97(\''+escapeHtml(t.id)+'\')">EDITAR</button>'+
         '<button type="button" class="ghost" onclick="qgPreviewTenantV97(\''+escapeHtml(t.id)+'\')">VISUALIZAR</button>'+
-        (systemTenant
-          ? '<button type="button" class="ghost qg-delete-tenant-v127" disabled title="Cliente interno de homologação">EXCLUIR</button>'
-          : '<button type="button" class="ghost qg-delete-tenant-v127" onclick="qgDeleteTenantV127(\''+escapeHtml(t.id)+'\')">EXCLUIR</button>')+
+        '<button type="button" class="ghost qg-delete-tenant-v127" onclick="qgDeleteTenantV127(\''+escapeHtml(t.id)+'\')">EXCLUIR</button>'+
       '</div></div>';
   }).join(''):'<div class="empty-state">Nenhum cliente cadastrado.</div>';
 }
@@ -17078,22 +17283,48 @@ function qgEditTenantV97(id){
 }
 async function qgRemoteSaveTenantV97(t,accounts){
   try{
-    if(!qgRealtimeConfiguredV88())return {ok:false,local:true};
-    const sb=qgSbClientV88();if(!sb)return {ok:false,local:true};
+    if(!qgRealtimeConfiguredV88())return {ok:false,local:true,error:'Supabase não configurado.'};
+    const sb=qgSbClientV88();if(!sb)return {ok:false,local:true,error:'Cliente Supabase indisponível.'};
+
     const profile={
       tenant_id:t.id,nome:t.nome,numero:t.numero||'',partido:t.partido||'',logo_data:t.logoData||'',
       cargos:t.cargos||[],active:t.active!==false,updated_at:new Date().toISOString()
     };
     let r=await sb.from('qg_tenant_profiles_v97').upsert(profile,{onConflict:'tenant_id'});
     if(r.error)throw r.error;
+
     for(const a of accounts){
-      if(!a.login)continue;
-      const row={tenant_id:t.id,role:a.role,login:String(a.login).toLowerCase(),pass_hash:a.passHash,active:a.active!==false,updated_at:new Date().toISOString()};
+      if(!a.login||!a.passHash)continue;
+
+      /* Remove login antigo da mesma função/cliente antes do upsert do novo login. */
+      try{
+        const cleanup=await sb.from('qg_tenant_accounts_v97')
+          .delete()
+          .eq('tenant_id',t.id)
+          .eq('role',a.role)
+          .neq('login',String(a.login).toLowerCase());
+        if(cleanup.error)console.warn('Limpeza de login antigo',cleanup.error);
+      }catch(e){}
+
+      const row={
+        tenant_id:t.id,role:a.role,login:String(a.login).toLowerCase(),
+        pass_hash:a.passHash,active:a.active!==false,updated_at:new Date().toISOString()
+      };
       r=await sb.from('qg_tenant_accounts_v97').upsert(row,{onConflict:'login'});
       if(r.error)throw r.error;
     }
     return {ok:true};
-  }catch(e){console.warn('Salvar tenant remoto',e);return {ok:false,error:String(e.message||e)}}
+  }catch(e){
+    const raw=String(e?.message||e||'');
+    const missing=/qg_tenant_|does not exist|relation|function .*qg_tenant_login/i.test(raw);
+    return {
+      ok:false,
+      migrationRequired:missing,
+      error:missing
+        ?'Estrutura multi-cliente ausente no Supabase. Execute SUPABASE_MULTI_CLIENTE_V148.sql uma única vez.'
+        :raw
+    };
+  }
 }
 async function qgSaveTenantV97(){
   qgTenantEnsureV97();
@@ -17105,38 +17336,77 @@ async function qgSaveTenantV97(){
   const cargos=qgTenantFormCargosV97();
   const active=document.getElementById('tenantActive97')?.checked!==false;
   const msg=document.getElementById('tenantSaveMsg97');
+  if(msg)msg.textContent='';
+
   if(!nome||!id){if(msg)msg.textContent='Informe nome e ID do cliente.';return false}
   if(!cargos.length){if(msg)msg.textContent='Selecione pelo menos um cargo do pacote.';return false}
   if(!edit&&state.tenantsV97.some(t=>t.id===id)){if(msg)msg.textContent='Já existe um cliente com esse ID.';return false}
 
   const existing=state.tenantsV97.find(t=>t.id===edit||t.id===id);
   const t={...(existing||{}),id,nome,numero,partido,cargos,active,logoData:window.__qgTenantLogoDraft97||existing?.logoData||'',updatedAt:new Date().toISOString()};
-  if(edit&&edit!==id){
-    state.tenantsV97=state.tenantsV97.filter(x=>x.id!==edit);
-    state.tenantAccountsV97.forEach(a=>{if(a.tenantId===edit)a.tenantId=id});
-  }
-  const ti=state.tenantsV97.findIndex(x=>x.id===id);
-  if(ti>=0)state.tenantsV97[ti]=t;else state.tenantsV97.push(t);
 
-  const accounts=[];
+  const pendingAccounts=[];
   for(const role of ['coordenacao','fiscal']){
     const prefix=role==='coordenacao'?'tenantCoord':'tenantFiscal';
     const login=(document.getElementById(prefix+'Login97')?.value||'').trim().toLowerCase();
     const pass=document.getElementById(prefix+'Pass97')?.value||'';
-    let a=state.tenantAccountsV97.find(x=>x.tenantId===id&&x.role===role)||{tenantId:id,role,active:true,passHash:''};
-    if(login)a.login=login;
-    if(pass)a.passHash=await qgSha256V97(pass);
-    if(a.login&&a.passHash){
-      state.tenantAccountsV97=state.tenantAccountsV97.filter(x=>!(x.tenantId===id&&x.role===role));
-      state.tenantAccountsV97.push(a);accounts.push(a);
+    const old=state.tenantAccountsV97.find(x=>x.tenantId===(edit||id)&&x.role===role)
+      ||state.tenantAccountsV97.find(x=>x.tenantId===id&&x.role===role)
+      ||{tenantId:id,role,active:true,passHash:'',login:''};
+
+    const next={...old,tenantId:id,role,active:true};
+    if(login)next.login=login;
+    if(pass)next.passHash=await qgSha256V97(pass);
+
+    if(next.login){
+      const collision=state.tenantAccountsV97.find(a=>
+        a.active!==false &&
+        String(a.login||'').toLowerCase()===String(next.login).toLowerCase() &&
+        !(a.tenantId===(edit||id)&&a.role===role)
+      );
+      if(collision){
+        if(msg)msg.textContent='O login "'+next.login+'" já está sendo usado por outro acesso.';
+        return false;
+      }
+    }
+
+    if(next.login && !next.passHash){
+      if(msg)msg.textContent='Defina uma senha para o novo acesso de '+(role==='fiscal'?'Fiscal':'Coordenação')+'.';
+      return false;
+    }
+    if(next.login&&next.passHash)pendingAccounts.push(next);
+  }
+
+  if(edit&&edit!==id){
+    state.tenantsV97=state.tenantsV97.filter(x=>x.id!==edit);
+    state.tenantAccountsV97.forEach(a=>{if(a.tenantId===edit)a.tenantId=id});
+    if(state.tenantFiscalV97?.[edit]&&!state.tenantFiscalV97[id]){
+      state.tenantFiscalV97[id]=state.tenantFiscalV97[edit];
+      delete state.tenantFiscalV97[edit];
     }
   }
+
+  const ti=state.tenantsV97.findIndex(x=>x.id===id);
+  if(ti>=0)state.tenantsV97[ti]=t;else state.tenantsV97.push(t);
+
+  for(const a of pendingAccounts){
+    state.tenantAccountsV97=state.tenantAccountsV97.filter(x=>!(x.tenantId===id&&x.role===a.role));
+    state.tenantAccountsV97.push(a);
+  }
+
   qgPersistStateSafe();
-  const remote=await qgRemoteSaveTenantV97(t,accounts);
+  const remote=await qgRemoteSaveTenantV97(t,pendingAccounts);
   qgRenderTenantListV97();
-  if(msg)msg.textContent=remote.ok?'Cliente salvo localmente e sincronizado.':'Cliente salvo localmente. Execute a migração multi-cliente no Supabase para login compartilhado entre aparelhos.';
+
+  if(msg){
+    msg.textContent=remote.ok
+      ?'Cliente e acessos salvos e sincronizados.'
+      :remote.migrationRequired
+        ?'Cliente salvo neste dispositivo. Para usar os mesmos acessos em outros aparelhos, execute SUPABASE_MULTI_CLIENTE_V148.sql no Supabase.'
+        :'Cliente salvo neste dispositivo. Sincronização remota pendente: '+(remote.error||'verifique a conexão.');
+  }
   qgResetTenantFormV97();
-  return true;
+  return {ok:true,remote};
 }
 async function qgLoadRemoteTenantsV97(){
   try{
@@ -17406,29 +17676,14 @@ function qgTempTenantProfileV102(role){
 
 async function qgResolveTenantLoginV102(login,password,role){
   const rawLogin=String(login||'').trim();
-  const normalized=rawLogin.toLowerCase();
   const rawPassword=String(password||'');
+  if(!rawLogin||!rawPassword)return null;
 
-  /* Prioridade: contas cadastradas pelo Administrador e persistidas no estado/backend. */
   try{
     const saved=await qgResolveTenantLoginV101(rawLogin,rawPassword);
     if(saved && saved.account?.role===role)return saved;
   }catch(e){
-    console.warn('Falha ao consultar credencial cadastrada no ADM:',e);
-  }
-
-  /* Fallbacks temporários de homologação. */
-  if(role==='fiscal'){
-    if(normalized===String(QG_FISCAL_LOGIN_V115).toLowerCase() && rawPassword===QG_FISCAL_PASSWORD_V115){
-      const match=qgTempTenantProfileV102('fiscal');
-      match.account.login=QG_FISCAL_LOGIN_V115;
-      return match;
-    }
-    return null;
-  }
-
-  if(role==='coordenacao' && normalized===String(QG_TEMP_LOGIN_V102).toLowerCase() && rawPassword===QG_TEMP_PASSWORD_V102){
-    return qgTempTenantProfileV102('coordenacao');
+    console.warn('Falha ao consultar credencial cadastrada:',e);
   }
   return null;
 }
@@ -17733,10 +17988,22 @@ function qgFiscalFinalSelfCheckV109(){
 
 <script id="qg-core-db-transport-v110">
 function qgSectionBaseV110(){
-  const imported=Array.isArray(state.sectionBase)?state.sectionBase.filter(x=>x&&x.municipio&&Number(x.zona)&&Number(x.secao)):[];
+  const embedded=Array.isArray(window.QG_SECTIONS_V27)
+    ?window.QG_SECTIONS_V27.filter(x=>x&&x.municipio&&Number(x.zona)&&Number(x.secao))
+    :[];
+  const imported=Array.isArray(state.sectionBase)
+    ?state.sectionBase.filter(x=>x&&x.municipio&&Number(x.zona)&&Number(x.secao))
+    :[];
+
+  /* V148: a base oficial incorporada de Sergipe é a referência mínima.
+     Uma importação parcial/antiga não pode ocultar municípios ou seções. */
+  if(embedded.length>=6000){
+    if(state.sectionBaseMeta?.userOverride===true && imported.length>=embedded.length){
+      return imported;
+    }
+    return embedded;
+  }
   if(imported.length)return imported;
-  const embedded=Array.isArray(window.QG_SECTIONS_V27)?window.QG_SECTIONS_V27.filter(x=>x&&x.municipio&&Number(x.zona)&&Number(x.secao)):[];
-  if(embedded.length)return embedded;
   return Array.isArray(sections)?sections:[];
 }
 function qgCandidateBaseV110(){
@@ -18311,6 +18578,95 @@ function qgValidateApuracaoV147(bu){
     cargos:blocks.map(b=>String(b.cargo||'')),
     checkedAt:new Date().toISOString()
   };
+}
+</script>
+
+
+<script id="qg-section-index-v148">
+window.__qgSectionIndexV148=null;
+window.__qgFiscalSearchTimerV148=null;
+
+function qgSectionIndexV148(force=false){
+  const base=qgSectionBaseV110();
+  const stamp=base.length+'|'+(state.sectionBaseMeta?.loadedAt||'embedded');
+  if(!force && window.__qgSectionIndexV148?.stamp===stamp)return window.__qgSectionIndexV148;
+
+  const municipalities=new Map();
+  for(const row of base){
+    const mun=String(row.municipio||'').trim();
+    const zona=Number(row.zona||0);
+    const secao=Number(row.secao||0);
+    if(!mun||!zona||!secao)continue;
+    if(!municipalities.has(mun))municipalities.set(mun,new Map());
+    const zones=municipalities.get(mun);
+    if(!zones.has(zona))zones.set(zona,[]);
+    zones.get(zona).push(row);
+  }
+  for(const zones of municipalities.values()){
+    for(const rows of zones.values())rows.sort((a,b)=>Number(a.secao)-Number(b.secao));
+  }
+  const municipios=[...municipalities.keys()].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  window.__qgSectionIndexV148={stamp,municipalities,municipios,count:base.length};
+  return window.__qgSectionIndexV148;
+}
+
+function qgFiscalSearchDebouncedV148(){
+  clearTimeout(window.__qgFiscalSearchTimerV148);
+  window.__qgFiscalSearchTimerV148=setTimeout(()=>fillFiscalSectionsV66(),120);
+}
+</script>
+
+
+<script id="qg-qr-final-guard-v148">
+window.__qgQrFrameGuardV148={hash:'',at:0,finished:false};
+
+function qgQrFrameAllowedV148(raw){
+  const now=Date.now();
+  const h=(typeof qgHashTextV93==='function')?qgHashTextV93(String(raw||'')):String(raw||'');
+  const g=window.__qgQrFrameGuardV148;
+  if(g.finished)return false;
+  if(g.hash===h && now-g.at<1600)return false;
+  g.hash=h;g.at=now;
+  return true;
+}
+function qgQrFrameResetV148(){
+  window.__qgQrFrameGuardV148={hash:'',at:0,finished:false};
+}
+</script>
+
+
+<script id="qg-production-v148">
+const QG_PRODUCTION_MODE_V148=true;
+
+function qgProductionCleanupV148(){
+  try{
+    qgTenantEnsureV97();
+    state.tenantsV97=state.tenantsV97.filter(t=>!['tenant-temp-v102','cliente-demo-v100'].includes(t.id));
+    state.tenantAccountsV97=state.tenantAccountsV97.filter(a=>!['tenant-temp-v102','cliente-demo-v100'].includes(a.tenantId));
+    delete state.tenantFiscalV97?.['tenant-temp-v102'];
+    delete state.tenantFiscalV97?.['cliente-demo-v100'];
+    qgPersistStateSafe();
+  }catch(e){}
+}
+document.addEventListener('DOMContentLoaded',()=>setTimeout(qgProductionCleanupV148,350),{once:true});
+</script>
+
+
+<script id="qg-regression-lock-v148">
+window.QG_REGRESSION_LOCK_V148={"handleQRRaw":"d693996d","qgAcceptDecodedPartV92":"e882cfb3","applyFullQrToFiscalV71":"d217f2bb","submitAutoQrBundleV71":"c00d892f","qgSaveTenantV97":"5300ab33","qgResolveTenantLoginV101":"87ae325c","qgResolveTenantLoginV102":"84fcf3bf","qgRemoteSaveTenantV97":"6d1e76f2","qgSectionBaseV110":"1f6a7e66","initFiscalSetupV66":"e400d66b","fillFiscalZonesV66":"f3cf54f6","fillFiscalSectionsV66":"c03e0876","qgStartRealtimeV88":"78feb887","qgDeleteTenantV127":"abcf7402"};
+function qgFnv1aV148(s){
+  let h=0x811c9dc5;
+  for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,0x01000193)>>>0}
+  return h.toString(16).padStart(8,'0');
+}
+function qgVerifyRegressionLockV148(){
+  const bad=[];
+  for(const [name,expected] of Object.entries(window.QG_REGRESSION_LOCK_V148)){
+    const fn=window[name];
+    const got=typeof fn==='function'?qgFnv1aV148(fn.toString()):'MISSING';
+    if(got!==expected)bad.push({name,expected,got});
+  }
+  return {ok:bad.length===0,bad,checked:Object.keys(window.QG_REGRESSION_LOCK_V148).length};
 }
 </script>
 
