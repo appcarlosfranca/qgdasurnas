@@ -4005,12 +4005,7 @@ body.qg-neon-disabled-v121[data-qg-role="fiscal"] .qg-side-logo-v115 img{
   .qg-intro-copy-v129{margin-top:0}
   .qg-intro-enter-v129{width:min(100%,280px)}
 }
-@media(prefers-reduced-motion:reduce){
-  .qg-intro-logo-v129,.qg-intro-trace-v129,.qg-intro-scan-v129,.qg-intro-ring-v129,
-  .qg-intro-orbit-v129,.qg-intro-grid-v129,.qg-intro-copy-v129,.qg-intro-enter-v129{
-    animation:none!important;opacity:1!important;transform:none!important;clip-path:none!important
-  }
-}
+/* v137: intro animation remains active regardless of prefers-reduced-motion. */
 </style>
 
 
@@ -4441,16 +4436,7 @@ body.qg-neon-disabled-v121[data-qg-role="fiscal"] .qg-side-logo-v115 img{
   to{transform:rotate(360deg)}
 }
 
-@media(prefers-reduced-motion:reduce){
-  .qg-intro-logo-shell-v129::before,
-  .qg-intro-logo-shell-v129::after,
-  .qg-intro-stage-v129::before,
-  .qg-intro-stage-v129::after,
-  .qg-intro-enter-v129::before,
-  .qg-intro-logo-v129{
-    animation:none!important;
-  }
-}
+/* v137: intro neon remains active regardless of prefers-reduced-motion. */
 </style>
 
 
@@ -4572,6 +4558,7 @@ body.qg-neon-disabled-v121[data-qg-role="fiscal"] .qg-side-logo-v115 img{
   }
 }
 </style>
+
 
 </head><body>
 <div id="authOverlayV36" class="auth36-overlay">
@@ -11551,7 +11538,7 @@ function drawCharts(){
 }
 
 
-const QG_SCHEMA_VERSION = 135;
+const QG_SCHEMA_VERSION = 137;
 
 const QG_DEMO_CREDENTIALS={
   fiscal:{user:'fiscal',pass:'QG2026'},
