@@ -11647,7 +11647,7 @@ function drawCharts(){
 }
 
 
-const QG_SCHEMA_VERSION = 145;
+const QG_SCHEMA_VERSION = 147;
 
 const QG_DEMO_CREDENTIALS={
   fiscal:{user:'fiscal',pass:'QG2026'},
@@ -12072,41 +12072,61 @@ function handleQRRaw(raw){
 
     if(header.valid){
       let ingest=null;
-      try{ingest=qgAcceptDecodedPartV92(text)}catch(e){console.warn('Parser multi-QR V104',e)}
+      try{ingest=qgAcceptDecodedPartV92(text)}catch(e){console.warn('Parser multi-QR',e)}
+
       if(ingest&&ingest.recognized){
+        /* Repeated camera frame after completion: keep the already populated BU. */
+        if(ingest.complete && ingest.duplicate && state.currentBU){
+          if(stateEl)stateEl.textContent='BU já reconhecido e preenchido. Confira os dados antes do envio.';
+          try{stopQRScanner()}catch(e){}
+          return {recognized:true,complete:true,duplicate:true,captured:state.currentBU};
+        }
+
         if(!ingest.accepted){
           if(stateEl)stateEl.textContent=ingest.error||'QR repetido ignorado. Continue lendo as partes restantes.';
           return {recognized:true,complete:false,duplicate:!!ingest.duplicate,alreadySent:!!ingest.alreadySent};
         }
+
         if(!ingest.complete){
           if(stateEl)stateEl.textContent='Parte '+ingest.index+' de '+ingest.total+' recebida. Continue a sequência.';
           try{qgPersistStateSafe()}catch(e){}
           return {recognized:true,complete:false,index:ingest.index,total:ingest.total};
         }
+
         const parsed=ingest.parsed||parseQrSetV32();
         if(!parsed)throw new Error('Não foi possível reconstruir o conjunto de QR Codes.');
+
         const reconstructed=parsed.payload||text;
         if(qgBuWasSentV93(reconstructed)){
           const msg=qgDuplicateMessageV93('bu');
           if(stateEl)stateEl.textContent=msg;
           renderMultiQrProgressV92(msg,'error');
-          setTimeout(()=>qgResetMultiQrSessionV92(),900);
           return {recognized:true,complete:false,alreadySent:true};
         }
+
+        /* Fundamental: preenche município, zona, seção, local, cargos configurados,
+           candidatos, números e votos ANTES de qualquer conferência adicional. */
         const captured=applyFullQrToFiscalV71(parsed,reconstructed);
         state.lastQrRaw=reconstructed;
-        if(stateEl)stateEl.textContent='BU completo processado. Todas as partes foram reunidas antes da contabilização.';
-        renderMultiQrProgressV92('BU completo: '+ingest.total+' QR Code(s) lidos e consolidados em uma única apuração.');
-        return {recognized:true,complete:true,captured};
+
+        try{stopQRScanner()}catch(e){}
+
+        if(ingest.integrity && ingest.integrity.ok===false){
+          if(stateEl)stateEl.textContent='BU reconhecido e preenchido. Existe uma divergência de conferência antes do envio.';
+        }else{
+          if(stateEl)stateEl.textContent='BU completo processado. Dados preenchidos automaticamente.';
+        }
+
+        try{qgPersistStateSafe()}catch(e){}
+        return {recognized:true,complete:true,captured,integrity:ingest.integrity||captured.integrityV138};
       }
     }
 
-    /* V104: muitos BUs/geradores apresentam um QR completo sem QRBU:1:1.
-       Nesse caso, processa o conteúdo diretamente como um único BU. */
     if(/(?:^|\s)QRBU:\d+:\d+/i.test(text) && !header.valid){
       if(stateEl)stateEl.textContent='QRBU detectado, mas o cabeçalho da sequência é inválido.';
       return {recognized:true,complete:false,error:'Cabeçalho QRBU inválido.'};
     }
+
     const standalone=qgParseStandaloneQrV104(text);
     if(standalone){
       if(qgBuWasSentV93(text)){
@@ -12116,15 +12136,16 @@ function handleQRRaw(raw){
       }
       const captured=applyFullQrToFiscalV71(standalone,text);
       window.__qgMultiQrSession92={active:true,total:1,parts:new Map([[1,text]]),fingerprint:'',completed:true,lastSeenRaw:text,lastSeenAt:Date.now()};
-      renderMultiQrProgressV92('QR único reconhecido: 1/1. BU pronto para conferência e envio.');
+      renderMultiQrProgressV92('QR único reconhecido: 1/1. Dados preenchidos automaticamente.');
       if(stateEl)stateEl.textContent='QR 1/1 reconhecido e processado.';
+      try{stopQRScanner()}catch(e){}
       return {recognized:true,complete:true,captured,standalone:true};
     }
 
     if(stateEl)stateEl.textContent='QR detectado, mas o conteúdo não corresponde a um BU reconhecível.';
     return {recognized:false,complete:false,error:'Conteúdo de BU não reconhecido.'};
   }catch(e){
-    console.error('Processamento QR V104',e);
+    console.error('Processamento QR',e);
     if(stateEl)stateEl.textContent='Falha na leitura do QR: '+(e.message||e);
     return {recognized:false,error:String(e.message||e)};
   }
@@ -14418,6 +14439,8 @@ function renderAutoQrResultsV71(results){
 function applyFullQrToFiscalV71(parsed,raw){
   const meta=parsed?.meta||{};
   const results=extractEnabledQrResultsV71(parsed);
+  const integrity=parsed?.integrityV138||qgValidateParsedBuV138(parsed);
+
   const captured={
     source:'QR_TSE_V71',
     municipio:qgCanonicalMunicipioV76(meta.municipio||''),
@@ -14430,35 +14453,60 @@ function applyFullQrToFiscalV71(parsed,raw){
     urna:meta.urna||'',
     turno:meta.turno||'',
     uf:meta.uf||'',
+    pleito:meta.pleito||'',
+    dataPleito:meta.dataPleito||'',
+    fase:meta.fase||'',
+    origem:meta.origem||'',
+    processo:meta.processo||'',
+    versao:meta.versao||'',
+    codigoCarga:meta.carga||'',
     raw:String(raw||''),
     complete:true,
     signatureVerified:parsed?.signatureVerified===true,
-    parserVersion:138,
-    integrityV138:parsed?.integrityV138||qgValidateParsedBuV138(parsed),
+    parserVersion:147,
+    integrityV138:integrity,
     resultsByCargo:results,
     autoMultiCargo:true
   };
+
+  captured.buIdentityV147=qgBuIdentityV147(captured);
   state.currentBU=captured;
+
   try{maybeOfferAddCapturedSectionV76(captured.municipio,captured.zona,captured.secao,captured.local||'')}catch(e){}
+
   try{
-    if(captured.municipio){fillFiscalConferenceMunicipiosV67(captured.municipio);document.getElementById('m').value=captured.municipio}
-    if(captured.zona){fillFiscalConferenceZonesV67(captured.zona);document.getElementById('z').value=String(captured.zona)}
-    if(captured.secao){fillFiscalConferenceSectionsV67(captured.secao);document.getElementById('s').value=String(captured.secao)}
+    if(captured.municipio){
+      fillFiscalConferenceMunicipiosV67(captured.municipio);
+      const m=document.getElementById('m'); if(m)m.value=captured.municipio;
+    }
+    if(captured.zona){
+      fillFiscalConferenceZonesV67(captured.zona);
+      const z=document.getElementById('z'); if(z)z.value=String(captured.zona);
+    }
+    if(captured.secao){
+      fillFiscalConferenceSectionsV67(captured.secao);
+      const s=document.getElementById('s'); if(s)s.value=String(captured.secao);
+    }
     syncFiscalConferenceLocalV67();
-  }catch(e){console.warn('Território QR V71',e)}
+  }catch(e){console.warn('Território QR',e)}
 
   renderAutoQrResultsV71(results);
-
-  /* Sync visible single-result fields with the first nominal result, when present. */
-  const primarySyncV76=syncPrimaryFieldsFromQrResultsV76(results);
+  syncPrimaryFieldsFromQrResultsV76(results);
   qgRenderQrContractAndCandidatesV85(results);
   qgSetFiscalQrLockV86(true);
 
-
   const val=document.getElementById('sectionValidation');
-  if(val)val.innerHTML=(results||[]).some(x=>(x.candidatos||[]).length)
-      ? '<b>BU processado automaticamente.</b> Município, zona, seção e local foram identificados. Todos os cargos habilitados pelo ADM estão fixados automaticamente. Somente os candidatos com votos nominais maiores que zero encontrados nesses cargos serão contabilizados e enviados.'
-      : '<b>BU processado automaticamente.</b> Os dados territoriais foram identificados, mas não há votos nominais utilizáveis nos cargos contratados.';
+  if(val){
+    const hasNominal=(results||[]).some(x=>(x.candidatos||[]).length);
+    if(!integrity.ok){
+      val.innerHTML='<b>BU reconhecido e preenchido automaticamente.</b> Os cargos configurados para esta conta foram identificados, porém existe uma divergência de conferência. Os dados permanecem visíveis para revisão e o envio ficará protegido até a inconsistência ser resolvida.';
+    }else if(hasNominal){
+      val.innerHTML='<b>BU reconhecido e preenchido automaticamente.</b> Município, zona, seção, local, cargos configurados, candidatos, números e votos foram identificados. O Fiscal não precisa ajustar nenhum campo.';
+    }else{
+      val.innerHTML='<b>BU reconhecido.</b> Os dados territoriais foram identificados, mas não há votos nominais utilizáveis nos cargos configurados para esta conta.';
+    }
+  }
+
   try{qgPersistStateSafe()}catch(e){}
   return captured;
 }
@@ -14475,8 +14523,15 @@ async function submitAutoQrBundleV71(){
   }catch(e){}
 
   const bu=state.currentBU||{};
-  if(bu.integrityV138 && bu.integrityV138.ok===false){
-    return {ok:false,error:'Envio bloqueado: a reconstrução do QR não passou na conferência aritmética.',integrity:bu.integrityV138};
+  const apuracaoCheckV147=qgValidateApuracaoV147(bu);
+  bu.apuracaoIntegrityV147=apuracaoCheckV147;
+  bu.buIdentityV147=apuracaoCheckV147.buIdentity;
+  if(!apuracaoCheckV147.ok){
+    return {
+      ok:false,
+      error:'Envio bloqueado para proteger a apuração: '+apuracaoCheckV147.errors.join(' '),
+      integrity:apuracaoCheckV147
+    };
   }
   const blocks=Array.isArray(bu.resultsByCargo)?bu.resultsByCargo.filter(b=>isCargoEnabledV71(b.cargo)):[];
   if(!blocks.length)return {ok:false,error:'Nenhum cargo habilitado foi localizado no QR.'};
@@ -14524,7 +14579,8 @@ async function submitAutoQrBundleV71(){
         metodo:'QR',qrRaw:state.lastQrRaw||bu.raw||null,photoData:null,
         protocolo:baseProtocol+'-'+String(candidate.numero),
         buProtocol:baseProtocol,buBundle:true,
-        buMeta:{aptos:bu.aptos||0,comparecimento:bu.comparecimento||0,faltosos:bu.faltosos||0,urna:bu.urna||'',turno:bu.turno||'',uf:bu.uf||'',localIdQr:bu.local||'',localVotacao:x.local||'',eleitoresBase:Number(x.eleitores||0),cargoBrancos:Number(block.brancos||0),cargoNulos:Number(block.nulos||0),cargoTotal:Number(block.total||0),cargoLegenda:Number(block.legenda||0),cargoPartidos:(block.partidos||[]).map(p=>({numero:p.numero,votosLegenda:Number(p.votosLegenda||0),totalPartido:Number(p.totalPartido||0)}))},
+        buIdentityV147:bu.buIdentityV147||qgBuIdentityV147(bu),
+        buMeta:{aptos:bu.aptos||0,comparecimento:bu.comparecimento||0,faltosos:bu.faltosos||0,urna:bu.urna||'',turno:bu.turno||'',uf:bu.uf||'',pleito:bu.pleito||'',dataPleito:bu.dataPleito||'',fase:bu.fase||'',codigoCarga:bu.codigoCarga||'',versao:bu.versao||'',localIdQr:bu.local||'',localVotacao:x.local||'',eleitoresBase:Number(x.eleitores||0),cargoBrancos:Number(block.brancos||0),cargoNulos:Number(block.nulos||0),cargoTotal:Number(block.total||0),cargoLegenda:Number(block.legenda||0),cargoPartidos:(block.partidos||[]).map(p=>({numero:p.numero,votosLegenda:Number(p.votosLegenda||0),totalPartido:Number(p.totalPartido||0)}))},
         buSnapshotV115:completeSnapshotV115
       };
 
@@ -14559,7 +14615,8 @@ async function submitAutoQrBundleV71(){
         qrRaw:state.lastQrRaw||bu.raw||null,photoData:null,
         protocolo:baseProtocol+'-BU',buProtocol:baseProtocol,buBundle:true,buMarker:true,
         enabledCargos:enabledCargosV71(),
-        buMeta:{aptos:bu.aptos||0,comparecimento:bu.comparecimento||0,faltosos:bu.faltosos||0,urna:bu.urna||'',turno:bu.turno||'',uf:bu.uf||'',localIdQr:bu.local||'',localVotacao:x.local||'',eleitoresBase:Number(x.eleitores||0)},
+        buIdentityV147:bu.buIdentityV147||qgBuIdentityV147(bu),
+        buMeta:{aptos:bu.aptos||0,comparecimento:bu.comparecimento||0,faltosos:bu.faltosos||0,urna:bu.urna||'',turno:bu.turno||'',uf:bu.uf||'',pleito:bu.pleito||'',dataPleito:bu.dataPleito||'',fase:bu.fase||'',codigoCarga:bu.codigoCarga||'',versao:bu.versao||'',localIdQr:bu.local||'',localVotacao:x.local||'',eleitoresBase:Number(x.eleitores||0)},
         buSnapshotV115:completeSnapshotV115
       };
       if(online)state.subs.push(marker);else state.offlineQueue.push(marker);
@@ -16555,34 +16612,59 @@ function renderMultiQrProgressV92(message='',kind=''){
 }
 function qgAcceptDecodedPartV92(raw){
   const s=window.__qgMultiQrSession92,check=qgCompatiblePartV92(raw);
-  if(!check.ok){renderMultiQrProgressV92(check.error,'error');return {recognized:true,accepted:false,complete:false,error:check.error,alreadySent:!!check.alreadySent}}
+  if(!check.ok){
+    renderMultiQrProgressV92(check.error,'error');
+    return {recognized:true,accepted:false,complete:false,error:check.error,alreadySent:!!check.alreadySent};
+  }
   const {h,fp}=check;
+
+  /* If the BU has already completed, ignore repeated camera frames without
+     changing the successful state or replacing the success message. */
+  if(s.completed){
+    return {recognized:true,accepted:false,complete:true,duplicate:true,index:h.index,total:h.total,parsed:window.__lastParsedQrV32||null};
+  }
+
   if(!s.active){
     s.active=true;s.total=h.total;s.fingerprint=fp||'';s.parts=new Map();s.completed=false;
     try{clearQrSetV32()}catch(e){}
   }
+
   if(s.parts.has(h.index)){
     renderMultiQrProgressV92('QR '+h.index+' já foi lido. Aponte para uma das partes que ainda faltam.');
-    return {recognized:true,accepted:false,duplicate:true,complete:false};
+    return {recognized:true,accepted:false,duplicate:true,complete:false,index:h.index,total:h.total};
   }
+
   s.parts.set(h.index,String(raw||''));
   if(!s.fingerprint&&fp)s.fingerprint=fp;
   addQrPartV32(String(raw||''));
+
   const complete=validateQrSetV32(qrPartsStateV32).ok && s.parts.size===s.total;
-  s.completed=complete;
-  renderMultiQrProgressV92(complete?'Sequência completa. Validando a integridade do BU...':'QR '+h.index+' de '+h.total+' capturado. Continue a leitura.');
-  if(!complete)return {recognized:true,accepted:true,complete:false,index:h.index,total:h.total};
-  const parsed=parseQrSetV32();
-  if(!parsed)return {recognized:true,accepted:true,complete:false,index:h.index,total:h.total,error:'Falha ao reconstruir o BU.'};
-  const integrity=qgValidateParsedBuV138(parsed);
-  if(!integrity.ok){
-    s.completed=false;
-    const msg='BU reconstruído, mas a soma dos votos não confere. Leitura bloqueada para evitar totalização incorreta.';
-    renderMultiQrProgressV92(msg,'error');
-    return {recognized:true,accepted:true,complete:false,index:h.index,total:h.total,error:msg,integrity};
+  renderMultiQrProgressV92(complete?'Sequência completa. Processando os dados do BU...':'QR '+h.index+' de '+h.total+' capturado. Continue a leitura.');
+
+  if(!complete){
+    return {recognized:true,accepted:true,complete:false,index:h.index,total:h.total};
   }
+
+  const parsed=parseQrSetV32();
+  if(!parsed){
+    s.completed=false;
+    const msg='Falha ao reconstruir o BU após a leitura de todas as partes.';
+    renderMultiQrProgressV92(msg,'error');
+    return {recognized:true,accepted:true,complete:false,index:h.index,total:h.total,error:msg};
+  }
+
+  const integrity=qgValidateParsedBuV138(parsed);
   parsed.integrityV138=integrity;
-  return {recognized:true,accepted:true,complete:true,index:h.index,total:h.total,parsed,integrity};
+  window.__lastParsedQrV32=parsed;
+  s.completed=true;
+
+  if(integrity.ok){
+    renderMultiQrProgressV92('BU completo: '+h.total+' QR Code(s) lidos. Dados reconhecidos e prontos para conferência.');
+  }else{
+    renderMultiQrProgressV92('BU completo e dados reconhecidos. Há divergência de conferência; revise o aviso antes do envio.','error');
+  }
+
+  return {recognized:true,accepted:true,complete:true,index:h.index,total:h.total,parsed,integrity,warning:!integrity.ok};
 }
 </script>
 
@@ -18126,6 +18208,109 @@ async function qgAdminLoginV140(){
   }finally{
     if(btn){btn.disabled=false;btn.textContent=old}
   }
+}
+</script>
+
+
+<script id="qg-apuracao-integrity-v147">
+function qgBuIdentityV147(bu){
+  const tenant=typeof qgCurrentTenantIdV97==='function'?qgCurrentTenantIdV97():'default';
+  const municipio=normalizeText(bu?.municipio||'');
+  const zona=Number(bu?.zona||0);
+  const secao=Number(bu?.secao||0);
+  const pleito=String(bu?.pleito||bu?.dataPleito||'').trim();
+  const carga=String(bu?.codigoCarga||bu?.carga||'').trim();
+  const urna=String(bu?.urna||'').trim();
+  const fallback=(typeof qgHashTextV93==='function')
+    ?qgHashTextV93(normalizeQrPayloadV32(bu?.raw||state.lastQrRaw||''))
+    :'SEM_HASH';
+  return [tenant,pleito||'PLEITO_ND',municipio,zona,secao,carga||urna||fallback].join('|');
+}
+
+function qgValidateApuracaoV147(bu){
+  const errors=[],warnings=[];
+  const blocks=Array.isArray(bu?.resultsByCargo)?bu.resultsByCargo.filter(b=>isCargoEnabledV71(b.cargo)):[];
+  const configured=enabledCargosV71();
+  const base=window.QG_CANDIDATES_V27||state.candidates||[];
+
+  if(!String(bu?.municipio||'').trim())errors.push('Município ausente.');
+  if(!Number(bu?.zona||0))errors.push('Zona ausente.');
+  if(!Number(bu?.secao||0))errors.push('Seção ausente.');
+  if(!blocks.length)errors.push('Nenhum cargo configurado foi reconhecido no BU.');
+
+  const present=new Set(blocks.map(b=>String(b.cargo||'')));
+  configured.forEach(c=>{
+    if(!present.has(String(c)))errors.push('Cargo configurado não localizado no BU: '+c+'.');
+  });
+
+  const seenCargo=new Set();
+  for(const block of blocks){
+    const cargo=String(block.cargo||'');
+    if(seenCargo.has(cargo))errors.push('Cargo duplicado no BU reconstruído: '+cargo+'.');
+    seenCargo.add(cargo);
+
+    const candidatos=Array.isArray(block.candidatos)?block.candidatos:[];
+    const seenCandidate=new Set();
+    let nominal=0;
+
+    for(const item of candidatos){
+      const numero=String(item.numero||'').trim();
+      const votos=Number(item.votos||0);
+
+      if(!numero)errors.push(cargo+': candidato sem número.');
+      if(seenCandidate.has(numero))errors.push(cargo+': candidato '+numero+' duplicado.');
+      seenCandidate.add(numero);
+
+      if(!Number.isInteger(votos)||votos<0){
+        errors.push(cargo+' / '+numero+': quantidade de votos inválida.');
+        continue;
+      }
+      nominal+=votos;
+
+      if(votos>0){
+        const candidate=base.find(c=>String(c.cargo||'')===cargo&&String(c.numero||'').trim()===numero);
+        if(!candidate){
+          errors.push(cargo+' / '+numero+': candidato com votos não localizado na base ativa. Envio bloqueado para evitar perda de votos.');
+        }
+      }
+    }
+
+    const declared=Number(block.nominaisDeclarados||block.votosNominais||0);
+    if(declared && declared!==nominal){
+      errors.push(cargo+': soma nominal '+nominal+' diferente do total nominal declarado '+declared+'.');
+    }
+
+    const legenda=Number(block.legenda||0);
+    const brancos=Number(block.brancos||0);
+    const nulos=Number(block.nulos||0);
+    const total=Number(block.total||0);
+    const expected=nominal+legenda+brancos+nulos;
+
+    if([legenda,brancos,nulos,total].some(v=>!Number.isInteger(v)||v<0)){
+      errors.push(cargo+': totais especiais inválidos.');
+    }
+    if(total && total!==expected){
+      errors.push(cargo+': total do cargo '+total+' diferente da soma '+expected+'.');
+    }
+  }
+
+  if(bu?.integrityV138?.ok===false){
+    errors.push(...(bu.integrityV138.errors||[]));
+    warnings.push(...(bu.integrityV138.warnings||[]));
+  }
+
+  if(!String(bu?.codigoCarga||bu?.carga||'').trim()){
+    warnings.push('Código de carga não disponível no QR; identidade do BU usa urna/hash como fallback.');
+  }
+
+  return {
+    ok:errors.length===0,
+    errors:[...new Set(errors)],
+    warnings:[...new Set(warnings)],
+    buIdentity:qgBuIdentityV147(bu),
+    cargos:blocks.map(b=>String(b.cargo||'')),
+    checkedAt:new Date().toISOString()
+  };
 }
 </script>
 
