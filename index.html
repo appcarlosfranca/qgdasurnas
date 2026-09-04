@@ -10051,14 +10051,21 @@ function normalizeQrPayloadV32(raw){
     .trim();
 }
 function parseQrPartHeaderV32(raw){
-  const text=normalizeQrPayloadV32(raw);
-  const m=text.match(/(?:^|\s)QRBU:(\d+):(\d+)(?:\s|$)/);
-  if(!m)return {valid:false,index:null,total:null,text,error:'Descritor QRBU não encontrado.'};
+  const original=String(raw||'').replace(/\r?\n/g,' ');
+  const m=original.match(/(?:^|\s)QRBU:(\d+):(\d+)([ \t]?)/i);
+  if(!m)return {valid:false,index:null,total:null,text:normalizeQrPayloadV32(original),raw:original,fragment:'',error:'Descritor QRBU não encontrado.'};
   const index=Number(m[1]),total=Number(m[2]);
+  const leading=m[0].startsWith(' ')?1:0;
+  const headerStart=m.index+leading;
+  const headerLen=m[0].length-leading;
+  const fragment=original.slice(headerStart+headerLen);
+  const valid=Number.isInteger(index)&&Number.isInteger(total)&&index>=1&&total>=1&&index<=total;
   return {
-    valid:Number.isInteger(index)&&Number.isInteger(total)&&index>=1&&total>=1&&index<=total,
-    index,total,text,
-    error:index>=1&&total>=1&&index<=total?'':'Sequência QRBU inválida.'
+    valid,index,total,
+    text:normalizeQrPayloadV32(original),
+    raw:original,
+    fragment,
+    error:valid?'':'Sequência QRBU inválida.'
   };
 }
 function addQrPartV32(rawOverride){
@@ -10067,7 +10074,13 @@ function addQrPartV32(rawOverride){
   const h=parseQrPartHeaderV32(raw);
   if(!h.valid){toastV21(h.error||'QR inválido.','bad');return false}
   const existing=qrPartsStateV32.findIndex(x=>x.index===h.index);
-  const part={index:h.index,total:h.total,text:h.text,addedAt:new Date().toISOString()};
+  const part={
+    index:h.index,total:h.total,
+    text:h.text,
+    raw:h.raw,
+    fragment:h.fragment,
+    addedAt:new Date().toISOString()
+  };
   if(existing>=0)qrPartsStateV32[existing]=part;else qrPartsStateV32.push(part);
   qrPartsStateV32.sort((a,b)=>a.index-b.index);
   if(input && typeof rawOverride!=='string')input.value='';
@@ -10170,10 +10183,17 @@ function validateQrSetV32(parts){
   return {ok:errors.length===0,errors,warnings,total};
 }
 function reconstructQrPayloadV32(parts){
-  // Remove QRBU:x:y de cada pedaço e concatena na ordem.
-  return parts.slice().sort((a,b)=>a.index-b.index).map(p=>
-    p.text.replace(/(?:^|\s)QRBU:\d+:\d+(?=\s|$)/,' ').trim()
-  ).join(' ').replace(/\s+/g,' ').trim();
+  /* V138: as partes são fatias do MESMO payload. Elas podem terminar no meio
+     de "5555:91", "NOMI:189", nomes de campos etc. Portanto NÃO se pode
+     inserir espaço entre as partes. Reconstruímos byte/texto-a-texto e só
+     normalizamos os espaços depois que o payload original foi recomposto. */
+  const ordered=(parts||[]).slice().sort((a,b)=>a.index-b.index);
+  const fragments=ordered.map(p=>{
+    if(typeof p.fragment==='string')return p.fragment;
+    const h=parseQrPartHeaderV32(p.raw||p.text||'');
+    return h.valid?h.fragment:String(p.raw||p.text||'');
+  });
+  return normalizeQrPayloadV32(fragments.join(''));
 }
 function parseQrSetV32(){
   const validation=validateQrSetV32(qrPartsStateV32);
@@ -10184,34 +10204,23 @@ function parseQrSetV32(){
   const payload=reconstructQrPayloadV32(qrPartsStateV32);
   const tokens=qrTokenizeV32(payload);
   const meta={
-    vrqr:fieldFirstV32(tokens,'VRQR'),
-    vrch:fieldFirstV32(tokens,'VRCH'),
-    origem:fieldFirstV32(tokens,'ORIG'),
-    processo:fieldFirstV32(tokens,'PROC'),
-    dataPleito:fieldFirstV32(tokens,'DTPL'),
-    pleito:fieldFirstV32(tokens,'PLEI'),
-    turno:fieldFirstV32(tokens,'TURN'),
-    fase:fieldFirstV32(tokens,'FASE'),
-    uf:fieldFirstV32(tokens,'UNFE'),
-    municipio:fieldFirstV32(tokens,'MUNI'),
+    vrqr:fieldFirstV32(tokens,'VRQR'),vrch:fieldFirstV32(tokens,'VRCH'),
+    origem:fieldFirstV32(tokens,'ORIG'),processo:fieldFirstV32(tokens,'PROC'),
+    dataPleito:fieldFirstV32(tokens,'DTPL'),pleito:fieldFirstV32(tokens,'PLEI'),
+    turno:fieldFirstV32(tokens,'TURN'),fase:fieldFirstV32(tokens,'FASE'),
+    uf:fieldFirstV32(tokens,'UNFE'),municipio:fieldFirstV32(tokens,'MUNI'),
     zona:Number(fieldFirstV32(tokens,'ZONA'))||null,
     secao:Number(fieldFirstV32(tokens,'SECA'))||null,
-    urna:fieldFirstV32(tokens,'IDUE'),
-    carga:fieldFirstV32(tokens,'IDCA'),
-    versao:fieldFirstV32(tokens,'VERS'),
-    local:fieldFirstV32(tokens,'LOCA'),
+    urna:fieldFirstV32(tokens,'IDUE'),carga:fieldFirstV32(tokens,'IDCA'),
+    versao:fieldFirstV32(tokens,'VERS'),local:fieldFirstV32(tokens,'LOCA'),
     aptos:Number(fieldFirstV32(tokens,'APTO'))||0,
     comparecimento:Number(fieldFirstV32(tokens,'COMP'))||0,
     faltosos:Number(fieldFirstV32(tokens,'FALT'))||0,
-    aberturaData:fieldFirstV32(tokens,'DTAB'),
-    aberturaHora:fieldFirstV32(tokens,'HRAB'),
-    fechamentoData:fieldFirstV32(tokens,'DTFC'),
-    fechamentoHora:fieldFirstV32(tokens,'HRFC'),
-    hash:fieldFirstV32(tokens,'HASH'),
-    assinatura:fieldFirstV32(tokens,'ASSI')
+    aberturaData:fieldFirstV32(tokens,'DTAB'),aberturaHora:fieldFirstV32(tokens,'HRAB'),
+    fechamentoData:fieldFirstV32(tokens,'DTFC'),fechamentoHora:fieldFirstV32(tokens,'HRFC'),
+    hash:fieldFirstV32(tokens,'HASH'),assinatura:fieldFirstV32(tokens,'ASSI')
   };
   const cargos=parseCargoBlocksV32(tokens);
-
   const result={validation,meta,cargos,payload,tokens,signatureVerified:false};
   validation.warnings=[];
   if(!meta.hash)validation.warnings.push('HASH não localizado.');
@@ -10219,9 +10228,15 @@ function parseQrSetV32(){
   if(!cargos.length)validation.warnings.push('Nenhum bloco CARG localizado.');
   if(meta.uf && meta.uf!=='SE')validation.warnings.push('UF do QR é '+meta.uf+', não SE.');
   if(meta.zona&&meta.secao){
-    const found=sections.find(s=>Number(s.zona)===meta.zona&&Number(s.secao)===meta.secao);
+    const base=(typeof qgSectionBaseV110==='function'?qgSectionBaseV110():(window.QG_SECTIONS_V27||sections||[]));
+    const found=base.find(s=>Number(s.zona)===meta.zona&&Number(s.secao)===meta.secao);
     if(!found)validation.warnings.push('Zona/seção não encontrada na base ativa de Sergipe.');
     result.sectionMatch=found||null;
+  }
+  result.integrityV138=qgValidateParsedBuV138(result);
+  if(!result.integrityV138.ok){
+    validation.ok=false;
+    validation.errors=(validation.errors||[]).concat(result.integrityV138.errors);
   }
   window.__lastParsedQrV32=result;
   renderQrValidationV32(validation,result);
@@ -11538,7 +11553,7 @@ function drawCharts(){
 }
 
 
-const QG_SCHEMA_VERSION = 137;
+const QG_SCHEMA_VERSION = 139;
 
 const QG_DEMO_CREDENTIALS={
   fiscal:{user:'fiscal',pass:'QG2026'},
@@ -11994,6 +12009,10 @@ function handleQRRaw(raw){
 
     /* V104: muitos BUs/geradores apresentam um QR completo sem QRBU:1:1.
        Nesse caso, processa o conteúdo diretamente como um único BU. */
+    if(/(?:^|\s)QRBU:\d+:\d+/i.test(text) && !header.valid){
+      if(stateEl)stateEl.textContent='QRBU detectado, mas o cabeçalho da sequência é inválido.';
+      return {recognized:true,complete:false,error:'Cabeçalho QRBU inválido.'};
+    }
     const standalone=qgParseStandaloneQrV104(text);
     if(standalone){
       if(qgBuWasSentV93(text)){
@@ -14259,15 +14278,11 @@ function extractEnabledQrResultsV71(parsed){
   for(const block of (parsed.cargos||[])){
     const cargo=String(block.cargo||'');
     if(!allowed.has(cargo))continue;
-
     const items=(block.votosNominais||[]).map(vote=>{
       const numero=String(vote.numero||'').trim();
-      const found=candidates.find(c=>
-        String(c.cargo||'')===cargo && String(c.numero||'').trim()===numero
-      );
+      const found=candidates.find(c=>String(c.cargo||'')===cargo&&String(c.numero||'').trim()===numero);
       return {
-        cargo,
-        numero,
+        cargo,numero,
         nome:found?.nome||('Candidato '+numero),
         partido:found?.partido||'',
         votos:Number(vote.votos||0),
@@ -14275,15 +14290,16 @@ function extractEnabledQrResultsV71(parsed){
         matched:!!found
       };
     });
-
+    const nominalCalc=items.reduce((s,x)=>s+Number(x.votos||0),0);
     out.push({
-      cargo,
-      codigo:block.codigo||'',
-      candidatos:items,
+      cargo,codigo:block.codigo||'',candidatos:items,
+      votosNominais:nominalCalc,
+      nominaisDeclarados:Number(block.nominaisDeclarados||0),
       brancos:Number(block.brancos||0),
       nulos:Number(block.nulos||0),
       legenda:Number(block.legenda||0),
-      total:Number(block.total||0)
+      total:Number(block.total||0),
+      integrityOk:(!block.nominaisDeclarados||Number(block.nominaisDeclarados)===nominalCalc)
     });
   }
   return out;
@@ -14323,6 +14339,8 @@ function applyFullQrToFiscalV71(parsed,raw){
     raw:String(raw||''),
     complete:true,
     signatureVerified:parsed?.signatureVerified===true,
+    parserVersion:138,
+    integrityV138:parsed?.integrityV138||qgValidateParsedBuV138(parsed),
     resultsByCargo:results,
     autoMultiCargo:true
   };
@@ -14363,6 +14381,9 @@ async function submitAutoQrBundleV71(){
   }catch(e){}
 
   const bu=state.currentBU||{};
+  if(bu.integrityV138 && bu.integrityV138.ok===false){
+    return {ok:false,error:'Envio bloqueado: a reconstrução do QR não passou na conferência aritmética.',integrity:bu.integrityV138};
+  }
   const blocks=Array.isArray(bu.resultsByCargo)?bu.resultsByCargo.filter(b=>isCargoEnabledV71(b.cargo)):[];
   if(!blocks.length)return {ok:false,error:'Nenhum cargo habilitado foi localizado no QR.'};
   const scopeCheckV86=qgValidateQrAgainstAdminV86(blocks);
@@ -16450,15 +16471,24 @@ function qgAcceptDecodedPartV92(raw){
     renderMultiQrProgressV92('QR '+h.index+' já foi lido. Aponte para uma das partes que ainda faltam.');
     return {recognized:true,accepted:false,duplicate:true,complete:false};
   }
-  s.parts.set(h.index,h.text);
+  s.parts.set(h.index,String(raw||''));
   if(!s.fingerprint&&fp)s.fingerprint=fp;
-  addQrPartV32(h.text);
+  addQrPartV32(String(raw||''));
   const complete=validateQrSetV32(qrPartsStateV32).ok && s.parts.size===s.total;
   s.completed=complete;
-  renderMultiQrProgressV92(complete?'Sequência completa. Reconstruindo o BU...':'QR '+h.index+' de '+h.total+' capturado. Continue a leitura.');
+  renderMultiQrProgressV92(complete?'Sequência completa. Validando a integridade do BU...':'QR '+h.index+' de '+h.total+' capturado. Continue a leitura.');
   if(!complete)return {recognized:true,accepted:true,complete:false,index:h.index,total:h.total};
   const parsed=parseQrSetV32();
-  return {recognized:true,accepted:true,complete:true,index:h.index,total:h.total,parsed};
+  if(!parsed)return {recognized:true,accepted:true,complete:false,index:h.index,total:h.total,error:'Falha ao reconstruir o BU.'};
+  const integrity=qgValidateParsedBuV138(parsed);
+  if(!integrity.ok){
+    s.completed=false;
+    const msg='BU reconstruído, mas a soma dos votos não confere. Leitura bloqueada para evitar totalização incorreta.';
+    renderMultiQrProgressV92(msg,'error');
+    return {recognized:true,accepted:true,complete:false,index:h.index,total:h.total,error:msg,integrity};
+  }
+  parsed.integrityV138=integrity;
+  return {recognized:true,accepted:true,complete:true,index:h.index,total:h.total,parsed,integrity};
 }
 </script>
 
@@ -17338,9 +17368,15 @@ function qgParseStandaloneQrV104(raw){
   const looksLikeBu=!!((meta.zona&&meta.secao)||(meta.aptos>0)||(cargos&&cargos.length));
   if(!looksLikeBu)return null;
   const result={
-    validation:{ok:true,complete:true,warnings:['QR único processado sem descritor QRBU explícito.']},
+    validation:{ok:true,complete:true,warnings:['QR único processado sem descritor QRBU explícito.'],errors:[]},
     meta,cargos,payload,tokens,signatureVerified:false,standaloneV104:true
   };
+  result.integrityV138=qgValidateParsedBuV138(result);
+  if(!result.integrityV138.ok){
+    result.validation.ok=false;
+    result.validation.errors.push(...result.integrityV138.errors);
+    return null;
+  }
   window.__lastParsedQrV32=result;
   return result;
 }
@@ -17886,6 +17922,42 @@ function qgEnterAccessV129(){
     if(first)first.focus();
   },540);
   return true;
+}
+</script>
+
+
+<script id="qg-qr-integrity-v138">
+function qgValidateParsedBuV138(parsed){
+  const errors=[],warnings=[],cargoChecks=[];
+  const blocks=Array.isArray(parsed?.cargos)?parsed.cargos:[];
+  for(const b of blocks){
+    const nominalCalc=(b.votosNominais||[]).reduce((s,x)=>s+Number(x.votos||0),0);
+    const nominalDeclared=Number(b.nominaisDeclarados||0);
+    const legenda=Number(b.legenda||0);
+    const brancos=Number(b.brancos||0);
+    const nulos=Number(b.nulos||0);
+    const total=Number(b.total||0);
+    const expectedTotal=nominalCalc+legenda+brancos+nulos;
+    const check={
+      cargo:b.cargo,codigo:b.codigo,
+      nominalCalc,nominalDeclared,legenda,brancos,nulos,total,expectedTotal,
+      nominalOk:!nominalDeclared||nominalDeclared===nominalCalc,
+      totalOk:!total||total===expectedTotal
+    };
+    cargoChecks.push(check);
+    if(nominalDeclared && nominalDeclared!==nominalCalc){
+      errors.push(b.cargo+': votos nominais lidos '+nominalCalc+' ≠ NOMI declarado '+nominalDeclared+'.');
+    }
+    if(total && total!==expectedTotal){
+      errors.push(b.cargo+': total reconstruído '+expectedTotal+' ≠ TOTC declarado '+total+'.');
+    }
+  }
+  if(!blocks.length)errors.push('Nenhum bloco de cargo foi reconstruído.');
+  const meta=parsed?.meta||{};
+  if(!Number(meta.zona||0)||!Number(meta.secao||0))errors.push('Zona/seção ausentes no QR reconstruído.');
+  if(!Number(meta.aptos||0))warnings.push('Quantidade de eleitores aptos não localizada.');
+  if(!Number(meta.comparecimento||0))warnings.push('Comparecimento não localizado.');
+  return {ok:errors.length===0,errors,warnings,cargos:cargoChecks};
 }
 </script>
 
