@@ -4560,6 +4560,20 @@ body.qg-neon-disabled-v121[data-qg-role="fiscal"] .qg-side-logo-v115 img{
 </style>
 
 
+
+<style id="qg-admin-login-v140-css">
+#login .qg-role-admin-login140{
+  width:100%!important;
+  min-width:0!important;
+  margin-top:14px!important;
+}
+#login .qg-role-admin-login140 input,
+#login .qg-role-admin-login140 button{
+  width:100%!important;
+  box-sizing:border-box!important;
+}
+</style>
+
 </head><body>
 <div id="authOverlayV36" class="auth36-overlay">
   <div class="auth36-modal">
@@ -4671,8 +4685,12 @@ body.qg-neon-disabled-v121[data-qg-role="fiscal"] .qg-side-logo-v115 img{
         <p>Gerencie dados, usuários, backups, auditoria e configurações críticas.</p>
       </div>
     </div>
+    <div class="credential-box qg-role-admin-login140">
+      <input id="adminUser140" autocomplete="username" placeholder="Login do Administrador">
+      <input id="adminPass140" type="password" autocomplete="current-password" placeholder="Senha">
+      <button type="button" class="btn role-enter" onclick="qgAdminLoginV140()">ENTRAR COMO ADMINISTRADOR</button>
+    </div>
     <div class="auth-error" id="adminError"></div>
-    <button type="button" class="btn role-enter" onclick="return qgDirectEnterV80('admin')">ACESSO ADMINISTRATIVO</button>
     <div class="login-note">Cadastre clientes, pacotes, identidade visual e credenciais de acesso.</div>
   </article>
 </div>
@@ -11553,7 +11571,7 @@ function drawCharts(){
 }
 
 
-const QG_SCHEMA_VERSION = 139;
+const QG_SCHEMA_VERSION = 140;
 
 const QG_DEMO_CREDENTIALS={
   fiscal:{user:'fiscal',pass:'QG2026'},
@@ -17233,6 +17251,15 @@ async function qgResolveTenantLoginV102(login,password,role){
   const normalized=rawLogin.toLowerCase();
   const rawPassword=String(password||'');
 
+  /* Prioridade: contas cadastradas pelo Administrador e persistidas no estado/backend. */
+  try{
+    const saved=await qgResolveTenantLoginV101(rawLogin,rawPassword);
+    if(saved && saved.account?.role===role)return saved;
+  }catch(e){
+    console.warn('Falha ao consultar credencial cadastrada no ADM:',e);
+  }
+
+  /* Fallbacks temporários de homologação. */
   if(role==='fiscal'){
     if(normalized===String(QG_FISCAL_LOGIN_V115).toLowerCase() && rawPassword===QG_FISCAL_PASSWORD_V115){
       const match=qgTempTenantProfileV102('fiscal');
@@ -17245,7 +17272,7 @@ async function qgResolveTenantLoginV102(login,password,role){
   if(role==='coordenacao' && normalized===String(QG_TEMP_LOGIN_V102).toLowerCase() && rawPassword===QG_TEMP_PASSWORD_V102){
     return qgTempTenantProfileV102('coordenacao');
   }
-  return qgResolveTenantLoginV101(login,password);
+  return null;
 }
 
 async function qgTenantRoleLoginV102(role){
@@ -17930,7 +17957,19 @@ function qgEnterAccessV129(){
 function qgValidateParsedBuV138(parsed){
   const errors=[],warnings=[],cargoChecks=[];
   const blocks=Array.isArray(parsed?.cargos)?parsed.cargos:[];
-  for(const b of blocks){
+  let configured=[];
+  try{configured=Array.isArray(enabledCargosV71())?enabledCargosV71().filter(Boolean):[]}catch(e){}
+  const configuredSet=new Set(configured.map(String));
+  const scoped=configuredSet.size?blocks.filter(b=>configuredSet.has(String(b.cargo||''))):blocks;
+
+  if(configuredSet.size){
+    const present=new Set(blocks.map(b=>String(b.cargo||'')));
+    configured.forEach(c=>{
+      if(!present.has(String(c)))errors.push('Cargo configurado na conta não localizado no BU: '+c+'.');
+    });
+  }
+
+  for(const b of scoped){
     const nominalCalc=(b.votosNominais||[]).reduce((s,x)=>s+Number(x.votos||0),0);
     const nominalDeclared=Number(b.nominaisDeclarados||0);
     const legenda=Number(b.legenda||0);
@@ -17942,7 +17981,8 @@ function qgValidateParsedBuV138(parsed){
       cargo:b.cargo,codigo:b.codigo,
       nominalCalc,nominalDeclared,legenda,brancos,nulos,total,expectedTotal,
       nominalOk:!nominalDeclared||nominalDeclared===nominalCalc,
-      totalOk:!total||total===expectedTotal
+      totalOk:!total||total===expectedTotal,
+      configured:configuredSet.size?configuredSet.has(String(b.cargo||'')):true
     };
     cargoChecks.push(check);
     if(nominalDeclared && nominalDeclared!==nominalCalc){
@@ -17952,12 +17992,76 @@ function qgValidateParsedBuV138(parsed){
       errors.push(b.cargo+': total reconstruído '+expectedTotal+' ≠ TOTC declarado '+total+'.');
     }
   }
+
+  /* Cargos fora do pacote contratado são preservados no parser, mas não
+     bloqueiam a operação do Fiscal. Se houver inconsistência neles, vira aviso. */
+  if(configuredSet.size){
+    for(const b of blocks.filter(x=>!configuredSet.has(String(x.cargo||'')))){
+      const nominalCalc=(b.votosNominais||[]).reduce((s,x)=>s+Number(x.votos||0),0);
+      const nominalDeclared=Number(b.nominaisDeclarados||0);
+      const legenda=Number(b.legenda||0);
+      const brancos=Number(b.brancos||0);
+      const nulos=Number(b.nulos||0);
+      const total=Number(b.total||0);
+      const expectedTotal=nominalCalc+legenda+brancos+nulos;
+      if((nominalDeclared&&nominalDeclared!==nominalCalc)||(total&&total!==expectedTotal)){
+        warnings.push('Cargo fora do pacote com divergência interna: '+b.cargo+'.');
+      }
+    }
+  }
+
   if(!blocks.length)errors.push('Nenhum bloco de cargo foi reconstruído.');
+  if(configuredSet.size && !scoped.length)errors.push('Nenhum dos cargos configurados para esta conta foi localizado no BU.');
+
   const meta=parsed?.meta||{};
   if(!Number(meta.zona||0)||!Number(meta.secao||0))errors.push('Zona/seção ausentes no QR reconstruído.');
   if(!Number(meta.aptos||0))warnings.push('Quantidade de eleitores aptos não localizada.');
   if(!Number(meta.comparecimento||0))warnings.push('Comparecimento não localizado.');
-  return {ok:errors.length===0,errors,warnings,cargos:cargoChecks};
+
+  return {
+    ok:errors.length===0,
+    errors,warnings,cargos:cargoChecks,
+    configuredCargos:[...configuredSet],
+    validatedOnlyConfigured:configuredSet.size>0
+  };
+}
+</script>
+
+
+<script id="qg-admin-login-v140">
+const QG_ADMIN_LOGIN_V140='271802adm77';
+const QG_ADMIN_PASS_HASH_V140='566302bdacea51e7cadcc0c61cd0d79409f2b0239b1b94c0c41c6347a7ca46a2';
+
+async function qgAdminLoginV140(){
+  const userEl=document.getElementById('adminUser140');
+  const passEl=document.getElementById('adminPass140');
+  const err=document.getElementById('adminError');
+  const btn=document.querySelector('.admin-card .role-enter');
+  const login=String(userEl?.value||'').trim().toLowerCase();
+  const pass=String(passEl?.value||'');
+  if(err)err.textContent='';
+  if(!login||!pass){if(err)err.textContent='Informe login e senha.';return false}
+  const old=btn?.textContent||'ENTRAR COMO ADMINISTRADOR';
+  if(btn){btn.disabled=true;btn.textContent='VALIDANDO...'}
+  try{
+    const hash=await qgSha256V97(pass);
+    if(login!==QG_ADMIN_LOGIN_V140.toLowerCase()||hash!==QG_ADMIN_PASS_HASH_V140){
+      if(err)err.textContent='Login ou senha inválidos.';
+      return false;
+    }
+    state.session={role:'admin',user:login,loginAt:new Date().toISOString(),admin:true};
+    qgDirectEnterV80('admin');
+    state.role='admin';
+    document.body.dataset.qgRole='admin';
+    try{qgPersistStateSafe()}catch(e){}
+    return true;
+  }catch(e){
+    console.error('Login ADM V140',e);
+    if(err)err.textContent='Falha ao validar o acesso.';
+    return false;
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent=old}
+  }
 }
 </script>
 
