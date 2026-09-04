@@ -4263,6 +4263,316 @@ body.qg-neon-disabled-v121[data-qg-role="fiscal"] .qg-side-logo-v115 img{
 }
 </style>
 
+
+<style id="qg-intro-neon-dynamic-v134">
+/* Mais dinamismo na página "ACESSE AQUI" sem alterar as telas internas. */
+.qg-intro-v129{
+  background:
+    radial-gradient(circle at 50% 34%,rgba(19,116,214,.22),transparent 24%),
+    radial-gradient(circle at 64% 54%,rgba(142,43,229,.18),transparent 34%),
+    radial-gradient(circle at 40% 62%,rgba(0,238,255,.07),transparent 22%),
+    linear-gradient(145deg,#01050e 0%,#020b18 48%,#09041a 100%)!important;
+}
+
+/* Halo respirando atrás do logo. */
+.qg-intro-logo-shell-v129::before{
+  content:"";
+  position:absolute;
+  z-index:0;
+  inset:6%;
+  border-radius:44%;
+  background:
+    radial-gradient(circle at 35% 35%,rgba(0,229,255,.22),transparent 36%),
+    radial-gradient(circle at 68% 66%,rgba(183,67,255,.18),transparent 40%);
+  filter:blur(18px);
+  opacity:.45;
+  animation:qgIntroHaloV134 4.8s ease-in-out infinite;
+}
+
+/* Anel neon com feixe colorido percorrendo o perímetro. */
+.qg-intro-logo-shell-v129::after{
+  content:"";
+  position:absolute;
+  z-index:2;
+  inset:4%;
+  border-radius:50%;
+  padding:2px;
+  background:conic-gradient(
+    from 0deg,
+    transparent 0deg 245deg,
+    rgba(0,239,255,.14) 253deg,
+    #00efff 266deg,
+    #4f7cff 283deg,
+    #9c54ff 300deg,
+    #ff3bd7 316deg,
+    #ffbd43 331deg,
+    rgba(255,189,67,.12) 342deg,
+    transparent 350deg 360deg
+  );
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
+  opacity:.88;
+  animation:qgIntroPerimeterV134 4.6s linear infinite;
+  pointer-events:none;
+}
+
+/* Trilhas diagonais de luz ao fundo, discretas e periódicas. */
+.qg-intro-stage-v129::before,
+.qg-intro-stage-v129::after{
+  content:"";
+  position:absolute;
+  z-index:1;
+  width:24%;
+  height:160%;
+  top:-30%;
+  pointer-events:none;
+  opacity:0;
+  filter:blur(4px);
+}
+.qg-intro-stage-v129::before{
+  left:-20%;
+  background:linear-gradient(90deg,transparent,rgba(0,230,255,.15),transparent);
+  transform:rotate(17deg);
+  animation:qgIntroSweepLeftV134 8.5s ease-in-out infinite;
+}
+.qg-intro-stage-v129::after{
+  right:-20%;
+  background:linear-gradient(90deg,transparent,rgba(207,68,255,.13),transparent);
+  transform:rotate(-17deg);
+  animation:qgIntroSweepRightV134 10s ease-in-out 1.8s infinite;
+}
+
+/* Logo mais vivo após a formação. */
+.qg-intro-logo-v129{
+  animation:
+    qgLogoBuildV130 1.55s cubic-bezier(.2,.75,.2,1) .12s forwards,
+    qgLogoFloatV134 5.2s ease-in-out 1.9s infinite!important;
+}
+
+/* Título com brilho muito leve. */
+.qg-intro-copy-v129 h1{
+  text-shadow:
+    0 0 8px rgba(36,213,255,.16),
+    0 0 14px rgba(142,72,255,.10);
+}
+
+/* Botão com contorno neon correndo no perímetro. */
+.qg-intro-enter-v129{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  border:1px solid rgba(79,225,255,.44)!important;
+  background:linear-gradient(90deg,rgba(11,171,226,.96),rgba(119,63,245,.96))!important;
+  box-shadow:
+    0 0 14px rgba(35,211,255,.12),
+    inset 0 0 14px rgba(255,255,255,.035)!important;
+}
+.qg-intro-enter-v129::before{
+  content:"";
+  position:absolute;
+  z-index:-2;
+  inset:-120%;
+  background:conic-gradient(
+    from 0deg,
+    transparent 0 65%,
+    #35f0ff 72%,
+    #8f65ff 77%,
+    #ff43d5 82%,
+    transparent 88% 100%
+  );
+  animation:qgIntroButtonPerimeterV134 3.2s linear infinite;
+}
+.qg-intro-enter-v129::after{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:2px;
+  border-radius:10px;
+  background:linear-gradient(90deg,#0ca9df,#7146ee);
+}
+
+/* Pequenos pontos de luz orbitais. */
+.qg-orbit-a-v129::before,
+.qg-orbit-b-v129::before{
+  content:"";
+  position:absolute;
+  width:7px;height:7px;border-radius:50%;
+  left:50%;top:-4px;
+  background:#4cecff;
+  box-shadow:0 0 8px #4cecff,0 0 16px rgba(76,236,255,.6);
+}
+.qg-orbit-b-v129::before{
+  background:#c45dff;
+  box-shadow:0 0 8px #c45dff,0 0 16px rgba(196,93,255,.5);
+}
+
+/* Animações */
+@keyframes qgIntroHaloV134{
+  0%,100%{transform:scale(.96);opacity:.28}
+  50%{transform:scale(1.05);opacity:.58}
+}
+@keyframes qgIntroPerimeterV134{
+  to{transform:rotate(360deg)}
+}
+@keyframes qgIntroSweepLeftV134{
+  0%,58%{left:-28%;opacity:0}
+  64%{opacity:.42}
+  82%{left:104%;opacity:.28}
+  88%,100%{left:112%;opacity:0}
+}
+@keyframes qgIntroSweepRightV134{
+  0%,64%{right:-28%;opacity:0}
+  70%{opacity:.34}
+  88%{right:104%;opacity:.22}
+  94%,100%{right:112%;opacity:0}
+}
+@keyframes qgLogoFloatV134{
+  0%,100%{
+    transform:translateY(0) scale(1);
+    filter:drop-shadow(0 0 14px rgba(56,184,255,.18)) drop-shadow(0 0 18px rgba(222,169,72,.10))
+  }
+  50%{
+    transform:translateY(-7px) scale(1.012);
+    filter:drop-shadow(0 0 18px rgba(56,184,255,.32)) drop-shadow(0 0 22px rgba(174,73,255,.14)) drop-shadow(0 0 16px rgba(222,169,72,.13))
+  }
+}
+@keyframes qgIntroButtonPerimeterV134{
+  to{transform:rotate(360deg)}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .qg-intro-logo-shell-v129::before,
+  .qg-intro-logo-shell-v129::after,
+  .qg-intro-stage-v129::before,
+  .qg-intro-stage-v129::after,
+  .qg-intro-enter-v129::before,
+  .qg-intro-logo-v129{
+    animation:none!important;
+  }
+}
+</style>
+
+
+<style id="qg-access-card-structure-fix-v135">
+/* Após retirar os logos dos três cartões, elimina definitivamente
+   a coluna fantasma de 72px que esmagava títulos e descrições. */
+#login .login-role-card .role-card-top{
+  display:block!important;
+  grid-template-columns:none!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+}
+#login .login-role-card .role-card-copy{
+  display:block!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+}
+#login .login-role-card .role-eyebrow{
+  width:100%!important;
+  white-space:normal!important;
+  overflow-wrap:normal!important;
+  word-break:normal!important;
+}
+#login .login-role-card h2{
+  width:100%!important;
+  max-width:100%!important;
+  white-space:normal!important;
+  overflow-wrap:normal!important;
+  word-break:normal!important;
+  line-height:1.05!important;
+}
+#login .login-role-card p{
+  width:100%!important;
+  max-width:100%!important;
+  white-space:normal!important;
+  overflow-wrap:normal!important;
+  word-break:normal!important;
+  line-height:1.45!important;
+}
+#login .credential-box{
+  width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+}
+#login .credential-box input,
+#login .credential-box button{
+  width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+}
+
+/* Três cartões idênticos no desktop; coluna única suave em telas estreitas. */
+@media(min-width:1000px){
+  #login .login-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    align-items:stretch!important;
+  }
+  #login .login-role-card{
+    width:auto!important;
+    max-width:none!important;
+    min-width:0!important;
+    height:100%!important;
+  }
+}
+@media(max-width:999px){
+  #login .login-stage{width:min(720px,96vw)!important}
+  #login .login-grid{
+    grid-template-columns:1fr!important;
+    gap:12px!important;
+  }
+  #login .login-role-card{
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    min-height:auto!important;
+  }
+}
+
+/* Mantém o menu interno horizontal no topo em celular/tablet. */
+@media(max-width:980px){
+  body[data-qg-role] .side{
+    display:grid!important;
+    grid-template-columns:clamp(104px,22vw,170px) minmax(0,1fr)!important;
+    grid-template-areas:"role nav"!important;
+    width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    padding:7px 8px!important;
+    gap:6px!important;
+    overflow:hidden!important;
+  }
+  body[data-qg-role] .side #role{
+    grid-area:role!important;
+    width:100%!important;
+    margin:0!important;
+  }
+  body[data-qg-role] .side #nav{
+    grid-area:nav!important;
+    display:flex!important;
+    flex-direction:row!important;
+    flex-wrap:nowrap!important;
+    gap:6px!important;
+    width:100%!important;
+    min-width:0!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    white-space:nowrap!important;
+    padding:1px 0 4px!important;
+    margin:0!important;
+  }
+  body[data-qg-role] .side #nav button{
+    flex:0 0 auto!important;
+    width:auto!important;
+    min-width:max-content!important;
+    margin:0!important;
+    white-space:nowrap!important;
+  }
+}
+</style>
+
 </head><body>
 <div id="authOverlayV36" class="auth36-overlay">
   <div class="auth36-modal">
@@ -11241,7 +11551,7 @@ function drawCharts(){
 }
 
 
-const QG_SCHEMA_VERSION = 133;
+const QG_SCHEMA_VERSION = 135;
 
 const QG_DEMO_CREDENTIALS={
   fiscal:{user:'fiscal',pass:'QG2026'},
