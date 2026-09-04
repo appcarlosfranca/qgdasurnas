@@ -4588,6 +4588,42 @@ body.qg-neon-disabled-v121[data-qg-role="fiscal"] .qg-side-logo-v115 img{
 }
 </style>
 
+
+<style id="qg-admin-login-visible-v143">
+/* v143 — correção cirúrgica: exibir somente os controles de acesso do ADM */
+#login .admin-card #adminLogin140,
+#login .admin-card .admin-login-v140,
+#login #adminLogin140 {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+#login .admin-card #adminUser140,
+#login .admin-card #adminPass140,
+#login .admin-card #adminEnter140,
+#login #adminUser140,
+#login #adminPass140,
+#login #adminEnter140 {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+#login #adminUser140,
+#login #adminPass140 {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  margin-top: 10px !important;
+}
+#login #adminEnter140 {
+  width: 100% !important;
+  margin-top: 10px !important;
+}
+</style>
+
 </head><body>
 <div id="authOverlayV36" class="auth36-overlay">
   <div class="auth36-modal">
@@ -4702,6 +4738,7 @@ body.qg-neon-disabled-v121[data-qg-role="fiscal"] .qg-side-logo-v115 img{
     <div class="credential-box qg-role-admin-login140">
       <input id="adminUser140" autocomplete="username" placeholder="Login do Administrador">
       <input id="adminPass140" type="password" autocomplete="current-password" placeholder="Senha">
+<button id="adminEnter140" type="button" class="primary" onclick="qgAdminLoginV140()">ENTRAR NA ADMINISTRAÇÃO</button>
       <button type="button" class="btn role-enter" onclick="qgAdminLoginV140()">ENTRAR NA ADMINISTRAÇÃO</button>
     </div>
     <div class="auth-error" id="adminError"></div>
@@ -11585,7 +11622,7 @@ function drawCharts(){
 }
 
 
-const QG_SCHEMA_VERSION = 142;
+const QG_SCHEMA_VERSION = 144;
 
 const QG_DEMO_CREDENTIALS={
   fiscal:{user:'fiscal',pass:'QG2026'},
