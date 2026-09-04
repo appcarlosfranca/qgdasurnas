@@ -11794,7 +11794,7 @@ function drawCharts(){
 }
 
 
-const QG_SCHEMA_VERSION = 150;
+const QG_SCHEMA_VERSION = 151;
 
 const QG_DEMO_CREDENTIALS={
   fiscal:{user:'fiscal',pass:'QG2026'},
@@ -14720,10 +14720,30 @@ function applyFullQrToFiscalV71(parsed,raw){
 
 /* Bulk submission of all enabled cargo/candidate results from one BU */
 async function submitAutoQrBundleV71(){
+  const buDuplicateSnapshotV151=state.currentBU||{};
   try{
+    const existingBuV151=qgFindExistingBuV151(buDuplicateSnapshotV151);
+    if(existingBuV151){
+      const msg=qgDuplicateMessageV93('bu');
+      const receipt=document.getElementById('receipt');
+      const previousProtocol=existingBuV151?.receipt?.protocol||existingBuV151?.receipt?.buProtocol||'';
+      if(receipt)receipt.innerHTML=
+        '<div class="receipt-card"><div class="receipt-title">✓ BU JÁ REGISTRADO</div>'+
+        '<div class="receipt-grid"><div class="receipt-item">Status<b>DUPLICIDADE BLOQUEADA</b></div>'+
+        (previousProtocol?'<div class="receipt-item">Protocolo anterior<b>'+escapeHtml(previousProtocol)+'</b></div>':'')+
+        '</div></div>';
+      alert(msg);
+      return {ok:false,duplicate:true,message:msg,existing:existingBuV151};
+    }
+
     const fullPayload=window.__lastParsedQrV32?.payload||state.lastQrRaw||'';
     if(fullPayload && qgBuWasSentV93(fullPayload)){
       const msg=qgDuplicateMessageV93('bu');
+      const receipt=document.getElementById('receipt');
+      if(receipt)receipt.innerHTML=
+        '<div class="receipt-card"><div class="receipt-title">✓ DUPLICIDADE BLOQUEADA</div>'+
+        '<div class="receipt-grid"><div class="receipt-item">Status<b>BU JÁ REGISTRADO</b></div>'+
+        '<div class="receipt-item">Ação<b>NENHUM NOVO REGISTRO CRIADO</b></div></div></div>';
       alert(msg);
       return {ok:false,duplicate:true,message:msg};
     }
@@ -14881,6 +14901,7 @@ async function submitAutoQrBundleV71(){
     '<div class="receipt-item">Duplicados/divergentes<b>'+skipped.length+'</b></div></div></div>';
 
   try{qgMarkCurrentBuSentV93(receiptData)}catch(e){}
+  try{qgMarkBuIdentitySentV151(buDuplicateSnapshotV151,receiptData)}catch(e){}
 
   state.lastQrRaw=null;
   state.currentBU=null;
@@ -18793,6 +18814,56 @@ function qgAdaptiveReconstructV150(fragments){
 
   window.__qgLastStitchV150=best;
   return best?.payload||normalizeQrPayloadV32(fs.join(''));
+}
+</script>
+
+
+<script id="qg-bu-duplicate-guard-v151">
+function qgBuIdentityRegistryV151(){
+  state.sentBuIdentitiesV151=state.sentBuIdentitiesV151||{};
+  return state.sentBuIdentitiesV151;
+}
+
+function qgCurrentBuDuplicateKeysV151(bu){
+  const tenant=qgCurrentTenantIdV97();
+  const identity=String(bu?.buIdentityV147||qgBuIdentityV147(bu||{}));
+  const raw=String(bu?.raw||state.lastQrRaw||window.__lastParsedQrV32?.payload||'');
+  const rawHash=raw?qgTenantHashKeyV104(raw):'';
+  return {tenant,identity,rawHash};
+}
+
+function qgFindExistingBuV151(bu){
+  const {tenant,identity,rawHash}=qgCurrentBuDuplicateKeysV151(bu);
+  const reg=qgBuIdentityRegistryV151();
+
+  if(identity && reg[tenant+'|ID|'+identity])return reg[tenant+'|ID|'+identity];
+  if(rawHash && reg[tenant+'|RAW|'+rawHash])return reg[tenant+'|RAW|'+rawHash];
+
+  const pools=[
+    ...(Array.isArray(state.subs)?state.subs:[]),
+    ...(Array.isArray(state.offlineQueue)?state.offlineQueue:[]),
+    ...(Array.isArray(state.syncQueueV34)?state.syncQueueV34:[])
+  ];
+  const found=pools.find(r=>
+    String(r?.tenantId||tenant)===String(tenant) &&
+    (
+      (identity && String(r?.buIdentityV147||'')===identity) ||
+      (rawHash && r?.qrRaw && qgTenantHashKeyV104(String(r.qrRaw))===rawHash)
+    )
+  );
+  if(found)return {sentAt:found.time||'',receipt:{protocol:found.buProtocol||found.protocolo||''},source:'records'};
+
+  return null;
+}
+
+function qgMarkBuIdentitySentV151(bu,receipt){
+  const {tenant,identity,rawHash}=qgCurrentBuDuplicateKeysV151(bu);
+  const reg=qgBuIdentityRegistryV151();
+  const value={sentAt:new Date().toISOString(),receipt:receipt||null,tenantId:tenant};
+  if(identity)reg[tenant+'|ID|'+identity]=value;
+  if(rawHash)reg[tenant+'|RAW|'+rawHash]=value;
+  try{qgPersistStateSafe()}catch(e){}
+  return value;
 }
 </script>
 
