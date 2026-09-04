@@ -4786,6 +4786,23 @@ body[data-qg-role] .side::before{
 }
 </style>
 
+
+<style id="qg-v152-coord-device-css">
+.qg-status-stack-v115 .qg-live-v115{display:none!important}
+.qg-candidate-search152{min-width:220px;flex:1 1 260px;background:#071725;color:#eefaff;border:1px solid #174963;border-radius:10px;padding:9px 11px;outline:none}
+.qg-candidate-search152:focus{border-color:#17d8ff;box-shadow:0 0 0 2px rgba(23,216,255,.08)}
+.qg-candidate-search-results152{display:none;margin:8px 0 10px;padding:8px;border:1px solid rgba(23,216,255,.25);border-radius:12px;background:rgba(4,18,31,.92);max-height:220px;overflow:auto}
+.qg-candidate-search-results152.active{display:block}
+.qg-candidate-search-item152{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:8px;cursor:pointer}
+.qg-candidate-search-item152:hover{background:rgba(23,216,255,.08)}
+.qg-candidate-search-item152 small{color:#91a8bb}
+.qg-chart-card90:fullscreen{background:#020817;padding:24px!important;overflow:auto}
+.qg-chart-card90:fullscreen #coordLineChart90{width:100%!important;height:68vh!important;min-height:520px!important}
+.qg-chart-card90.qg-chart-fallback-full152{position:fixed!important;inset:0!important;z-index:99999!important;background:#020817!important;padding:24px!important;overflow:auto!important;border-radius:0!important}
+.qg-chart-card90.qg-chart-fallback-full152 #coordLineChart90{width:100%!important;height:68vh!important;min-height:520px!important}
+@media(max-width:700px){.qg-candidate-search152{min-width:100%;width:100%}}
+</style>
+
 </head><body>
 <div id="authOverlayV36" class="auth36-overlay">
   <div class="auth36-modal">
@@ -11794,7 +11811,7 @@ function drawCharts(){
 }
 
 
-const QG_SCHEMA_VERSION = 151;
+const QG_SCHEMA_VERSION = 152;
 
 const QG_DEMO_CREDENTIALS={
   fiscal:{user:'fiscal',pass:'QG2026'},
@@ -15019,6 +15036,10 @@ async function clearOperationalMemoryV71(){
       <div class="note">Acompanhamento cumulativo conforme os BUs são recebidos pela Coordenação.</div>
     </div>
     <div class="qg-chart-controls90">
+      <input id="coordCandidateSearch152" class="qg-candidate-search152" type="search"
+        placeholder="Buscar candidato por nome, número ou partido"
+        autocomplete="off" oninput="qgSearchCoordCandidateV152()">
+      <button type="button" id="coordExpandChart152" onclick="qgToggleCoordChartFullscreenV152()">EXPANDIR GRÁFICO</button>
       <select id="coordChartCargo90" onchange="applyTopNCandidatesV100()">
         <option value="Deputado Federal">Deputados Federais</option>
         <option value="Deputado Estadual">Deputados Estaduais</option>
@@ -15034,6 +15055,7 @@ async function clearOperationalMemoryV71(){
       <button type="button" onclick="clearChartCandidatesV90()">Limpar</button>
     </div>
   </div>
+  <div id="coordCandidateSearchResults152" class="qg-candidate-search-results152"></div>
   <div id="coordCandidatePicker90" class="qg-candidate-picks90"></div>
   <svg id="coordLineChart90" viewBox="0 0 900 300" preserveAspectRatio="none" aria-label="Gráfico de progressão dos candidatos"></svg>
   <div id="coordChartLegend90" class="qg-chart-legend90"></div>
@@ -17184,20 +17206,17 @@ function qgApplyTenantBrandV97(){
 }
 function qgSaveTenantFiscalStateV97(){
   const t=qgCurrentTenantV97();if(!t)return;
-  state.tenantFiscalV97=state.tenantFiscalV97||{};
-  state.tenantFiscalV97[t.id]=JSON.parse(JSON.stringify(state.fiscalV66||{}));
+  qgWriteFiscalDeviceStateV152(t.id,JSON.parse(JSON.stringify(state.fiscalV66||{})));
 }
 function qgLoadTenantFiscalStateV97(t){
-  state.tenantFiscalV97=state.tenantFiscalV97||{};
-  const saved=state.tenantFiscalV97[t.id];
-  state.fiscalV66=JSON.parse(JSON.stringify(saved||{identity:'',note:'',sections:[],updatedAt:null}));
+  /* V152: identidade e carteira ficam vinculadas ao aparelho/navegador e ao cliente.
+     IP não é usado porque pode ser compartilhado por muitos aparelhos e pode mudar. */
+  const local=qgReadFiscalDeviceStateV152(t.id);
+  state.fiscalV66=JSON.parse(JSON.stringify(local||{identity:'',note:'',sections:[],updatedAt:null}));
   if(state.fiscalV66&&typeof state.fiscalV66.identity==='object'&&!Array.isArray(state.fiscalV66.identity)){
     state.fiscalV66.identity=String(
-      state.fiscalV66.identity.nome||
-      state.fiscalV66.identity.name||
-      state.fiscalV66.identity.login||
-      state.fiscalV66.identity.codigo||
-      state.fiscalV66.identity.id||''
+      state.fiscalV66.identity.nome||state.fiscalV66.identity.name||state.fiscalV66.identity.login||
+      state.fiscalV66.identity.codigo||state.fiscalV66.identity.id||''
     ).trim();
   }
   if(!Array.isArray(state.fiscalV66.sections))state.fiscalV66.sections=[];
@@ -18865,6 +18884,124 @@ function qgMarkBuIdentitySentV151(bu,receipt){
   try{qgPersistStateSafe()}catch(e){}
   return value;
 }
+</script>
+
+
+<script id="qg-v152-coord-search-fullscreen">
+function qgSearchCoordCandidateV152(){
+  const input=document.getElementById('coordCandidateSearch152');
+  const box=document.getElementById('coordCandidateSearchResults152');
+  if(!input||!box)return;
+  const q=normalizeText(input.value||'').trim();
+  if(!q){box.classList.remove('active');box.innerHTML='';return}
+  const cargo=document.getElementById('coordChartCargo90')?.value||'Deputado Federal';
+  const candidates=qgCandidatesForChartV90().filter(c=>normalizeText([c.numero,c.nome,c.partido].join(' ')).includes(q)).slice(0,50);
+  window.__qgChartSelected90=window.__qgChartSelected90||new Set();
+  if(!candidates.length){
+    box.innerHTML='<div class="note">Nenhum candidato recebido encontrado para esta busca.</div>';
+    box.classList.add('active');return;
+  }
+  box.innerHTML=candidates.map(c=>{
+    const key=cargo+'|'+c.id,checked=window.__qgChartSelected90.has(key)?' checked':'';
+    return '<label class="qg-candidate-search-item152"><input type="checkbox"'+checked+
+      ' onchange="qgSelectSearchedCandidateV152(\''+escapeHtml(key)+'\',this.checked)"><span><b>'+
+      escapeHtml(c.numero)+' • '+escapeHtml(c.nome)+'</b><br><small>'+escapeHtml(c.partido||'')+' • '+
+      Number(c.votes||0).toLocaleString('pt-BR')+' voto(s) recebidos</small></span></label>';
+  }).join('');
+  box.classList.add('active');
+}
+function qgSelectSearchedCandidateV152(key,on){
+  window.__qgChartSelected90=window.__qgChartSelected90||new Set();
+  if(on)window.__qgChartSelected90.add(key);else window.__qgChartSelected90.delete(key);
+  renderCoordLineChartV90();renderSelectedCandidateTotalsV91();qgSearchCoordCandidateV152();
+}
+function qgToggleCoordChartFullscreenV152(){
+  const card=document.querySelector('.qg-chart-card90');if(!card)return false;
+  if(document.fullscreenElement){document.exitFullscreen?.();return true}
+  if(card.requestFullscreen){
+    card.requestFullscreen().catch(()=>{card.classList.toggle('qg-chart-fallback-full152');setTimeout(()=>renderCoordLineChartV90(),50)});
+  }else{
+    card.classList.toggle('qg-chart-fallback-full152');setTimeout(()=>renderCoordLineChartV90(),50);
+  }
+  return true;
+}
+document.addEventListener('fullscreenchange',()=>{
+  const btn=document.getElementById('coordExpandChart152');
+  if(btn)btn.textContent=document.fullscreenElement?'SAIR DA TELA CHEIA':'EXPANDIR GRÁFICO';
+  try{renderCoordLineChartV90()}catch(e){}
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    const card=document.querySelector('.qg-chart-card90.qg-chart-fallback-full152');
+    if(card){card.classList.remove('qg-chart-fallback-full152');const btn=document.getElementById('coordExpandChart152');if(btn)btn.textContent='EXPANDIR GRÁFICO';try{renderCoordLineChartV90()}catch(_){}}
+  }
+});
+</script>
+
+
+<script id="qg-v152-fiscal-device-scope">
+function qgDeviceIdV152(){
+  const key='qg_device_id_v152';
+  try{
+    let id=localStorage.getItem(key);
+    if(!id){
+      const rand=globalThis.crypto?.randomUUID?.()||(Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2));
+      id='DEV-'+rand;localStorage.setItem(key,id);
+    }
+    return id;
+  }catch(e){
+    window.__qgDeviceIdV152=window.__qgDeviceIdV152||('DEV-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2));
+    return window.__qgDeviceIdV152;
+  }
+}
+function qgTenantFiscalDeviceKeyV152(tenantId){return 'qg_fiscal_device_v152|'+String(tenantId||'default')+'|'+qgDeviceIdV152()}
+function qgReadFiscalDeviceStateV152(tenantId){
+  try{const raw=localStorage.getItem(qgTenantFiscalDeviceKeyV152(tenantId));if(!raw)return null;const parsed=JSON.parse(raw);return parsed&&typeof parsed==='object'?parsed:null}catch(e){return null}
+}
+function qgWriteFiscalDeviceStateV152(tenantId,value){
+  try{
+    localStorage.setItem(qgTenantFiscalDeviceKeyV152(tenantId),JSON.stringify({...value,deviceIdV152:qgDeviceIdV152(),tenantIdV152:String(tenantId||'default')}));
+    return true;
+  }catch(e){return false}
+}
+</script>
+
+
+<script id="qg-v152-search-persistence">
+window.__qgSearchPinned152=window.__qgSearchPinned152||new Set();
+
+const _qgSelectSearchedCandidateV152=qgSelectSearchedCandidateV152;
+qgSelectSearchedCandidateV152=function(key,on){
+  if(on)window.__qgSearchPinned152.add(key);
+  else window.__qgSearchPinned152.delete(key);
+  return _qgSelectSearchedCandidateV152.apply(this,arguments);
+};
+
+const _renderCandidatePickerV90V152=renderCandidatePickerV90;
+renderCandidatePickerV90=function(){
+  const r=_renderCandidatePickerV90V152.apply(this,arguments);
+  const cargo=document.getElementById('coordChartCargo90')?.value||'Deputado Federal';
+  let restored=false;
+  [...window.__qgSearchPinned152].forEach(k=>{
+    if(k.startsWith(cargo+'|')&&!window.__qgChartSelected90.has(k)){
+      window.__qgChartSelected90.add(k);restored=true;
+    }
+  });
+  if(restored){renderCoordLineChartV90();renderSelectedCandidateTotalsV91()}
+  try{qgSearchCoordCandidateV152()}catch(e){}
+  return r;
+};
+
+const _clearChartCandidatesV90V152=clearChartCandidatesV90;
+clearChartCandidatesV90=function(){
+  window.__qgSearchPinned152.clear();
+  return _clearChartCandidatesV90V152.apply(this,arguments);
+};
+
+document.addEventListener('DOMContentLoaded',()=>{
+  const cargo=document.getElementById('coordChartCargo90');
+  cargo?.addEventListener('change',()=>setTimeout(qgSearchCoordCandidateV152,0));
+},{once:true});
 </script>
 
 </body></html>
