@@ -4574,6 +4574,20 @@ body.qg-neon-disabled-v121[data-qg-role="fiscal"] .qg-side-logo-v115 img{
 }
 </style>
 
+
+<style id="qg-login-clean-v141">
+#login .login-note{
+  color:#7fa5be!important;
+}
+#login .credential-box input::placeholder{
+  color:#6f8da3!important;
+  opacity:.92!important;
+}
+#login .admin-card .credential-box{
+  margin-top:14px!important;
+}
+</style>
+
 </head><body>
 <div id="authOverlayV36" class="auth36-overlay">
   <div class="auth36-modal">
@@ -4652,12 +4666,12 @@ body.qg-neon-disabled-v121[data-qg-role="fiscal"] .qg-side-logo-v115 img{
       </div>
     </div>
     <div class="credential-box qg-role-tenant-login101">
-      <input id="tenantFiscalUser101" autocomplete="username" placeholder="Login: 2026brasil">
-      <input id="tenantFiscalPass101" type="password" autocomplete="current-password" placeholder="Senha: sergipe++79">
+      <input id="tenantFiscalUser101" autocomplete="username" placeholder="Login">
+      <input id="tenantFiscalPass101" type="password" autocomplete="current-password" placeholder="Senha">
       <button type="button" class="btn role-enter" onclick="qgTenantRoleLoginV102('fiscal')">ENTRAR COMO FISCAL</button>
     </div>
     <div class="auth-error" id="fiscalError"></div>
-    <div class="login-note">Acesso Fiscal: login <b>2026brasil</b> e senha <b>sergipe++79</b>.</div>
+    <div class="login-note">Acesso restrito a usuários autorizados.</div>
   </article>
 
   <article class="login-role-card coord-card">
@@ -4674,7 +4688,7 @@ body.qg-neon-disabled-v121[data-qg-role="fiscal"] .qg-side-logo-v115 img{
       <button type="button" class="btn role-enter" onclick="qgTenantRoleLoginV102('coordenacao')">ENTRAR NA COORDENAÇÃO</button>
     </div>
     <div class="auth-error" id="coordError"></div>
-    <div class="login-note">Homologação temporária: login <b>lula13</b> e senha <b>lula13</b>.</div>
+    <div class="login-note">Acesso restrito a usuários autorizados.</div>
   </article>
 
   <article class="login-role-card admin-card">
@@ -4688,7 +4702,7 @@ body.qg-neon-disabled-v121[data-qg-role="fiscal"] .qg-side-logo-v115 img{
     <div class="credential-box qg-role-admin-login140">
       <input id="adminUser140" autocomplete="username" placeholder="Login do Administrador">
       <input id="adminPass140" type="password" autocomplete="current-password" placeholder="Senha">
-      <button type="button" class="btn role-enter" onclick="qgAdminLoginV140()">ENTRAR COMO ADMINISTRADOR</button>
+      <button type="button" class="btn role-enter" onclick="qgAdminLoginV140()">ENTRAR NA ADMINISTRAÇÃO</button>
     </div>
     <div class="auth-error" id="adminError"></div>
     <div class="login-note">Cadastre clientes, pacotes, identidade visual e credenciais de acesso.</div>
@@ -11571,7 +11585,7 @@ function drawCharts(){
 }
 
 
-const QG_SCHEMA_VERSION = 140;
+const QG_SCHEMA_VERSION = 142;
 
 const QG_DEMO_CREDENTIALS={
   fiscal:{user:'fiscal',pass:'QG2026'},
@@ -17328,16 +17342,12 @@ async function qgTenantRoleLoginV102(role){
 }
 
 function qgInstallTempLoginV102(){
-  const f=document.querySelector('.fiscal-card .role-enter');
-  const c=document.querySelector('.coord-card .role-enter');
-  if(f) f.setAttribute('onclick',"qgTenantRoleLoginV102('fiscal')");
-  if(c) c.setAttribute('onclick',"qgTenantRoleLoginV102('coordenacao')");
   const fu=document.getElementById('tenantFiscalUser101'), fp=document.getElementById('tenantFiscalPass101');
   const cu=document.getElementById('tenantCoordUser101'), cp=document.getElementById('tenantCoordPass101');
-  if(fu)fu.placeholder='Login: lula13';
-  if(fp)fp.placeholder='Senha: lula13';
-  if(cu)cu.placeholder='Login: lula13';
-  if(cp)cp.placeholder='Senha: lula13';
+  if(fu)fu.placeholder='Login';
+  if(fp)fp.placeholder='Senha';
+  if(cu)cu.placeholder='Login';
+  if(cp)cp.placeholder='Senha';
 }
 window.addEventListener('DOMContentLoaded',()=>setTimeout(qgInstallTempLoginV102,100));
 </script>
@@ -17345,23 +17355,15 @@ window.addEventListener('DOMContentLoaded',()=>setTimeout(qgInstallTempLoginV102
 <script id="qg-login-lula13-fix-v103">
 function qgInstallTempLoginV103(){
   const pairs=[
-    ['tenantFiscalUser101','tenantFiscalPass101','fiscal'],
-    ['tenantCoordUser101','tenantCoordPass101','coordenacao']
+    ['tenantFiscalUser101','tenantFiscalPass101'],
+    ['tenantCoordUser101','tenantCoordPass101']
   ];
-  pairs.forEach(([uid,pid,role])=>{
+  pairs.forEach(([uid,pid])=>{
     const u=document.getElementById(uid),p=document.getElementById(pid);
-    [u,p].forEach(el=>{
-      if(!el||el.dataset.qg103==='1')return;
-      el.dataset.qg103='1';
-      el.addEventListener('keydown',ev=>{
-        if(ev.key==='Enter'){ev.preventDefault();qgTenantRoleLoginV102(role)}
-      });
-    });
+    if(u)u.placeholder='Login';
+    if(p)p.placeholder='Senha';
   });
-  const f=document.querySelector('.fiscal-card .role-enter');
-  const c=document.querySelector('.coord-card .role-enter');
-  if(f)f.onclick=()=>qgTenantRoleLoginV102('fiscal');
-  if(c)c.onclick=()=>qgTenantRoleLoginV102('coordenacao');
+  return true;
 }
 window.addEventListener('DOMContentLoaded',()=>{
   qgInstallTempLoginV103();
