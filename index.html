@@ -4770,6 +4770,22 @@ body.qg-neon-disabled-v121[data-qg-role="fiscal"] .qg-side-logo-v115 img{
 }
 </style>
 
+
+<style id="qg-role-lock-style-v149">
+body[data-qg-role] .side #role{display:none!important}
+body[data-qg-role] .side::before{
+  content:attr(data-role-label);
+  display:block;width:100%;box-sizing:border-box;
+  padding:10px 12px;margin:0 0 10px 0;
+  border:1px solid rgba(46,205,255,.45);border-radius:10px;
+  background:rgba(3,22,36,.88);color:#f3fbff;font-weight:700;line-height:1.2
+}
+@media (max-width:980px){
+  body[data-qg-role] .side{grid-template-columns:1fr!important;grid-template-areas:"nav"!important}
+  body[data-qg-role] .side::before{display:none!important}
+}
+</style>
+
 </head><body>
 <div id="authOverlayV36" class="auth36-overlay">
   <div class="auth36-modal">
@@ -4898,7 +4914,7 @@ body.qg-neon-disabled-v121[data-qg-role="fiscal"] .qg-side-logo-v115 img{
   </div>
 </div>
 
-<div class="app"><aside class="side"><select id="role" onchange="qgSwitchRoleV83(this.value)"><option value="fiscal">Fiscal</option><option value="coordenacao">Coordenação</option><option value="admin">Administrador</option></select><nav id="nav"></nav></aside>
+<div class="app"><aside class="side"><select id="role" onchange="qgSwitchRoleV83(this.value)" disabled aria-hidden="true" tabindex="-1"><option value="fiscal">Fiscal</option><option value="coordenacao">Coordenação</option><option value="admin">Administrador</option></select><nav id="nav"></nav></aside>
 <main class="main"><div class="top qg-top-v115">
   <div id="tenantBrand97" class="qg-tenant-brand97 qg-tenant-main-v115">
     <span id="tenantBrandFrameV125" class="qg-client-photo-frame-v125"><img id="tenantBrandImg97" alt="Identidade do cliente"></span>
@@ -10386,17 +10402,18 @@ function validateQrSetV32(parts){
   return {ok:errors.length===0,errors,warnings,total};
 }
 function reconstructQrPayloadV32(parts){
-  /* V138: as partes são fatias do MESMO payload. Elas podem terminar no meio
-     de "5555:91", "NOMI:189", nomes de campos etc. Portanto NÃO se pode
-     inserir espaço entre as partes. Reconstruímos byte/texto-a-texto e só
-     normalizamos os espaços depois que o payload original foi recomposto. */
+  /* V150: partes de QR podem representar tanto uma continuação no meio
+     de um token quanto uma quebra entre dois tokens. Não assumimos mais
+     uma única regra. Testamos as combinações possíveis de fronteira
+     (máximo prático: 5 QR = 16 combinações) e escolhemos a reconstrução
+     com melhor coerência do próprio BU: NOMI, TOTC e totais partidários. */
   const ordered=(parts||[]).slice().sort((a,b)=>a.index-b.index);
   const fragments=ordered.map(p=>{
     if(typeof p.fragment==='string')return p.fragment;
     const h=parseQrPartHeaderV32(p.raw||p.text||'');
     return h.valid?h.fragment:String(p.raw||p.text||'');
   });
-  return normalizeQrPayloadV32(fragments.join(''));
+  return qgAdaptiveReconstructV150(fragments);
 }
 function parseQrSetV32(){
   const validation=validateQrSetV32(qrPartsStateV32);
@@ -11777,7 +11794,7 @@ function drawCharts(){
 }
 
 
-const QG_SCHEMA_VERSION = 148;
+const QG_SCHEMA_VERSION = 150;
 
 const QG_DEMO_CREDENTIALS={
   fiscal:{user:'fiscal',pass:'QG2026'},
@@ -14689,7 +14706,7 @@ function applyFullQrToFiscalV71(parsed,raw){
   if(val){
     const hasNominal=(results||[]).some(x=>(x.candidatos||[]).length);
     if(!integrity.ok){
-      val.innerHTML='<b>BU reconhecido e preenchido automaticamente.</b> Os cargos configurados para esta conta foram identificados, porém existe uma divergência de conferência. Os dados permanecem visíveis para revisão e o envio ficará protegido até a inconsistência ser resolvida.';
+      val.innerHTML='<b>BU reconhecido e preenchido automaticamente.</b> Existe uma divergência entre a soma dos votos lidos e os totais declarados no próprio BU. Isso não é causado pelo pacote de cargos da conta. O envio permanece protegido até a leitura ficar coerente.';
     }else if(hasNominal){
       val.innerHTML='<b>BU reconhecido e preenchido automaticamente.</b> Município, zona, seção, local, cargos configurados, candidatos, números e votos foram identificados. O Fiscal não precisa ajustar nenhum campo.';
     }else{
@@ -15474,6 +15491,8 @@ function qgDirectEnterV80(role){
     console.error('Entrada V84 falhou:',e);
     return false;
   }
+
+  try{qgLockRoleUiV149(state.role||document.body.dataset.qgRole||'')}catch(e){}
 }
 window.qgDirectEnterV80=qgDirectEnterV80;
 </script>
@@ -16853,7 +16872,7 @@ function qgAcceptDecodedPartV92(raw){
   if(integrity.ok){
     renderMultiQrProgressV92('BU completo: '+h.total+' QR Code(s) lidos. Dados reconhecidos e prontos para conferência.');
   }else{
-    renderMultiQrProgressV92('BU completo e dados reconhecidos. Há divergência de conferência; revise o aviso antes do envio.','error');
+    renderMultiQrProgressV92('BU completo e dados reconhecidos, mas a soma interna de algum cargo não confere com os totais declarados no próprio BU. O envio ficará protegido e o detalhe aparecerá na conferência abaixo.','error');
   }
 
   return {recognized:true,accepted:true,complete:true,index:h.index,total:h.total,parsed,integrity,warning:!integrity.ok};
@@ -17738,6 +17757,8 @@ async function qgTenantRoleLoginV102(role){
   }finally{
     if(btn){btn.disabled=false;btn.textContent=old}
   }
+
+  try{qgLockRoleUiV149(state.role||document.body.dataset.qgRole||'')}catch(e){}
 }
 
 function qgInstallTempLoginV102(){
@@ -18475,6 +18496,8 @@ async function qgAdminLoginV140(){
   }finally{
     if(btn){btn.disabled=false;btn.textContent=old}
   }
+
+  try{qgLockRoleUiV149(state.role||document.body.dataset.qgRole||'')}catch(e){}
 }
 </script>
 
@@ -18667,6 +18690,109 @@ function qgVerifyRegressionLockV148(){
     if(got!==expected)bad.push({name,expected,got});
   }
   return {ok:bad.length===0,bad,checked:Object.keys(window.QG_REGRESSION_LOCK_V148).length};
+}
+</script>
+
+
+<script id="qg-role-lock-v149">
+function qgRoleLabelV149(role){
+  return role==='fiscal'?'Fiscal':role==='coordenacao'?'Coordenação':role==='admin'?'Administrador':'';
+}
+function qgLockRoleUiV149(role){
+  const r=role||state.role||document.body.dataset.qgRole||'';
+  if(!r)return;
+  document.body.dataset.qgRole=r;
+  const side=document.querySelector('.side');
+  if(side)side.setAttribute('data-role-label',qgRoleLabelV149(r));
+  const sel=document.getElementById('role');
+  if(sel){
+    sel.value=r;
+    sel.disabled=true;
+    sel.setAttribute('aria-hidden','true');
+    sel.tabIndex=-1;
+  }
+}
+document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>qgLockRoleUiV149(state.role||document.body.dataset.qgRole||''),250),{once:true});
+</script>
+
+
+<script id="qg-adaptive-stitch-v150">
+function qgScoreQrPayloadV150(payload){
+  const tokens=qrTokenizeV32(payload);
+  const cargos=parseCargoBlocksV32(tokens);
+  let score=0,good=0,bad=0;
+
+  const metaKeys=['VRQR','MUNI','ZONA','SECA','IDUE','IDCA','LOCA','APTO','COMP'];
+  for(const k of metaKeys){
+    if(fieldFirstV32(tokens,k)!==null && fieldFirstV32(tokens,k)!=='')score+=2;
+  }
+
+  score+=cargos.length*8;
+
+  for(const b of cargos){
+    const nominal=(b.votosNominais||[]).reduce((s,x)=>s+Number(x.votos||0),0);
+    const declared=Number(b.nominaisDeclarados||0);
+    const legenda=Number(b.legenda||0);
+    const brancos=Number(b.brancos||0);
+    const nulos=Number(b.nulos||0);
+    const total=Number(b.total||0);
+    const expected=nominal+legenda+brancos+nulos;
+
+    if(declared){
+      if(declared===nominal){score+=30;good++}
+      else{score-=35;bad++}
+    }
+    if(total){
+      if(total===expected){score+=30;good++}
+      else{score-=35;bad++}
+    }
+
+    for(const p of (b.partidos||[])){
+      const cand=(p.candidatos||[]).reduce((s,x)=>s+Number(x.votos||0),0);
+      const exp=cand+Number(p.votosLegenda||0);
+      const tp=Number(p.totalPartido||0);
+      if(tp){
+        if(tp===exp){score+=6;good++}
+        else{score-=8;bad++}
+      }
+    }
+  }
+
+  return {score,good,bad,cargos:cargos.length,tokens:tokens.length};
+}
+
+function qgAdaptiveReconstructV150(fragments){
+  const fs=(fragments||[]).map(x=>String(x??''));
+  if(!fs.length)return '';
+  if(fs.length===1)return normalizeQrPayloadV32(fs[0]);
+
+  const boundaries=fs.length-1;
+  const combinations=1<<boundaries;
+  let best=null;
+
+  for(let mask=0;mask<combinations;mask++){
+    let raw=fs[0];
+    let spaces=0;
+    for(let i=0;i<boundaries;i++){
+      const useSpace=!!(mask&(1<<i));
+      if(useSpace)spaces++;
+      raw+=(useSpace?' ':'')+fs[i+1];
+    }
+    const payload=normalizeQrPayloadV32(raw);
+    const quality=qgScoreQrPayloadV150(payload);
+
+    /* Em empate, preserva o mínimo de intervenção. */
+    const candidate={payload,quality,mask,spaces};
+    if(!best ||
+       quality.score>best.quality.score ||
+       (quality.score===best.quality.score && quality.bad<best.quality.bad) ||
+       (quality.score===best.quality.score && quality.bad===best.quality.bad && spaces<best.spaces)){
+      best=candidate;
+    }
+  }
+
+  window.__qgLastStitchV150=best;
+  return best?.payload||normalizeQrPayloadV32(fs.join(''));
 }
 </script>
 
