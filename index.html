@@ -19258,4 +19258,101 @@ function qgApplyUnifiedRealtimeIndicatorV156(){
   else apply();
 })();
 </script>
+<script id="qg-credential-reliability-v157">
+/* V157 — confiabilidade de Clientes e acessos.
+   Escopo cirúrgico: gravação/verificação de credenciais remotas e diagnóstico das áreas finais.
+   Não altera parser, QR, câmera, BU, antiduplicidade, apuração ou menus congelados. */
+window.QG_PATCH_VERSION=157;
+
+async function qgRemoteSaveTenantV157(t,accounts){
+  if(!qgRealtimeConfiguredV88())return {ok:false,local:true,error:'Supabase não configurado.'};
+  const cfg=qgRealtimeConfigV88();
+  if(!cfg?.url||!cfg?.anonKey)return {ok:false,local:true,error:'Configuração do Supabase incompleta.'};
+  const base=String(cfg.url).replace(/\/+$/,'')+'/rest/v1/';
+  const headers={
+    apikey:cfg.anonKey,
+    Authorization:'Bearer '+cfg.anonKey,
+    'Content-Type':'application/json',
+    Prefer:'resolution=merge-duplicates,return=representation'
+  };
+  const request=async(url,options,timeout=12000)=>{
+    if(typeof qgFetchWithTimeoutV110==='function')return qgFetchWithTimeoutV110(url,options,timeout);
+    const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),timeout);
+    try{return await fetch(url,{...options,signal:ctl.signal})}finally{clearTimeout(timer)}
+  };
+  const readError=async(res)=>{
+    let txt='';try{txt=await res.text()}catch(e){}
+    try{const j=JSON.parse(txt);return j.message||j.details||j.hint||txt}catch(e){return txt||('HTTP '+res.status)}
+  };
+  try{
+    const profile={tenant_id:t.id,nome:t.nome,numero:t.numero||'',partido:t.partido||'',logo_data:t.logoData||'',cargos:t.cargos||[],active:t.active!==false,updated_at:new Date().toISOString()};
+    let res=await request(base+'qg_tenant_profiles_v97?on_conflict=tenant_id',{method:'POST',headers,body:JSON.stringify(profile)});
+    if(!res.ok)throw new Error('Perfil do cliente: '+await readError(res));
+
+    for(const a of (accounts||[])){
+      if(!a?.login||!a?.passHash)continue;
+      const login=String(a.login).trim().toLowerCase();
+      const row={tenant_id:t.id,role:a.role,login,pass_hash:a.passHash,active:a.active!==false,updated_at:new Date().toISOString()};
+
+      /* Primeiro grava a nova credencial. Só depois remove eventual login antigo da mesma função.
+         Assim uma colisão de login nunca apaga o acesso anterior. */
+      res=await request(base+'qg_tenant_accounts_v97?on_conflict=login',{method:'POST',headers,body:JSON.stringify(row)});
+      if(!res.ok){
+        const detail=await readError(res);
+        if(res.status===409||/duplicate|unique|already exists|já existe/i.test(detail)){
+          throw new Error('O login "'+login+'" já está cadastrado em outro acesso. Escolha outro login.');
+        }
+        throw new Error('Acesso '+(a.role==='fiscal'?'Fiscal':'Coordenação')+': '+detail);
+      }
+
+      const delHeaders={...headers,Prefer:'return=minimal'};
+      const cleanupUrl=base+'qg_tenant_accounts_v97?tenant_id=eq.'+encodeURIComponent(t.id)+'&role=eq.'+encodeURIComponent(a.role)+'&login=neq.'+encodeURIComponent(login);
+      const cleanup=await request(cleanupUrl,{method:'DELETE',headers:delHeaders});
+      if(!cleanup.ok)console.warn('V157: login novo salvo, mas limpeza do login antigo ficou pendente:',await readError(cleanup));
+
+      /* Confirma pelo mesmo RPC usado na tela pública de login. */
+      try{
+        const sb=qgSbClientV88();
+        if(sb){
+          const verify=await Promise.race([
+            sb.rpc('qg_tenant_login_v97',{p_login:login,p_password_hash:a.passHash}),
+            new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),5000))
+          ]);
+          const vr=Array.isArray(verify?.data)?verify.data[0]:verify?.data;
+          if(verify?.error||!vr?.tenant_id||String(vr.tenant_id)!==String(t.id)||String(vr.role)!==String(a.role)){
+            throw new Error(verify?.error?.message||'RPC não confirmou a credencial recém-gravada.');
+          }
+        }
+      }catch(e){
+        throw new Error('Credencial gravada, mas a validação do login falhou: '+String(e?.message||e));
+      }
+    }
+    return {ok:true,verified:true,transport:'REST+RPC'};
+  }catch(e){
+    const raw=String(e?.message||e||'Falha desconhecida');
+    const missing=/qg_tenant_|does not exist|relation|function .*qg_tenant_login|schema cache/i.test(raw);
+    return {ok:false,migrationRequired:missing,error:missing?'Estrutura multi-cliente ausente/incompleta no Supabase. Execute a migração multi-cliente vigente.':raw};
+  }
+}
+
+/* Mantém a API usada pelo formulário V97, trocando apenas o transporte remoto por uma versão verificável. */
+qgRemoteSaveTenantV97=qgRemoteSaveTenantV157;
+
+function qgOperationalAreasAuditV157(){
+  const expected={
+    fiscal:['fiscalSetup66','scan','fiscalSections112','fiscalSends112'],
+    coordenacao:['dash','mapa63','faltando63','sections','reconcile','coverage','pending','reports'],
+    admin:['dash','tenants97','adminCoord96','realtime88','adminBuData83','countScope71','campanhas63','convites63','mapa63','faltando63','reconcile50','protocols','coverage','sections','occurrences','audit','diagnostics','reports','backups','admin']
+  };
+  const missing={};
+  Object.entries(expected).forEach(([role,ids])=>{missing[role]=ids.filter(id=>!document.getElementById(id))});
+  const handlers=['qgTenantRoleLoginV102','qgSaveTenantV97','qgRemoteSaveTenantV97','qgDirectEnterV80','qgShowAccess','startQRScanner','handleQRRaw','submitAutoQrBundleV71','qgStartRealtimeV88'];
+  const missingHandlers=handlers.filter(name=>typeof window[name]!=='function');
+  const ok=Object.values(missing).every(x=>!x.length)&&!missingHandlers.length;
+  window.QG_OPERATIONAL_AUDIT_V157={ok,missing,missingHandlers,checkedAt:new Date().toISOString()};
+  return window.QG_OPERATIONAL_AUDIT_V157;
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',qgOperationalAreasAuditV157,{once:true});else setTimeout(qgOperationalAreasAuditV157,0);
+</script>
+
 </body></html>
