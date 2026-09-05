@@ -16186,6 +16186,8 @@ async function saveSupabaseConfigV88(){
     return false;
   }
   state.realtimeV88={url,anon,campaign,enabled:true,updatedAt:new Date().toISOString()};
+  /* V159: configuração remota nova nunca herda cliente/cursor do projeto anterior. */
+  try{window.__qgRemoteCursorByScopeV158={};window.__qgSbLastPullV88=0;window.__qgSbV88=null}catch(e){}
   qgPersistStateSafe();
   await qgStartRealtimeV88(true);
   return true;
@@ -16290,7 +16292,10 @@ window.__qgRemoteCursorByScopeV158=window.__qgRemoteCursorByScopeV158||{};
 function qgRemoteScopeKeyV158(){
   const cfg=qgRealtimeConfigV88();
   const tenant=(state.role==='admin'&&!state.adminPreviewTenantV97)?'*':qgCurrentTenantIdV97();
-  return cfg.campaign+'|'+tenant;
+  /* V159: o cursor também pertence ao projeto Supabase. Sem isso, trocar de projeto
+     mantendo a mesma campanha/tenant pode reutilizar um ID de cursor de outro banco. */
+  const project=String(cfg.url||'').trim().replace(/\/+$/,'').toLowerCase();
+  return project+'|'+cfg.campaign+'|'+tenant;
 }
 function qgRemoteLiteSelectV158(withMeta=true){
   const base='id,campaign_id,tenant_id,record_key,protocol,bu_protocol,municipio,zona,secao,local,cargo,candidate_number,votos,fiscal,metodo,created_at';
@@ -16448,13 +16453,20 @@ async function qgStartRealtimeV88(forcePull=false){
   window.__qgSbV88=null;
   if(!qgRealtimeConfiguredV88()){renderRealtimeStatusV88('Banco remoto não configurado.');return false}
   const cfg=qgRealtimeConfigV88(),tenant=qgCurrentTenantIdV97();
+  /* V159: ao entrar na Coordenação/forçar sincronização, refaz o catch-up do tenant
+     desde o início do projeto atual. Isso elimina cursor órfão e garante recepção
+     dos BUs já enviados antes de a Coordenação abrir. */
+  if(forcePull){
+    try{window.__qgRemoteCursorByScopeV158[qgRemoteScopeKeyV158()]=0}catch(e){}
+    window.__qgSbLastPullV88=0;
+  }
   /* Polling is always active as reliability layer. */
   window.__qgSbPollV88=setInterval(()=>{if(!window.__qgPullBusyV114){window.__qgPullBusyV114=true;qgPullSupabaseV88().catch(()=>{}).finally(()=>window.__qgPullBusyV114=false)}},2000);
   /* WebSocket Realtime is additive when supabase-js loaded. */
   try{
     const sb=qgSbClientV88();
     if(sb){
-      window.__qgSbChannelV88=sb.channel('qg-bu-v112-'+cfg.campaign+'-'+tenant)
+      window.__qgSbChannelV88=sb.channel('qg-bu-v159-'+cfg.campaign+'-'+tenant)
         .on('postgres_changes',{event:'*',schema:'public',table:'qg_bu_records',filter:'campaign_id=eq.'+cfg.campaign},payload=>{
           const row=payload.new||payload.old;
           if(!row)return;
@@ -17322,7 +17334,11 @@ function qgCurrentTenantV97(){
   return state.tenantsV97.find(t=>t.id===id)||state.currentTenantProfileV97||null;
 }
 function qgCurrentTenantIdV97(){
-  return qgCurrentTenantV97()?.id||'default';
+  /* V159: para Fiscal/Coordenação, o tenant autenticado na sessão é a fonte canônica.
+     Evita que um perfil local ausente/desatualizado faça o envio ou a leitura cair em 'default'. */
+  const sessionTenant=String(state.session?.tenantId||'').trim();
+  if(sessionTenant)return sessionTenant;
+  return qgCurrentTenantV97()?.id||String(state.currentTenantIdV97||'').trim()||'default';
 }
 function qgTenantIsActiveV97(){return !!qgCurrentTenantV97()}
 function qgTenantCargosV97(){
@@ -19300,4 +19316,20 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 else setTimeout(qgInitV158,0);
 </script>
 
+
+<script id="qg-coord-sync-guard-v159">
+function qgCoordSyncGuardV159(){
+  const cfg=qgRealtimeConfigV88();
+  const sessionTenant=String(state.session?.tenantId||'').trim();
+  const effective=qgCurrentTenantIdV97();
+  return {
+    ok:!!cfg.url&&!!cfg.campaign&&!!effective&&(state.role==='admin'||!sessionTenant||sessionTenant===effective),
+    project:String(cfg.url||'').replace(/\/+$/,''),
+    campaign:cfg.campaign,
+    sessionTenant,
+    effectiveTenant:effective,
+    scope:qgRemoteScopeKeyV158()
+  };
+}
+</script>
 </body></html>
