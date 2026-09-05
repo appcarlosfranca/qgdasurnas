@@ -7001,6 +7001,64 @@ if(!Array.isArray(state.auditEvents)) state.auditEvents=[];
 if(!state.config || typeof state.config!=='object') state.config={};
 if(!state.schemaVersion) state.schemaVersion=16;
 
+/* V160 — MIGRAÇÃO CIRÚRGICA DO TRANSPORTE SUPABASE.
+   Motivo: versões anteriores permitiam que uma configuração antiga persistida no navegador
+   sobrescrevesse o backend canônico embutido. Em aparelhos distintos isso podia separar Fiscal
+   e Coordenação em projetos Supabase diferentes. A migração roda uma única vez por estado local;
+   depois disso o painel Administrador continua podendo alterar a configuração normalmente. */
+const QG_SUPABASE_CANONICAL_V160={
+  url:'https://ttrzfhesfmhhqsildrbf.supabase.co',
+  anon:'sb_publishable_TAOBaiQoPngWdZ3yVF-9GQ_6-8caXum',
+  campaign:'sergipe-2026',
+  marker:'ttrzfhesfmhhqsildrbf|sergipe-2026|v160'
+};
+const QG_SUPABASE_LEGACY_URLS_V160=new Set([
+  'https://vxlyoaplnbrlnbewkxxe.supabase.co'
+]);
+const QG_SUPABASE_LEGACY_KEYS_V160=new Set([
+  'sb_publishable_ZL9Oml7odrmOInMiohVTGQ_QKDYSJtn'
+]);
+function qgEnforceCanonicalSupabaseV160(force=false){
+  const cur=state.realtimeV88&&typeof state.realtimeV88==='object'?state.realtimeV88:{};
+  const url=String(cur.url||'').trim().replace(/\/+$/,'').toLowerCase();
+  const anon=String(cur.anon||'').trim();
+  const firstMigration=String(state.supabaseCanonicalV160||'')!==QG_SUPABASE_CANONICAL_V160.marker;
+  const legacy=QG_SUPABASE_LEGACY_URLS_V160.has(url)||QG_SUPABASE_LEGACY_KEYS_V160.has(anon);
+  if(!(force||firstMigration||legacy))return false;
+  state.realtimeV88={
+    ...cur,
+    url:QG_SUPABASE_CANONICAL_V160.url,
+    anon:QG_SUPABASE_CANONICAL_V160.anon,
+    campaign:QG_SUPABASE_CANONICAL_V160.campaign,
+    enabled:true,
+    updatedAt:new Date().toISOString(),
+    migratedBy:'V160'
+  };
+  state.supabaseCanonicalV160=QG_SUPABASE_CANONICAL_V160.marker;
+  try{window.__qgSbV88=null}catch(e){}
+  try{window.__qgSbLastPullV88=0}catch(e){}
+  return true;
+}
+function qgMigrateSupabaseQueueV160(){
+  state.syncQueueV34=Array.isArray(state.syncQueueV34)?state.syncQueueV34:[];
+  let changed=0;
+  state.syncQueueV34=state.syncQueueV34.map(item=>{
+    if(!item||typeof item!=='object')return item;
+    const looksLikeBu=item.buBundle===true || (!!item.buProtocol && !!item.tenantId && String(item.metodo||'QR').toUpperCase()==='QR');
+    if(!looksLikeBu || item.qgTransportV160==='supabase')return item;
+    changed++;
+    return {...item,
+      idempotencyKey:String(item.idempotencyKey||item.key||item.protocolo||item.buProtocol||('QG-SB-'+Date.now()+'-'+changed)),
+      qgTransportV160:'supabase',
+      queuedAt:item.queuedAt||new Date().toISOString(),
+      attempts:Number(item.attempts||0),
+      nextAttemptAt:item.nextAttemptAt||new Date().toISOString(),
+      acked:false
+    };
+  });
+  return changed;
+}
+
 const menus={fiscal:[['fiscalSetup66','Configurar minhas seções'],['scan','Ler BU'],['fiscalSections112','Minhas seções'],['fiscalSends112','Meus envios']],coordenacao:[['dash','Sala de Guerra'],['mapa63','Mapa operacional'],['faltando63','O que está faltando?'],['dados59','Dados 2026'],['reconcile','Reconciliação'],['protocols','Protocolos'],['coverage','Radar'],['sections','Seções'],['pending','Pendências'],['occurrences','Ocorrências'],['audit','Auditoria'],['reports','Relatórios'],['sim','Simulação']],admin:[['dash','Visão geral'],['tenants97','Clientes e acessos'],['adminCoord96','Painel de apuração'],['realtime88','Tempo real'],['adminBuData83','Dados de BU'],['countScope71','Cargos contabilizados'],['homolog110v64','Teste 110/110'],['campanhas63','Campanhas'],['convites63','Convites fiscais'],['requisitos63','110 requisitos'],['mapa63','Mapa operacional'],['faltando63','O que está faltando?'],['dados59','Dados 2026'],['final53','Homologação Final'],['deploy52','Implantação'],['readiness51','Pré-produção'],['reconcile50','Reconciliação TSE'],['capture42','Captura do BU'],['ocr41','OCR do BU'],['backend_status','Backend'],['ops40','Prontidão produção'],['offline37','Resiliência'],['server_backup38','Backup servidor'],['load39','Carga pesada'],['users36','Usuários'],['qr_tse','QR TSE'],['qr_trust','Confiança QR'],['ui_test','Teste de Interface'],['homologacao','Homologação'],['integrity','Integridade'],['reconcile','Reconciliação'],['protocols','Protocolos'],['coverage','Radar'],['sections','Base eleitoral'],['occurrences','Ocorrências'],['audit','Auditoria'],['diagnostics','Diagnóstico'],['reports','Relatórios'],['homolog','Homologação'],['sim','Simulação'],['backups','Backups'],['admin','Administração']]};
 
 
@@ -8579,6 +8637,59 @@ async function sendQueuedItemV37(item){
     ackAt:new Date().toISOString()
   };
 }
+function qgIsSupabaseQueueItemV160(item){
+  if(!item||typeof item!=='object')return false;
+  if(item.qgTransportV160==='supabase')return true;
+  return item.buBundle===true && !!item.tenantId && !!(item.key||item.protocolo||item.buProtocol);
+}
+function qgQueueSupabaseRecordsV160(records,error=''){
+  if(!Array.isArray(records)||!records.length)return 0;
+  try{ensureOfflineV37()}catch(e){
+    state.syncQueueV34=Array.isArray(state.syncQueueV34)?state.syncQueueV34:[];
+  }
+  const now=new Date().toISOString();
+  let added=0;
+  records.forEach(rec=>{
+    if(!rec||typeof rec!=='object')return;
+    const idk=String(rec.idempotencyKey||rec.key||rec.protocolo||rec.buProtocol||'').trim();
+    if(!idk)return;
+    const idx=state.syncQueueV34.findIndex(x=>String(x?.idempotencyKey||x?.key||'')===idk);
+    const queued={...rec,
+      idempotencyKey:idk,
+      qgTransportV160:'supabase',
+      queuedAt:rec.queuedAt||now,
+      attempts:Number(rec.attempts||0),
+      nextAttemptAt:now,
+      acked:false,
+      lastError:String(error||rec.lastError||'Publicação Supabase pendente.'),
+      lastAttempt:rec.lastAttempt||null
+    };
+    if(idx<0){state.syncQueueV34.push(queued);added++}
+    else state.syncQueueV34[idx]={...state.syncQueueV34[idx],...queued};
+  });
+  try{persistQueueV37()}catch(e){try{qgPersistStateSafe()}catch(_){}}
+  try{scheduleQueueV37()}catch(e){}
+  return added;
+}
+function qgMarkSupabaseQueueAckV160(item){
+  const k=String(item?.key||item?.idempotencyKey||'');
+  if(!k)return;
+  (state.subs||[]).forEach(r=>{
+    if(String(r?.key||'')===k){
+      r.status='VALIDADO';
+      r.syncedAt=new Date().toISOString();
+      r.remotePublishedV160=true;
+    }
+  });
+}
+async function qgSendQueuedSupabaseV160(item){
+  if(!qgRealtimeConfiguredV88())throw new Error('Supabase canônico não configurado.');
+  const pub=await qgPublishRecordsSupabaseV88([item]);
+  if(!pub||pub.ok===false)throw new Error(pub?.error||'Supabase não confirmou a publicação.');
+  qgMarkSupabaseQueueAckV160(item);
+  return {ok:true,transport:'SUPABASE_V160',published:Number(pub.published||1),ackAt:new Date().toISOString()};
+}
+
 async function processQueueV37(showToast=false){
   ensureOfflineV37();
   if(queueBusyV37)return false;
@@ -8592,7 +8703,9 @@ async function processQueueV37(showToast=false){
       if(!due){remaining.push(item);skipped++;continue}
       try{
         item.lastAttempt=new Date().toISOString();
-        const ack=await sendQueuedItemV37(item);
+        const ack=(typeof qgIsSupabaseQueueItemV160==='function'&&qgIsSupabaseQueueItemV160(item))
+          ? await qgSendQueuedSupabaseV160(item)
+          : await sendQueuedItemV37(item);
         item.acked=true;
         item.ack=ack;
         sent++;
@@ -8681,7 +8794,10 @@ function initOfflineV37(){
   scheduleQueueV37();
 }
 window.addEventListener('beforeunload',()=>{try{persistQueueV37()}catch(e){}});
-window.addEventListener('online',()=>{try{processQueueV37(false)}catch(e){}});
+window.addEventListener('online',()=>{
+  try{qgEnforceCanonicalSupabaseV160(false)}catch(e){}
+  try{processQueueV37(false)}catch(e){}
+});
 
 const AUTH_V36_KEY='qg_auth_v36';
 let pendingRoleV36=null;
@@ -12749,6 +12865,8 @@ async function bootstrapV6(){
   if(!state.offlineQueue) state.offlineQueue=[];
   if(!state.migrations) state.migrations=[];
   qgApplyCleanBaselineV121(false);
+  qgEnforceCanonicalSupabaseV160(false);
+  qgMigrateSupabaseQueueV160();
   qgApplyUiEffectsV121();
   migrateState();
   fill();
@@ -14926,13 +15044,18 @@ async function submitAutoQrBundleV71(){
     try{
       const pub=await qgPublishRecordsSupabaseV88(generated);
       remotePublished=pub?.ok!==false;
-      if(!remotePublished)remoteError='Publicação remota não confirmada.';
+      if(!remotePublished){
+        remoteError=String(pub?.error||'Publicação remota não confirmada.');
+        generated.forEach(r=>{r.status='AGUARDANDO_SYNC'});
+        qgQueueSupabaseRecordsV160(generated,remoteError);
+      }else{
+        generated.forEach(r=>{r.status='VALIDADO';r.syncedAt=new Date().toISOString();r.remotePublishedV160=true});
+      }
     }catch(e){
       remotePublished=false;remoteError=String(e.message||e);
-      /* Keep local records queued for retry instead of falsely reporting a remote send. */
+      /* V160: falha Supabase fica em fila do próprio Supabase, não na API legada. */
       generated.forEach(r=>{r.status='AGUARDANDO_SYNC'});
-      state.syncQueueV34=Array.isArray(state.syncQueueV34)?state.syncQueueV34:[];
-      generated.forEach(r=>{if(!state.syncQueueV34.some(q=>q.key===r.key))state.syncQueueV34.push(r)});
+      qgQueueSupabaseRecordsV160(generated,remoteError);
     }
   }
   try{qgBroadcastBuUpdatedV87()}catch(e){}
@@ -14956,14 +15079,16 @@ async function submitAutoQrBundleV71(){
   };
 
   const receipt=document.getElementById('receipt');
+  const receiptStatusV160=receiptData.duplicate?'JÁ REGISTRADO':(!online?'SALVO OFFLINE':(remotePublished?'PROCESSADO E SINCRONIZADO':'PROCESSADO • AGUARDANDO SINCRONIZAÇÃO'));
   if(receipt)receipt.innerHTML=
-    '<div class="receipt-card"><div class="receipt-title">✓ BU '+(receiptData.duplicate?'JÁ REGISTRADO':(online?'PROCESSADO':'SALVO OFFLINE'))+'</div>'+
+    '<div class="receipt-card"><div class="receipt-title">✓ BU '+receiptStatusV160+'</div>'+
     '<div class="receipt-grid"><div class="receipt-item">Protocolo BU<b>'+escapeHtml(receiptData.protocol)+'</b></div>'+
     '<div class="receipt-item">Fiscal<b>'+escapeHtml(fiscal)+'</b></div>'+
     '<div class="receipt-item">Seção<b>Z'+x.zona+' / S'+x.secao+'</b></div>'+
     '<div class="receipt-item">Cargos<b>'+blocks.length+'</b></div>'+
     '<div class="receipt-item">Novos registros<b>'+generated.length+'</b></div>'+
-    '<div class="receipt-item">Duplicados/divergentes<b>'+skipped.length+'</b></div></div></div>';
+    '<div class="receipt-item">Duplicados/divergentes<b>'+skipped.length+'</b></div>'+
+    '<div class="receipt-item">Sincronização<b>'+(remotePublished?'CONFIRMADA':'PENDENTE — RETRY AUTOMÁTICO')+'</b></div></div></div>';
 
   try{qgMarkCurrentBuSentV93(receiptData)}catch(e){}
   try{qgMarkBuIdentitySentV151(buDuplicateSnapshotV151,receiptData)}catch(e){}
@@ -16136,12 +16261,24 @@ window.__qgSbLastPullV88=0;
 function qgRealtimeConfigV88(){
   const cfg=state.realtimeV88||{};
   const def=window.QG_SUPABASE_DEFAULT_V89||{};
-  return {
-    url:String(cfg.url||def.url||'').trim(),
-    anon:String(cfg.anon||def.anon||'').trim(),
-    campaign:String(cfg.campaign||def.campaign||'sergipe-2026').trim()||'sergipe-2026',
-    enabled:cfg.enabled!==undefined ? cfg.enabled===true : def.enabled===true
-  };
+  let url=String(cfg.url||def.url||'').trim().replace(/\/+$/,'');
+  let anon=String(cfg.anon||def.anon||'').trim();
+  let campaign=String(cfg.campaign||def.campaign||'sergipe-2026').trim()||'sergipe-2026';
+  let enabled=cfg.enabled!==undefined ? cfg.enabled===true : def.enabled===true;
+  /* V160: configuração antiga conhecida nunca pode separar os aparelhos em outro projeto. */
+  const norm=url.toLowerCase();
+  if((typeof QG_SUPABASE_LEGACY_URLS_V160!=='undefined'&&QG_SUPABASE_LEGACY_URLS_V160.has(norm)) ||
+     (typeof QG_SUPABASE_LEGACY_KEYS_V160!=='undefined'&&QG_SUPABASE_LEGACY_KEYS_V160.has(anon))){
+    url=String(def.url||QG_SUPABASE_CANONICAL_V160?.url||'').trim().replace(/\/+$/,'');
+    anon=String(def.anon||QG_SUPABASE_CANONICAL_V160?.anon||'').trim();
+    campaign=String(def.campaign||QG_SUPABASE_CANONICAL_V160?.campaign||'sergipe-2026').trim();
+    enabled=true;
+  }
+  /* Se a URL é a canônica, usa também a publishable key canônica do próprio build. */
+  if(def.url && url.toLowerCase()===String(def.url).trim().replace(/\/+$/,'').toLowerCase() && def.anon){
+    anon=String(def.anon).trim();
+  }
+  return {url,anon,campaign,enabled};
 }
 function qgRealtimeConfiguredV88(){
   const c=qgRealtimeConfigV88();
@@ -16482,6 +16619,7 @@ async function qgStartRealtimeV88(forcePull=false){
         }).subscribe(()=>{});
     }
   }catch(e){}
+  try{if(navigator.onLine&&Array.isArray(state.syncQueueV34)&&state.syncQueueV34.some(qgIsSupabaseQueueItemV160))processQueueV37(false).catch(()=>{})}catch(e){};
   if(forcePull)await qgPullSupabaseV88();else qgPullSupabaseV88().catch(()=>{});
   qgRemoteStatusV110('Sincronização automática ativa.',true);
   return true;
