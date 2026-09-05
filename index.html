@@ -11545,7 +11545,9 @@ function qgOpenProfile(profile){
 
 function qgShowAccess(){
   try{
-    /* Close transient overlays/modals so they cannot block the next login. */
+    qgBumpSessionEpochV153();
+    qgResetTransientRoleUiV153();
+
     ['authOverlayV36','coordProgressModal75','sendConfirmModal75','sendSuccessModal75'].forEach(id=>{
       const el=document.getElementById(id);
       if(el){
@@ -11555,10 +11557,9 @@ function qgShowAccess(){
       }
     });
 
-    /* Stop role-specific live refresh while on the access screen. */
-    if(window.__qgCoordLiveTimerV84){
-      clearInterval(window.__qgCoordLiveTimerV84);
-      window.__qgCoordLiveTimerV84=null;
+    const leavingRole=state.role;
+    if(leavingRole==='fiscal'){
+      try{qgSaveTenantFiscalStateV97()}catch(e){}
     }
 
     const app=document.querySelector('.app');
@@ -11568,9 +11569,21 @@ function qgShowAccess(){
       app.style.setProperty('pointer-events','none','important');
       app.setAttribute('aria-hidden','true');
     }
-
     document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
-    document.querySelectorAll('#nav button').forEach(x=>x.classList.remove('active'));
+    const nav=document.getElementById('nav');if(nav)nav.innerHTML='';
+
+    state.role=null;
+    state.session=null;
+    state.currentTenantIdV97=null;
+    state.currentTenantProfileV97=null;
+    state.adminPreviewTenantV97=null;
+    const badge=document.getElementById('currentRoleBadge');if(badge)badge.textContent='';
+    qgSetExitLabelV153(null);
+
+    ['tenantFiscalUser101','tenantFiscalPass101','tenantCoordUser101','tenantCoordPass101'].forEach(id=>{
+      const el=document.getElementById(id);if(el)el.value='';
+    });
+    ['fiscalError','coordError'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=''});
 
     const loginEl=document.getElementById('login');
     if(loginEl){
@@ -11582,30 +11595,13 @@ function qgShowAccess(){
       loginEl.removeAttribute('aria-hidden');
       loginEl.scrollTop=0;
     }
-
-    /* Clear transient role/session markers only; preserve configured data. */
-    try{
-      try{qgSaveTenantFiscalStateV97()}catch(e){}
-      state.role=null;
-      state.session=null;
-      state.currentTenantIdV97=null;
-      state.currentTenantProfileV97=null;
-      state.adminPreviewTenantV97=null;
-    }catch(e){}
-
     setTimeout(()=>{
       try{qgScheduleFitFrozenLandingV45()}catch(e){}
-      try{
-        document.querySelectorAll('#login button.role-enter').forEach(btn=>{
-          btn.disabled=false;
-          btn.style.removeProperty('pointer-events');
-        });
-      }catch(e){}
+      try{document.querySelectorAll('#login button.role-enter').forEach(btn=>{btn.disabled=false;btn.style.removeProperty('pointer-events')})}catch(e){}
     },0);
-
     return false;
   }catch(e){
-    console.error('Falha ao trocar perfil V84',e);
+    console.error('Falha ao sair V153',e);
     return false;
   }
 }
@@ -11811,7 +11807,7 @@ function drawCharts(){
 }
 
 
-const QG_SCHEMA_VERSION = 152;
+const QG_SCHEMA_VERSION = 153;
 
 const QG_DEMO_CREDENTIALS={
   fiscal:{user:'fiscal',pass:'QG2026'},
@@ -15474,8 +15470,8 @@ function qgDirectEnterV80(role){
   try{
     delete document.documentElement.dataset.qgLanding;
     role=(role==='coordenacao'||role==='admin')?role:'fiscal';
+    const epoch=window.__qgSessionEpochV153||0;
 
-    /* Always reset visibility state before entering again. */
     const login=document.getElementById('login');
     if(login){
       login.style.setProperty('display','none','important');
@@ -15484,10 +15480,7 @@ function qgDirectEnterV80(role){
       login.style.setProperty('opacity','0','important');
       login.setAttribute('aria-hidden','true');
     }
-
-    const auth=document.getElementById('authOverlayV36');
-    if(auth)auth.style.setProperty('display','none','important');
-
+    const auth=document.getElementById('authOverlayV36');if(auth)auth.style.setProperty('display','none','important');
     const app=document.querySelector('.app');
     if(!app)throw new Error('Estrutura principal não encontrada.');
     app.style.setProperty('display',window.innerWidth<=980?'block':'grid','important');
@@ -15498,44 +15491,55 @@ function qgDirectEnterV80(role){
 
     state.role=role;
     document.body.dataset.qgRole=role;
-    if(!state.session?.tenantId)state.session={role,user:'teste-'+role,loginAt:new Date().toISOString(),testMode:true};else state.session={...state.session,role};
-
+    if(!state.session?.tenantId)state.session={role,user:'teste-'+role,loginAt:new Date().toISOString(),testMode:true,epochV153:epoch};
+    else state.session={...state.session,role,epochV153:epoch};
     const selector=document.getElementById('role');if(selector)selector.value=role;
     const badge=document.getElementById('currentRoleBadge');if(badge)badge.textContent=role.toUpperCase();
+    qgSetExitLabelV153(role);
 
     qgBuildProfileNav(role);
-
     let first='dash',label=role==='coordenacao'?'Sala de Guerra':'Visão geral';
     if(role==='fiscal'){
       const portfolio=Array.isArray(state.fiscalV66?.sections)?state.fiscalV66.sections:[];
       first=portfolio.length?'scan':'fiscalSetup66';
       label=portfolio.length?'Ler BU':'Configurar minhas seções';
     }
-
     qgActivateSection(first,label);
 
-    /* Start/stop live coordination refresh according to the active role. */
     if(role==='coordenacao'){
-      setTimeout(()=>startCoordLiveRefreshV84(),180);
-    }else{
-      stopCoordLiveRefreshV84();
-    }
+      const timer=setTimeout(()=>{
+        window.__qgPendingRoleTimersV153.delete(timer);
+        if(epoch!==window.__qgSessionEpochV153||state.role!=='coordenacao')return;
+        startCoordLiveRefreshV84();
+      },180);
+      qgTrackRoleTimerV153(timer);
+    }else stopCoordLiveRefreshV84();
 
-    setTimeout(()=>{try{qgPersistStateSafe()}catch(e){}},500);
+    const persistTimer=setTimeout(()=>{
+      window.__qgPendingRoleTimersV153.delete(persistTimer);
+      if(epoch!==window.__qgSessionEpochV153)return;
+      try{qgPersistStateSafe()}catch(e){}
+    },500);
+    qgTrackRoleTimerV153(persistTimer);
+
     try{qgRenderSyncModeV87()}catch(e){}
     try{qgApplyTenantBrandV97()}catch(e){}
     try{
-      if(qgRealtimeConfiguredV88() && ['coordenacao','admin'].includes(role)){
-        qgStartRealtimeV88(true);
+      if(qgRealtimeConfiguredV88()&&['coordenacao','admin'].includes(role)){
+        const rtTimer=setTimeout(()=>{
+          window.__qgPendingRoleTimersV153.delete(rtTimer);
+          if(epoch!==window.__qgSessionEpochV153||state.role!==role)return;
+          qgStartRealtimeV88(true);
+        },0);
+        qgTrackRoleTimerV153(rtTimer);
       }
     }catch(e){}
+    try{qgLockRoleUiV149(role)}catch(e){}
     return false;
   }catch(e){
-    console.error('Entrada V84 falhou:',e);
+    console.error('Entrada V153 falhou:',e);
     return false;
   }
-
-  try{qgLockRoleUiV149(state.role||document.body.dataset.qgRole||'')}catch(e){}
 }
 window.qgDirectEnterV80=qgDirectEnterV80;
 </script>
@@ -17767,10 +17771,15 @@ async function qgTenantRoleLoginV102(role){
   if(err)err.textContent='';
   if(!login||!pass){if(err)err.textContent='Informe login e senha.';return false}
   if(btn){btn.disabled=true;btn.textContent='VALIDANDO...'}
+
+  const loginEpoch=qgBumpSessionEpochV153();
+  qgResetTransientRoleUiV153();
   try{
     const match=await qgResolveTenantLoginV102(login,pass,role);
+    if(loginEpoch!==window.__qgSessionEpochV153)return false;
     if(!match){if(err)err.textContent='Login ou senha inválidos.';return false}
     if(match.account.role!==role){if(err)err.textContent='Este login não pertence ao perfil solicitado.';return false}
+
     const t=match.tenant;
     qgTenantEnsureV97();
     const ti=state.tenantsV97.findIndex(x=>x.id===t.id);
@@ -17779,26 +17788,38 @@ async function qgTenantRoleLoginV102(role){
     state.currentTenantProfileV97=t;
     state.adminPreviewTenantV97=null;
     qgLoadTenantFiscalStateV97(t);
-    state.session={role,user:login,loginAt:new Date().toISOString(),tenantId:t.id,tenantName:t.nome,testMode:true};
-    const entered=qgDirectEnterV80(role);
+    state.session={role,user:login,loginAt:new Date().toISOString(),tenantId:t.id,tenantName:t.nome,testMode:true,epochV153:loginEpoch};
+
+    qgDirectEnterV80(role);
+    if(loginEpoch!==window.__qgSessionEpochV153)return false;
     state.role=role;
     state.currentTenantIdV97=t.id;
     state.currentTenantProfileV97=t;
+    document.body.dataset.qgRole=role;
+    qgSetExitLabelV153(role);
     qgApplyTenantBrandV97();
     qgPersistStateSafe();
+
     if(role==='coordenacao'){
-      setTimeout(()=>qgStartRealtimeV88(true).then(()=>refreshCoordViewsV84(true)).catch(()=>{}),120);
+      const timer=setTimeout(()=>{
+        window.__qgPendingRoleTimersV153.delete(timer);
+        if(loginEpoch!==window.__qgSessionEpochV153)return;
+        if(state.role!=='coordenacao'||state.currentTenantIdV97!==t.id)return;
+        qgStartRealtimeV88(true).then(()=>{
+          if(loginEpoch===window.__qgSessionEpochV153&&state.role==='coordenacao')refreshCoordViewsV84(true);
+        }).catch(()=>{});
+      },120);
+      qgTrackRoleTimerV153(timer);
     }
+    try{qgLockRoleUiV149(role)}catch(e){}
     return true;
   }catch(e){
-    console.error('Login V112',e);
+    console.error('Login V153',e);
     if(err)err.textContent='Falha ao validar. Tente novamente.';
     return false;
   }finally{
     if(btn){btn.disabled=false;btn.textContent=old}
   }
-
-  try{qgLockRoleUiV149(state.role||document.body.dataset.qgRole||'')}catch(e){}
 }
 
 function qgInstallTempLoginV102(){
@@ -19002,6 +19023,175 @@ document.addEventListener('DOMContentLoaded',()=>{
   const cargo=document.getElementById('coordChartCargo90');
   cargo?.addEventListener('change',()=>setTimeout(qgSearchCoordCandidateV152,0));
 },{once:true});
+</script>
+
+
+<script id="qg-v153-session-isolation">
+window.__qgSessionEpochV153=window.__qgSessionEpochV153||0;
+window.__qgPendingRoleTimersV153=window.__qgPendingRoleTimersV153||new Set();
+function qgBumpSessionEpochV153(){
+  window.__qgSessionEpochV153=(window.__qgSessionEpochV153||0)+1;
+  return window.__qgSessionEpochV153;
+}
+function qgTrackRoleTimerV153(id){if(id!=null)window.__qgPendingRoleTimersV153.add(id);return id}
+function qgClearRoleTimersV153(){
+  for(const id of window.__qgPendingRoleTimersV153){try{clearTimeout(id)}catch(e){}}
+  window.__qgPendingRoleTimersV153.clear();
+}
+function qgSetExitLabelV153(role){
+  const btn=document.querySelector('.qg-profile-switch-v115');if(!btn)return;
+  const isUser=role==='fiscal'||role==='coordenacao';
+  btn.textContent=isUser?'SAIR':'TROCAR PERFIL';
+  btn.setAttribute('aria-label',isUser?'Sair desta área':'Trocar perfil');
+}
+function qgResetTransientRoleUiV153(){
+  try{stopCoordLiveRefreshV84()}catch(e){}
+  try{qgStopRealtimeV88()}catch(e){}
+  qgClearRoleTimersV153();
+  try{window.__qgPullBusyV114=false}catch(e){}
+  try{window.__qgCoordLastFingerprintV84=''}catch(e){}
+  try{document.body.removeAttribute('data-qg-role')}catch(e){}
+  try{document.body.removeAttribute('data-role')}catch(e){}
+  try{
+    const selector=document.getElementById('role');
+    if(selector){selector.disabled=false;selector.removeAttribute('aria-hidden');selector.tabIndex=0}
+  }catch(e){}
+}
+</script>
+
+
+<script id="qg-v154-master-qr">
+/*
+  V154 - QR MESTRE DE SIMULACAO COMPLETA
+  - Intercepta SOMENTE o payload especial abaixo.
+  - Todo QR de BU normal continua delegado integralmente ao handleQRRaw V153.
+  - A massa gerada e local, sintetica, claramente marcada e NAO e enviada ao Supabase.
+*/
+const QG_MASTER_QR_V154='QG-MASTER-TEST|V154|ELECTION=2026|UF=SE|MUNICIPIO=ARAUÁ|ZONA=4|SCOPE=FULL_DEMO|TOKEN=7F4D9C2A51E8';
+window.QG_MASTER_QR_V154=QG_MASTER_QR_V154;
+window.QG_PATCH_VERSION=154;
+
+function qgIsMasterQrV154(raw){
+  return String(raw||'').trim()===QG_MASTER_QR_V154;
+}
+
+function qgMasterTestStorageKeyV154(){
+  let tenant='default';
+  try{tenant=(typeof qgCurrentTenantIdV97==='function'?qgCurrentTenantIdV97():state?.session?.tenantId)||'default'}catch(e){}
+  return 'qg_master_test_v154|'+String(tenant);
+}
+
+function qgMasterTestCandidatesV154(cargo,limit=6){
+  const list=(window.QG_CANDIDATES_V27||[]).filter(c=>String(c.cargo||'')===String(cargo||''));
+  list.sort((a,b)=>Number(a.numero||0)-Number(b.numero||0)||String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR'));
+  return list.slice(0,Math.max(1,Number(limit)||6));
+}
+
+function qgMasterVoteV154(secao,candidateIndex,cargoIndex,eleitores){
+  const e=Math.max(1,Number(eleitores||300));
+  const base=((Number(secao||0)*17)+(candidateIndex+1)*23+(cargoIndex+1)*31)%71;
+  return Math.max(1,Math.min(95,Math.floor(e*0.03)+base));
+}
+
+function qgRenderAfterMasterV154(){
+  const calls=['render','drawCharts','renderCandidateTotalsV20','renderOperationalKpisV63','renderTerritoryMapV63','runMissingAnalysisV63','renderSectionsV15','renderCandidatePickerV90','renderCoordLineChartV90','renderSelectedCandidateTotalsV91'];
+  for(const name of calls){try{if(typeof window[name]==='function')window[name]()}catch(e){console.warn('V154 render',name,e)}}
+}
+
+function qgActivateMasterQrV154(){
+  try{
+    if(typeof ensureCoreStateV21==='function')ensureCoreStateV21();
+    if(!Array.isArray(state.subs))state.subs=[];
+
+    const tenantId=(typeof qgCurrentTenantIdV97==='function'?qgCurrentTenantIdV97():(state.session?.tenantId||'default'))||'default';
+    const storageKey=qgMasterTestStorageKeyV154();
+    const already=state.subs.filter(r=>r&&r.masterTestV154&&String(r.tenantId||'default')===String(tenantId));
+    if(already.length){
+      const msg='QR Mestre ja ativado neste cliente. Nenhum dado duplicado foi criado.';
+      try{toastV21(msg)}catch(e){}
+      return {ok:true,duplicate:true,master:true,records:already.length,message:msg};
+    }
+
+    const sectionsBase=(window.QG_SECTIONS_V27||[]).filter(x=>
+      String(x.municipio||'').toLocaleUpperCase('pt-BR')==='ARAUÁ' && Number(x.zona||0)===4
+    );
+    if(!sectionsBase.length)throw new Error('Base de Arauá / Zona 4 nao encontrada.');
+
+    let cargos=[];
+    try{cargos=(typeof enabledCargosV71==='function'?enabledCargosV71():[])||[]}catch(e){}
+    if(!Array.isArray(cargos)||!cargos.length)cargos=['Deputado Federal','Deputado Estadual'];
+
+    const atBase=Date.now()-sectionsBase.length*60000;
+    const generated=[];
+    cargos.forEach((cargo,cargoIndex)=>{
+      const candidates=qgMasterTestCandidatesV154(cargo,6);
+      if(!candidates.length)return;
+      sectionsBase.forEach((sec,si)=>{
+        candidates.forEach((cand,ci)=>{
+          const votos=qgMasterVoteV154(sec.secao,ci,cargoIndex,sec.eleitores);
+          const at=new Date(atBase+(si*60000)+(cargoIndex*5000)+(ci*500)).toISOString();
+          const logicalKey=['MASTER154',tenantId,'2026','SE','ARAUÁ','4',sec.secao,cargo,cand.numero].join('|').toUpperCase();
+          generated.push({
+            id:'MASTER154-'+tenantId+'-'+cargoIndex+'-'+sec.secao+'-'+ci,
+            eventId:'MASTER154-'+tenantId+'-'+cargoIndex+'-'+sec.secao+'-'+ci,
+            idempotencyKey:logicalKey,
+            logicalKey,
+            key:logicalKey,
+            tenantId:String(tenantId),
+            sectionKey:['ARAUÁ',4,sec.secao].join('|'),
+            municipio:'ARAUÁ',zona:4,secao:Number(sec.secao),
+            local:sec.local||'',localNumero:sec.localNumero||'',eleitores:Number(sec.eleitores||0),
+            votos,
+            fiscal:'QR MESTRE V154',fiscalId:'QR-MESTRE-V154',
+            nota:'DADO FICTICIO - QR MESTRE V154 - SOMENTE TESTE LOCAL',
+            time:at,createdAt:at,capturedAt:at,
+            status:'PROCESSADO',metodo:'QR_MESTRE_TESTE',
+            candidateId:cand.id||String(cand.numero),candidateNumber:String(cand.numero),candidateName:cand.nome||'',
+            cargo:String(cargo),partido:cand.partido||'',
+            protocolo:'QG-MASTER-V154-Z04-S'+String(sec.secao).padStart(4,'0'),
+            protocol:'QG-MASTER-V154-Z04-S'+String(sec.secao).padStart(4,'0'),
+            processed:true,synthetic:true,homologation:true,masterTestV154:true,
+            remoteSyncBlockedV154:true
+          });
+        });
+      });
+    });
+
+    if(!generated.length)throw new Error('Nenhum candidato disponivel para os cargos configurados.');
+
+    state.subs.push(...generated);
+    try{localStorage.setItem(storageKey,JSON.stringify({at:new Date().toISOString(),tenantId,records:generated.length,sections:sectionsBase.length,cargos}))}catch(e){}
+    try{if(typeof auditEvent==='function')auditEvent('MASTER_TEST_V154','QR Mestre ativado: '+generated.length+' registros sinteticos locais em '+sectionsBase.length+' secoes de Arauá/Z4.')}catch(e){}
+    try{if(typeof qgPersistStateSafe==='function')qgPersistStateSafe()}catch(e){}
+    qgRenderAfterMasterV154();
+
+    const msg='QR MESTRE ATIVADO • '+sectionsBase.length+' secoes de Arauá/Z4 • '+cargos.length+' cargo(s) • '+generated.length+' registros ficticios locais. Nada foi enviado ao Supabase.';
+    try{toastV21(msg)}catch(e){}
+    const receipt=document.getElementById('receipt');
+    if(receipt)receipt.innerHTML='<div class="receipt-card"><div class="receipt-title">✓ QR MESTRE DE TESTE ATIVADO</div><div class="receipt-grid">'+
+      '<div class="receipt-item">Abrangencia<b>ARAUÁ • ZONA 4 • '+sectionsBase.length+' SEÇÕES</b></div>'+
+      '<div class="receipt-item">Dados<b>'+generated.length+' REGISTROS FICTÍCIOS LOCAIS</b></div>'+
+      '<div class="receipt-item">Cargos<b>'+escapeHtml(cargos.join(' • '))+'</b></div>'+
+      '<div class="receipt-item">Supabase<b>NÃO ENVIADO</b></div></div></div>';
+    const stateEl=document.getElementById('qrState');if(stateEl)stateEl.textContent='QR Mestre reconhecido. Massa completa de teste local carregada para Arauá/Zona 4.';
+    return {ok:true,master:true,complete:true,records:generated.length,sections:sectionsBase.length,cargos,message:msg};
+  }catch(e){
+    const msg='Falha ao ativar QR Mestre: '+(e?.message||String(e));
+    try{toastV21(msg,'warn')}catch(_){}
+    const stateEl=document.getElementById('qrState');if(stateEl)stateEl.textContent=msg;
+    return {ok:false,master:true,complete:false,error:msg};
+  }
+}
+
+/* Wrapper cirurgico: nao altera o corpo do handleQRRaw existente. */
+const qgHandleQRRawV153Original=handleQRRaw;
+handleQRRaw=function(raw){
+  if(qgIsMasterQrV154(raw)){
+    try{stopQRScanner()}catch(e){}
+    return qgActivateMasterQrV154();
+  }
+  return qgHandleQRRawV153Original.apply(this,arguments);
+};
 </script>
 
 </body></html>
