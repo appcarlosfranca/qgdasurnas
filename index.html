@@ -4809,6 +4809,21 @@ body[data-qg-role] .side::before{
 @media(max-width:700px){.qg-candidate-search152{min-width:100%;width:100%}}
 </style>
 
+
+<style id="qg-v158-vote-preview-style">
+#autoQrResults71{display:none!important}
+.qg-vote-preview-host158{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:2px}
+.qg-vote-preview-host158 .note{margin:0}
+.qg-vote-preview-grid158{display:grid;gap:10px}
+.qg-vote-preview-cargo158{border:1px solid rgba(23,216,255,.2);border-radius:14px;padding:12px;background:rgba(4,19,34,.62)}
+.qg-vote-preview-cargo158 h3{margin:0 0 10px;font-size:16px}
+.qg-vote-preview-row158{display:grid;grid-template-columns:minmax(74px,auto) minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.qg-vote-preview-row158:last-child{border-bottom:0}
+.qg-vote-preview-row158 .num{font-weight:900;color:#38dcff}.qg-vote-preview-row158 .who{min-width:0}.qg-vote-preview-row158 .who small{display:block;color:#8ea6bd}.qg-vote-preview-row158 .votes{font-weight:900;white-space:nowrap}
+.qg-vote-preview-totals158{margin-top:9px;color:#9fb4c7;font-size:12px;line-height:1.5}
+@media(max-width:620px){.qg-vote-preview-row158{grid-template-columns:68px minmax(0,1fr);}.qg-vote-preview-row158 .votes{grid-column:2;text-align:left}}
+</style>
+
 </head><body>
 <div id="authOverlayV36" class="auth36-overlay">
   <div class="auth36-modal">
@@ -11351,12 +11366,48 @@ const QG_PROFILE_MENUS={
   ]
 };
 
+function qgCompactBuPayloadRowsV158(rows){
+  const list=Array.isArray(rows)?rows:[];
+  if(!list.length)return list;
+  const anchors=new Map();
+  list.forEach((r,i)=>{
+    if(!r||typeof r!=='object')return;
+    const proto=String(r.buProtocol||r.bu_protocol||'').trim();
+    if(!proto)return;
+    const tenant=String(r.tenantId||r.tenant_id||'default');
+    const group=tenant+'|'+proto;
+    const hasFull=!!(r.qrRaw||r.buSnapshotV115);
+    const prev=anchors.get(group);
+    if(!prev || (hasFull&&!prev.hasFull))anchors.set(group,{index:i,hasFull});
+  });
+  return list.map((r,i)=>{
+    if(!r||typeof r!=='object')return r;
+    const proto=String(r.buProtocol||r.bu_protocol||'').trim();
+    if(!proto)return r;
+    const tenant=String(r.tenantId||r.tenant_id||'default');
+    const group=tenant+'|'+proto;
+    const anchor=anchors.get(group);
+    if(anchor?.index===i){
+      return r.buPayloadAnchorV158===true?r:{...r,buPayloadAnchorV158:true};
+    }
+    if(!r.qrRaw&&!r.buSnapshotV115&&r.buPayloadRefV158===proto)return r;
+    const copy={...r,buPayloadRefV158:proto};
+    delete copy.qrRaw;
+    delete copy.buSnapshotV115;
+    delete copy.buPayloadAnchorV158;
+    return copy;
+  });
+}
+
 function qgPersistStateSafe(){
   try{if(typeof qgSaveTenantFiscalStateV97==='function')qgSaveTenantFiscalStateV97()}catch(e){}
 
   try{
     state.lastSavedAt=new Date().toISOString();
     const persist={...state};
+    persist.subs=qgCompactBuPayloadRowsV158(state.subs);
+    persist.offlineQueue=qgCompactBuPayloadRowsV158(state.offlineQueue);
+    persist.syncQueueV34=qgCompactBuPayloadRowsV158(state.syncQueueV34);
     const embeddedCount=(window.QG_SECTIONS_V27||[]).length;
     const isEmbedded=state.sectionBaseMeta?.userOverride!==true &&
       Array.isArray(state.sectionBase) &&
@@ -11371,6 +11422,9 @@ function qgPersistStateSafe(){
   try{
     if(window.QGDB){
       const dbState={...state};
+      dbState.subs=qgCompactBuPayloadRowsV158(state.subs);
+      dbState.offlineQueue=qgCompactBuPayloadRowsV158(state.offlineQueue);
+      dbState.syncQueueV34=qgCompactBuPayloadRowsV158(state.syncQueueV34);
       const embeddedCount=(window.QG_SECTIONS_V27||[]).length;
       if(state.sectionBaseMeta?.userOverride!==true && Array.isArray(state.sectionBase) && state.sectionBase.length===embeddedCount){
         dbState.sectionBase=null;
@@ -14647,18 +14701,10 @@ function extractEnabledQrResultsV71(parsed){
 }
 function renderAutoQrResultsV71(results){
   const card=document.getElementById('autoQrResults71'),body=document.getElementById('autoQrResultsBody71');
-  if(!card||!body)return;
-  if(!Array.isArray(results)||!results.length){
-    card.style.display='none';body.innerHTML='';return;
-  }
-  card.style.display='block';
-  body.innerHTML=results.map(block=>
-    '<div class="qg-qr-cargo71"><h4>'+escapeHtml(block.cargo)+'</h4>'+
-    (block.candidatos.length?block.candidatos.map(x=>
-      '<div class="qg-qr-result-row71"><b>'+escapeHtml(x.numero)+'</b><span>'+escapeHtml(x.nome)+(x.partido?' • '+escapeHtml(x.partido):'')+'</span><span class="votes">'+Number(x.votos).toLocaleString('pt-BR')+'</span></div>'
-    ).join(''):'<div class="note">Nenhum voto nominal utilizável foi localizado neste cargo no QR.</div>')+
-    '<div class="note" style="margin-top:7px">Brancos: '+block.brancos+' • Nulos: '+block.nulos+' • Legenda: '+block.legenda+' • Total cargo: '+block.total+'</div></div>'
-  ).join('');
+  window.__qgVotePreviewResultsV158=Array.isArray(results)?results:[];
+  if(card)card.style.display='none';
+  if(body)body.innerHTML='';
+  try{qgUpdateVotePreviewButtonV158(window.__qgVotePreviewResultsV158)}catch(e){}
 }
 
 /* Fill all territorial data + show all enabled cargo results */
@@ -15754,15 +15800,13 @@ async function pollCoordDataV84(){
 
   try{
     if(qgRealtimeConfiguredV88()){
-      await Promise.race([
-        qgPullSupabaseV88(),
-        new Promise(resolve=>setTimeout(resolve,1800))
-      ]);
+      const stale=Date.now()-Number(window.__qgSbLastPullV88||0)>3500;
+      if((!window.__qgSbPollV88||stale)&&!window.__qgPullBusyV114){
+        window.__qgPullBusyV114=true;
+        await qgPullSupabaseV88().catch(()=>false).finally(()=>window.__qgPullBusyV114=false);
+      }
     }else if(qgSyncModeV87()==='shared' && navigator.onLine && typeof pullRemoteV35==='function'){
-      await Promise.race([
-        pullRemoteV35(false),
-        new Promise(resolve=>setTimeout(resolve,1800))
-      ]);
+      await Promise.race([pullRemoteV35(false),new Promise(resolve=>setTimeout(resolve,1800))]);
     }else{
       qgReloadStateFromStorageV87();
     }
@@ -15771,7 +15815,6 @@ async function pollCoordDataV84(){
   try{renderRealtimeStatusV88()}catch(e){}
   refreshCoordViewsV84(false);
 }
-
 function startCoordLiveRefreshV84(){
   stopCoordLiveRefreshV84();
   window.__qgCoordLastFingerprintV84='';
@@ -15818,20 +15861,10 @@ function qgRenderConfiguredCargosV85(){
     ||'<span class="qg-no-nominal-v85">Nenhum cargo habilitado pelo Administrador.</span>';
 }
 function qgRenderQrCandidatesV85(results){
-  const box=document.getElementById('qrCandidateMultiV85');if(!box)return;
-  const rows=[];
-  (results||[]).forEach(block=>{
-    (block.candidatos||[])
-      .filter(c=>Number(c.votos||0)>0)
-      .forEach(c=>rows.push({...c,cargo:block.cargo}));
-  });
-  box.innerHTML=rows.length?rows.map(c=>
-    '<div class="qg-candidate-v85" data-auto-v86="1">'+
-      '<div class="cargo">'+escapeHtml(c.cargo)+'</div>'+
-      '<div class="who"><b>'+escapeHtml(c.numero)+' • '+escapeHtml(c.nome)+'</b><span>'+escapeHtml(c.partido||'')+'</span></div>'+
-      '<div class="votes">'+Number(c.votos||0).toLocaleString('pt-BR')+' votos</div>'+
-    '</div>'
-  ).join(''):'<div class="qg-no-nominal-v85">Nenhum candidato com voto nominal maior que zero foi encontrado nos cargos contratados.</div>';
+  const box=document.getElementById('qrCandidateMultiV85');
+  window.__qgVotePreviewResultsV158=Array.isArray(results)?results:[];
+  if(box)box.innerHTML='';
+  try{qgUpdateVotePreviewButtonV158(window.__qgVotePreviewResultsV158)}catch(e){}
 }
 function qgRenderQrContractAndCandidatesV85(results){
   qgSetConferenceQrModeV85(true);
@@ -16214,6 +16247,8 @@ function qgRemoteRowToLocalV88(r){
 function qgMergeRemoteRowsV88(rows){
   if(!Array.isArray(rows))return 0;
   state.subs=Array.isArray(state.subs)?state.subs:[];
+  const index=new Map();
+  state.subs.forEach((x,i)=>index.set(String(x?.key||''),i));
   let changed=0;
   rows.forEach(r=>{
     if(!(state.role==='admin'&&!state.adminPreviewTenantV97)){
@@ -16221,12 +16256,26 @@ function qgMergeRemoteRowsV88(rows){
       if(rowTenant!==qgCurrentTenantIdV97())return;
     }
     const rec=qgRemoteRowToLocalV88(r);
-    const idx=state.subs.findIndex(x=>String(x.key||'')===String(rec.key||''));
-    if(idx<0){state.subs.push(rec);changed++}
-    else{
-      const before=JSON.stringify([state.subs[idx].votos,state.subs[idx].status,state.subs[idx].time]);
-      state.subs[idx]={...state.subs[idx],...rec};
-      const after=JSON.stringify([state.subs[idx].votos,state.subs[idx].status,state.subs[idx].time]);
+    rec.remoteIdV158=Number(r.id||rec.remoteIdV158||0);
+    if(!rec.candidateId&&rec.candidateNumber!==null&&rec.candidateNumber!==undefined)rec.candidateId=String(rec.candidateNumber);
+    if(!rec.candidate&&rec.cargo&&rec.candidateNumber){
+      try{
+        const meta=(window.QG_CANDIDATES_V27||[]).find(c=>String(c.cargo||'')===String(rec.cargo||'')&&String(c.numero||'')===String(rec.candidateNumber||''));
+        if(meta)rec.candidate={id:meta.id||String(meta.numero),nome:meta.nome,numero:String(meta.numero),cargo:meta.cargo,partido:meta.partido||'',uf:meta.uf||'SE'};
+      }catch(e){}
+    }
+    const key=String(rec.key||'');
+    const idx=index.has(key)?index.get(key):-1;
+    if(idx<0){
+      state.subs.push(rec);
+      index.set(key,state.subs.length-1);
+      changed++;
+    }else{
+      const old=state.subs[idx]||{};
+      const before=JSON.stringify([old.votos,old.status,old.time,!!old.qrRaw,Number(old.buMeta?.cargoTotal||0),Number(old.remoteIdV158||0)]);
+      state.subs[idx]={...old,...rec};
+      const cur=state.subs[idx];
+      const after=JSON.stringify([cur.votos,cur.status,cur.time,!!cur.qrRaw,Number(cur.buMeta?.cargoTotal||0),Number(cur.remoteIdV158||0)]);
       if(before!==after)changed++;
     }
   });
@@ -16236,46 +16285,122 @@ function qgMergeRemoteRowsV88(rows){
   }
   return changed;
 }
-async function qgPullSupabaseV88(){
-  if(!qgRealtimeConfiguredV88())return false;
+
+window.__qgRemoteCursorByScopeV158=window.__qgRemoteCursorByScopeV158||{};
+function qgRemoteScopeKeyV158(){
+  const cfg=qgRealtimeConfigV88();
+  const tenant=(state.role==='admin'&&!state.adminPreviewTenantV97)?'*':qgCurrentTenantIdV97();
+  return cfg.campaign+'|'+tenant;
+}
+function qgRemoteLiteSelectV158(withMeta=true){
+  const base='id,campaign_id,tenant_id,record_key,protocol,bu_protocol,municipio,zona,secao,local,cargo,candidate_number,votos,fiscal,metodo,created_at';
+  return withMeta?base+',bu_meta:payload->buMeta,bu_identity:payload->buIdentityV147,bu_marker:payload->>buMarker,enabled_cargos:payload->enabledCargos':base;
+}
+function qgParseRemoteJsonV158(v,fallback){
+  if(v===null||v===undefined||v==='')return fallback;
+  if(typeof v==='object')return v;
+  try{return JSON.parse(v)}catch(e){return fallback}
+}
+function qgRemoteLiteRowV158(r){
+  const payload={
+    tenantId:String(r.tenant_id||'default'),
+    candidateId:r.candidate_number!==null&&r.candidate_number!==undefined?String(r.candidate_number):null,
+    buMeta:qgParseRemoteJsonV158(r.bu_meta,{})||{},
+    buIdentityV147:qgParseRemoteJsonV158(r.bu_identity,r.bu_identity||null)
+  };
+  const marker=String(r.bu_marker||'').toLowerCase();
+  if(marker==='true'||marker==='1')payload.buMarker=true;
+  const cargos=qgParseRemoteJsonV158(r.enabled_cargos,null);
+  if(Array.isArray(cargos))payload.enabledCargos=cargos;
+  return {...r,payload};
+}
+async function qgFetchRemotePagesV158(selectSpec,cursor,maxPages=5){
   const cfg=qgRealtimeConfigV88(),tenant=qgCurrentTenantIdV97();
-  let data=null,restError='';
-  try{
-    let url=qgSbRestBaseV110()+'?select=*&campaign_id=eq.'+encodeURIComponent(cfg.campaign);
-    if(!(state.role==='admin'&&!state.adminPreviewTenantV97))url+='&tenant_id=eq.'+encodeURIComponent(tenant);
-    url+='&order=created_at.asc&_qgts='+Date.now();
+  const pageSize=1000,rows=[];
+  let next=Number(cursor||0),lastPageCount=0;
+  for(let page=0;page<maxPages;page++){
+    const p=new URLSearchParams();
+    p.set('select',selectSpec);
+    p.set('campaign_id','eq.'+cfg.campaign);
+    if(!(state.role==='admin'&&!state.adminPreviewTenantV97))p.set('tenant_id','eq.'+tenant);
+    p.set('id','gt.'+String(next));
+    p.set('order','id.asc');
+    p.set('limit',String(pageSize));
+    p.set('_qgts',String(Date.now()));
+    const url=qgSbRestBaseV110()+'?'+p.toString();
     const res=await qgFetchWithTimeoutV110(url,{cache:'no-store',headers:{...qgSbRestHeadersV110('return=representation'),'Cache-Control':'no-cache'}},12000);
     const txt=await res.text();
     if(!res.ok)throw new Error('REST '+res.status+': '+txt.slice(0,300));
-    data=txt?JSON.parse(txt):[];
-  }catch(e){restError=String(e.message||e)}
-  if(!Array.isArray(data)){
-    try{
-      const sb=qgSbClientV88();if(!sb)throw new Error('supabase-js indisponível');
-      let q=sb.from('qg_bu_records').select('*').eq('campaign_id',cfg.campaign);
-      if(!(state.role==='admin'&&!state.adminPreviewTenantV97))q=q.eq('tenant_id',tenant);
-      const r=await q.order('created_at',{ascending:true});
-      if(r.error)throw r.error;
-      data=r.data||[];
-    }catch(e){
-      qgRemoteStatusV110('Falha ao receber BUs: '+restError+' | '+String(e.message||e),false);
-      return false;
+    const part=txt?JSON.parse(txt):[];
+    if(!Array.isArray(part))throw new Error('Resposta remota inválida.');
+    lastPageCount=part.length;
+    if(part.length){
+      rows.push(...part);
+      const maxId=part.reduce((m,r)=>Math.max(m,Number(r.id||0)),next);
+      if(maxId<=next)break;
+      next=maxId;
+    }
+    if(part.length<pageSize)break;
+  }
+  return {rows,cursor:next,hasMore:lastPageCount===pageSize};
+}
+async function qgPullSupabaseV88(){
+  if(!qgRealtimeConfiguredV88())return false;
+  const scope=qgRemoteScopeKeyV158();
+  let cursor=Number(window.__qgRemoteCursorByScopeV158[scope]||0);
+  let batch=null,detailError='';
+  try{
+    batch=await qgFetchRemotePagesV158(qgRemoteLiteSelectV158(true),cursor,5);
+  }catch(e){
+    detailError=String(e.message||e);
+    try{batch=await qgFetchRemotePagesV158(qgRemoteLiteSelectV158(false),cursor,5)}catch(e2){
+      try{
+        const sb=qgSbClientV88();if(!sb)throw new Error('supabase-js indisponível');
+        const cfg=qgRealtimeConfigV88(),tenant=qgCurrentTenantIdV97();
+        let q=sb.from('qg_bu_records').select(qgRemoteLiteSelectV158(false)).eq('campaign_id',cfg.campaign).gt('id',cursor).order('id',{ascending:true}).limit(1000);
+        if(!(state.role==='admin'&&!state.adminPreviewTenantV97))q=q.eq('tenant_id',tenant);
+        const r=await q;
+        if(r.error)throw r.error;
+        const rows=r.data||[];
+        batch={rows,cursor:rows.reduce((m,x)=>Math.max(m,Number(x.id||0)),cursor),hasMore:rows.length===1000};
+      }catch(e3){
+        qgRemoteStatusV110('Falha ao receber BUs: '+detailError+' | '+String(e2.message||e2)+' | '+String(e3.message||e3),false);
+        return false;
+      }
     }
   }
-  const activeRows=qgFilterRowsAfterLatestClearV94(data);
-  const remoteKeys=new Set(activeRows.map(row=>String(row.record_key||'')));
-  state.subs=(state.subs||[]).filter(r=>!r.remoteV88&&!remoteKeys.has(String(r.key||'')));
-  qgMergeRemoteRowsV88(activeRows);
+
+  const rawRows=Array.isArray(batch?.rows)?batch.rows:[];
+  const markers=rawRows.filter(qgIsClearMarkerV94);
+  const activeRows=qgFilterRowsAfterLatestClearV94(rawRows).map(qgRemoteLiteRowV158);
+
+  if(markers.length){
+    const cutoff=String(state.remoteClearAtV94||'');
+    const before=(state.subs||[]).length;
+    state.subs=(state.subs||[]).filter(r=>{
+      if(!qgTenantScopeRecordV97(r))return true;
+      const t=String(r.time||r.created_at||'');
+      return !!t&&(!cutoff||t>cutoff);
+    });
+    if(state.subs.length!==before)qgPersistStateSafe();
+  }
+
+  const changed=qgMergeRemoteRowsV88(activeRows);
+  const nextCursor=Math.max(cursor,Number(batch?.cursor||0));
+  window.__qgRemoteCursorByScopeV158[scope]=nextCursor;
   window.__qgSbLastPullV88=Date.now();
-  qgRemoteStatusV110('Tempo real • '+activeRows.length+' registro(s) recebidos.',true);
-  try{qgPersistStateSafe()}catch(e){}
-  try{if(state.role==='coordenacao')refreshCoordViewsV84(true)}catch(e){}
+
+  const scoped=(state.subs||[]).filter(r=>qgTenantScopeRecordV97(r));
+  const suffix=batch?.hasMore?' • recebendo histórico em lotes':'';
+  qgRemoteStatusV110('Tempo real • '+scoped.length+' registro(s) disponíveis'+suffix+'.',true);
+  try{if(state.role==='coordenacao'&&(changed||activeRows.length))refreshCoordViewsV84(true)}catch(e){}
   return true;
 }
 async function qgPublishRecordsSupabaseV88(records){
   if(!qgRealtimeConfiguredV88()||!Array.isArray(records)||!records.length)return {ok:false,published:0,error:'Backend não configurado.'};
   const cfg=qgRealtimeConfigV88();
-  const rows=records.map(rec=>({
+  const compact=qgCompactBuPayloadRowsV158(records);
+  const rows=compact.map(rec=>({
     campaign_id:cfg.campaign,
     tenant_id:String(rec.tenantId||qgCurrentTenantIdV97()),
     record_key:String(rec.key||((rec.tenantId||qgCurrentTenantIdV97())+'|'+Date.now()+'|'+Math.random().toString(36).slice(2))),
@@ -16297,24 +16422,21 @@ async function qgPublishRecordsSupabaseV88(records){
     const url=qgSbRestBaseV110()+'?on_conflict=campaign_id,record_key';
     const res=await qgFetchWithTimeoutV110(url,{
       method:'POST',cache:'no-store',
-      headers:qgSbRestHeadersV110('return=representation,resolution=merge-duplicates'),
+      headers:qgSbRestHeadersV110('return=minimal,resolution=merge-duplicates'),
       body:JSON.stringify(rows)
     },12000);
     const txt=await res.text();
     if(!res.ok)throw new Error('REST '+res.status+': '+txt.slice(0,300));
-    const data=txt?JSON.parse(txt):rows;
-    qgMergeRemoteRowsV88(Array.isArray(data)?data:[]);
     qgRemoteStatusV110('BU enviado ao banco.',true);
-    return {ok:true,published:Array.isArray(data)?data.length:rows.length,transport:'REST'};
+    return {ok:true,published:rows.length,transport:'REST_V158'};
   }catch(e){restError=String(e.message||e)}
   try{
     const sb=qgSbClientV88();
     if(sb){
-      const {data,error}=await sb.from('qg_bu_records').upsert(rows,{onConflict:'campaign_id,record_key'}).select('*');
+      const {data,error}=await sb.from('qg_bu_records').upsert(rows,{onConflict:'campaign_id,record_key'}).select('id,record_key');
       if(error)throw error;
-      qgMergeRemoteRowsV88(data||[]);
       qgRemoteStatusV110('BU enviado ao banco.',true);
-      return {ok:true,published:(data||[]).length,transport:'SUPABASE_JS'};
+      return {ok:true,published:Array.isArray(data)?data.length:rows.length,transport:'SUPABASE_JS_V158'};
     }
   }catch(e){
     return {ok:false,published:0,error:restError+' | '+String(e.message||e)};
@@ -16650,9 +16772,29 @@ function qgLegendVotesByGroupV91(cargo){
     const first=rows[0]; if(!first||seen.has(sr.key))return; seen.add(sr.key);
     const parsed=qgParseBuRawV90(first.qrRaw);
     const block=(parsed?.cargos||[]).find(b=>b.cargo===cargo);
-    if(!block)return;
+    if(block){
+      blocksRead++;
+      (block.partidos||[]).forEach(p=>{
+        partiesRead++;
+        const party=QG_PARTY_NUMBER_V91[String(p.numero)]||String(p.numero);
+        const fed=qgFederationV91(party);
+        const v=Number(p.votosLegenda||0);
+        partyLegend.set(party,(partyLegend.get(party)||0)+v);
+        groupLegend.set(fed,(groupLegend.get(fed)||0)+v);
+      });
+      if(!(block.partidos||[]).length && Number(block.legenda||0)>0){
+        groupLegend.set('__UNATTRIBUTED__',(groupLegend.get('__UNATTRIBUTED__')||0)+Number(block.legenda||0));
+      }
+      return;
+    }
+
+    /* V158: coordenação recebe linhas leves. buMeta preserva legenda/partidos sem baixar o QR bruto em cada candidato. */
+    const representative=rows.find(r=>String(r.cargo||'')===String(cargo)&&r.buMeta);
+    const bm=representative?.buMeta||{};
+    if(!representative)return;
     blocksRead++;
-    (block.partidos||[]).forEach(p=>{
+    const parties=Array.isArray(bm.cargoPartidos)?bm.cargoPartidos:[];
+    parties.forEach(p=>{
       partiesRead++;
       const party=QG_PARTY_NUMBER_V91[String(p.numero)]||String(p.numero);
       const fed=qgFederationV91(party);
@@ -16660,9 +16802,8 @@ function qgLegendVotesByGroupV91(cargo){
       partyLegend.set(party,(partyLegend.get(party)||0)+v);
       groupLegend.set(fed,(groupLegend.get(fed)||0)+v);
     });
-    // LEGC is cargo-wide legend total. If party detail is absent, it cannot be safely attributed.
-    if(!(block.partidos||[]).length && Number(block.legenda||0)>0){
-      groupLegend.set('__UNATTRIBUTED__',(groupLegend.get('__UNATTRIBUTED__')||0)+Number(block.legenda||0));
+    if(!parties.length&&Number(bm.cargoLegenda||0)>0){
+      groupLegend.set('__UNATTRIBUTED__',(groupLegend.get('__UNATTRIBUTED__')||0)+Number(bm.cargoLegenda||0));
     }
   });
   return {groupLegend,partyLegend,blocksRead,partiesRead,unattributed:groupLegend.get('__UNATTRIBUTED__')||0};
@@ -19063,6 +19204,100 @@ function qgResetTransientRoleUiV153(){
     if(selector){selector.disabled=false;selector.removeAttribute('aria-hidden');selector.tabIndex=0}
   }catch(e){}
 }
+</script>
+
+<script id="qg-v158-coord-performance-preview">
+window.QG_APP_PATCH_V158={version:158,scope:'coord-sync-performance-vote-preview',at:'2026-09-05'};
+window.__qgVotePreviewResultsV158=window.__qgVotePreviewResultsV158||[];
+
+function qgEnsureVotePreviewUiV158(){
+  const multi=document.getElementById('qrMultiScopeV85');
+  if(!multi)return null;
+  const candidateBox=document.getElementById('qrCandidateMultiV85');
+  const candidateField=candidateBox?.closest('.qg-multi-field-v85');
+  if(candidateField)candidateField.style.display='none';
+
+  let host=document.getElementById('qgVotePreviewHostV158');
+  if(!host){
+    host=document.createElement('div');
+    host.id='qgVotePreviewHostV158';
+    host.className='qg-multi-field-v85 qg-vote-preview-host158';
+    host.style.display='none';
+    host.innerHTML='<button type="button" class="ghost" id="qgVotePreviewBtnV158" onclick="qgOpenVotePreviewV158()">VISUALIZAR VOTOS EXTRAÍDOS</button><span class="note" id="qgVotePreviewHintV158"></span>';
+    if(candidateField?.parentNode)candidateField.parentNode.insertBefore(host,candidateField.nextSibling);
+    else multi.appendChild(host);
+  }
+
+  let modal=document.getElementById('qgVotePreviewModalV158');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='qgVotePreviewModalV158';
+    modal.className='qg-modal75';
+    modal.hidden=true;
+    modal.innerHTML='<div class="qg-modal75-backdrop" onclick="qgCloseVotePreviewV158()"></div><div class="qg-modal75-dialog qg-modal75-wide" role="dialog" aria-modal="true" aria-labelledby="qgVotePreviewTitleV158"><button type="button" class="qg-modal75-x" onclick="qgCloseVotePreviewV158()" aria-label="Fechar">×</button><div class="qg-modal75-kicker">CONFERÊNCIA DO FISCAL</div><h2 id="qgVotePreviewTitleV158">Votos extraídos do BU</h2><div id="qgVotePreviewBodyV158" class="qg-vote-preview-grid158"></div><div class="qg-modal75-actions"><button type="button" class="ghost" onclick="qgCloseVotePreviewV158()">FECHAR</button></div></div>';
+    document.body.appendChild(modal);
+  }
+  return host;
+}
+function qgUpdateVotePreviewButtonV158(results){
+  const host=qgEnsureVotePreviewUiV158();if(!host)return;
+  const list=Array.isArray(results)?results:[];
+  window.__qgVotePreviewResultsV158=list;
+  const nominal=list.reduce((n,b)=>n+(b.candidatos||[]).filter(c=>Number(c.votos||0)>0).length,0);
+  host.style.display=list.length?'flex':'none';
+  const hint=document.getElementById('qgVotePreviewHintV158');
+  if(hint)hint.textContent=list.length?(nominal+' candidato(s) com voto nominal • clique para conferir') : '';
+}
+function qgOpenVotePreviewV158(){
+  qgEnsureVotePreviewUiV158();
+  const modal=document.getElementById('qgVotePreviewModalV158'),body=document.getElementById('qgVotePreviewBodyV158');
+  const list=Array.isArray(window.__qgVotePreviewResultsV158)?window.__qgVotePreviewResultsV158:[];
+  if(!modal||!body)return false;
+  body.innerHTML=list.length?list.map(block=>{
+    const rows=(block.candidatos||[]).filter(c=>Number(c.votos||0)>0);
+    const rowHtml=rows.length?rows.map(c=>'<div class="qg-vote-preview-row158"><div class="num">'+escapeHtml(String(c.numero||''))+'</div><div class="who"><b>'+escapeHtml(c.nome||('Candidato '+c.numero))+'</b><small>'+escapeHtml(c.partido||'')+'</small></div><div class="votes">'+Number(c.votos||0).toLocaleString('pt-BR')+' votos</div></div>').join(''):'<div class="note">Nenhum voto nominal maior que zero neste cargo.</div>';
+    return '<div class="qg-vote-preview-cargo158"><h3>'+escapeHtml(block.cargo||'Cargo')+'</h3>'+rowHtml+'<div class="qg-vote-preview-totals158">Nominais: '+Number(block.votosNominais||0).toLocaleString('pt-BR')+' • Legenda: '+Number(block.legenda||0).toLocaleString('pt-BR')+' • Brancos: '+Number(block.brancos||0).toLocaleString('pt-BR')+' • Nulos: '+Number(block.nulos||0).toLocaleString('pt-BR')+' • Total: '+Number(block.total||0).toLocaleString('pt-BR')+'</div></div>';
+  }).join(''):'<div class="empty-state">Nenhum resultado extraído para visualizar.</div>';
+  modal.hidden=false;
+  return true;
+}
+function qgCloseVotePreviewV158(){
+  const modal=document.getElementById('qgVotePreviewModalV158');if(modal)modal.hidden=true;
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')qgCloseVotePreviewV158()});
+
+function renderPending(){
+  const r=missingAnalysisV63();
+  const missing=document.getElementById('missing'),alerts=document.getElementById('alerts');
+  if(missing){
+    const top=(r.pendingSections||[]).slice(0,80);
+    missing.innerHTML='<div class="req63-row"><span>Total de seções pendentes</span><b>'+Number(r.pendingCount||0).toLocaleString('pt-BR')+'</b></div>'+(
+      top.length?top.map(s=>'<div class="req63-row"><span>'+escapeHtml(s.municipio)+' • Z'+Number(s.zona)+' • S'+Number(s.secao)+'</span><b>PENDENTE</b></div>').join(''):'<div class="empty-state">Nenhuma seção pendente.</div>'
+    )+(Number(r.pendingCount||0)>top.length?'<div class="note" style="margin-top:10px">Exibindo as primeiras '+top.length+' de '+Number(r.pendingCount||0).toLocaleString('pt-BR')+' pendências.</div>':'');
+  }
+  if(alerts){
+    alerts.innerHTML='<div class="req63-row"><span>Divergências</span><b>'+Number(r.divergentCount||0).toLocaleString('pt-BR')+'</b></div><div class="req63-row"><span>BUs com erro</span><b>'+Number(r.errorCount||0).toLocaleString('pt-BR')+'</b></div><div class="req63-row"><span>Fiscais com pendências</span><b>'+Number(r.fiscalsInvolved||0).toLocaleString('pt-BR')+'</b></div>'+
+      ((r.priorities||[]).slice(0,20).map(x=>'<div class="req63-row"><span>'+escapeHtml(x.municipio)+' • Zona '+Number(x.zona)+'</span><b>'+Number(x.pending||0)+' pend.</b></div>').join('')||'<div class="empty-state">Sem alertas prioritários.</div>');
+  }
+  return r;
+}
+
+function qgCompactRuntimeBuPayloadsV158(){
+  try{
+    ['subs','offlineQueue','syncQueueV34'].forEach(k=>{if(Array.isArray(state[k]))state[k]=qgCompactBuPayloadRowsV158(state[k])});
+    state.payloadCompactedV158=true;
+    return true;
+  }catch(e){return false}
+}
+window.addEventListener('qg:bu-updated',()=>{
+  try{qgCompactRuntimeBuPayloadsV158();qgPersistStateSafe()}catch(e){}
+});
+function qgInitV158(){
+  try{qgEnsureVotePreviewUiV158()}catch(e){}
+  try{if(qgCompactRuntimeBuPayloadsV158())qgPersistStateSafe()}catch(e){}
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(qgInitV158,200),{once:true});
+else setTimeout(qgInitV158,0);
 </script>
 
 </body></html>
