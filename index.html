@@ -19212,4 +19212,50 @@ handleQRRaw=function(raw){
 };
 </script>
 
+
+<script id="qg-v156-unified-realtime-status">
+/* V156: correção estritamente visual do indicador de tempo real.
+   A fonte de verdade passa a ser a configuração Supabase já existente quando disponível;
+   nenhum mecanismo de publicação, pull, Realtime, fila ou sincronização é alterado. */
+function qgRealtimeActiveV156(){
+  try{
+    if(typeof qgRealtimeConfiguredV88==='function' && qgRealtimeConfiguredV88()) return true;
+  }catch(e){}
+  try{
+    return typeof qgSyncModeV87==='function' && qgSyncModeV87()==='shared';
+  }catch(e){ return false; }
+}
+function qgApplyUnifiedRealtimeIndicatorV156(){
+  const shared=qgRealtimeActiveV156();
+  const top=document.getElementById('qgSyncModeV87');
+  if(top){
+    top.textContent=shared?'● TEMPO REAL ENTRE DISPOSITIVOS':'● TEMPO REAL LOCAL';
+    top.style.color=shared?'#6dff82':'#ffd36b';
+    top.title=shared
+      ? 'Fiscal e Coordenação usam a mesma base online configurada.'
+      : 'Os dados estão apenas neste navegador/dispositivo enquanto não houver backend compartilhado ativo.';
+  }
+  const modal=document.getElementById('coordSyncModeTextV87');
+  if(modal){
+    modal.textContent=shared?'• ENTRE DISPOSITIVOS':'• NESTE DISPOSITIVO';
+    modal.style.color=shared?'#7dff8f':'#ffd36b';
+  }
+  return shared;
+}
+(function(){
+  const previous=window.qgRenderSyncModeV87;
+  if(typeof previous==='function' && !previous.__qgV156Wrapped){
+    const wrapped=function(){
+      const r=previous.apply(this,arguments);
+      try{qgApplyUnifiedRealtimeIndicatorV156()}catch(e){}
+      return r;
+    };
+    wrapped.__qgV156Wrapped=true;
+    window.qgRenderSyncModeV87=wrapped;
+  }
+  const apply=()=>{try{qgApplyUnifiedRealtimeIndicatorV156()}catch(e){}};
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',apply,{once:true});
+  else apply();
+})();
+</script>
 </body></html>
