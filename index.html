@@ -19062,14 +19062,14 @@ function qgResetTransientRoleUiV153(){
 
 <script id="qg-v154-master-qr">
 /*
-  V154 - QR MESTRE DE SIMULACAO COMPLETA
+  V154/V155 - QR MESTRE DE SIMULACAO COMPLETA + RETORNO IMEDIATO
   - Intercepta SOMENTE o payload especial abaixo.
   - Todo QR de BU normal continua delegado integralmente ao handleQRRaw V153.
   - A massa gerada e local, sintetica, claramente marcada e NAO e enviada ao Supabase.
 */
 const QG_MASTER_QR_V154='QG-MASTER-TEST|V154|ELECTION=2026|UF=SE|MUNICIPIO=ARAUÁ|ZONA=4|SCOPE=FULL_DEMO|TOKEN=7F4D9C2A51E8';
 window.QG_MASTER_QR_V154=QG_MASTER_QR_V154;
-window.QG_PATCH_VERSION=154;
+window.QG_PATCH_VERSION=155;
 
 function qgIsMasterQrV154(raw){
   return String(raw||'').trim()===QG_MASTER_QR_V154;
@@ -19094,8 +19094,14 @@ function qgMasterVoteV154(secao,candidateIndex,cargoIndex,eleitores){
 }
 
 function qgRenderAfterMasterV154(){
-  const calls=['render','drawCharts','renderCandidateTotalsV20','renderOperationalKpisV63','renderTerritoryMapV63','runMissingAnalysisV63','renderSectionsV15','renderCandidatePickerV90','renderCoordLineChartV90','renderSelectedCandidateTotalsV91'];
-  for(const name of calls){try{if(typeof window[name]==='function')window[name]()}catch(e){console.warn('V154 render',name,e)}}
+  /* V155 performance fix: one render pass only, and never blocks QR acknowledgement. */
+  const run=()=>{
+    try{if(typeof window.render==='function')window.render()}catch(e){console.warn('V155 master render',e)}
+  };
+  try{
+    if(typeof requestAnimationFrame==='function')requestAnimationFrame(()=>setTimeout(run,0));
+    else setTimeout(run,0);
+  }catch(e){setTimeout(run,0)}
 }
 
 function qgActivateMasterQrV154(){
@@ -19109,6 +19115,7 @@ function qgActivateMasterQrV154(){
     if(already.length){
       const msg='QR Mestre ja ativado neste cliente. Nenhum dado duplicado foi criado.';
       try{toastV21(msg)}catch(e){}
+      const stateEl=document.getElementById('qrState');if(stateEl)stateEl.textContent=msg;
       return {ok:true,duplicate:true,master:true,records:already.length,message:msg};
     }
 
@@ -19159,21 +19166,32 @@ function qgActivateMasterQrV154(){
 
     if(!generated.length)throw new Error('Nenhum candidato disponivel para os cargos configurados.');
 
+    /* Put the result in memory first. This is the only operation needed for all dashboards. */
     state.subs.push(...generated);
-    try{localStorage.setItem(storageKey,JSON.stringify({at:new Date().toISOString(),tenantId,records:generated.length,sections:sectionsBase.length,cargos}))}catch(e){}
-    try{if(typeof auditEvent==='function')auditEvent('MASTER_TEST_V154','QR Mestre ativado: '+generated.length+' registros sinteticos locais em '+sectionsBase.length+' secoes de Arauá/Z4.')}catch(e){}
-    try{if(typeof qgPersistStateSafe==='function')qgPersistStateSafe()}catch(e){}
-    qgRenderAfterMasterV154();
 
+    /* Immediate visual acknowledgement BEFORE persistence or dashboard redraws. */
     const msg='QR MESTRE ATIVADO • '+sectionsBase.length+' secoes de Arauá/Z4 • '+cargos.length+' cargo(s) • '+generated.length+' registros ficticios locais. Nada foi enviado ao Supabase.';
-    try{toastV21(msg)}catch(e){}
     const receipt=document.getElementById('receipt');
     if(receipt)receipt.innerHTML='<div class="receipt-card"><div class="receipt-title">✓ QR MESTRE DE TESTE ATIVADO</div><div class="receipt-grid">'+
       '<div class="receipt-item">Abrangencia<b>ARAUÁ • ZONA 4 • '+sectionsBase.length+' SEÇÕES</b></div>'+
       '<div class="receipt-item">Dados<b>'+generated.length+' REGISTROS FICTÍCIOS LOCAIS</b></div>'+
       '<div class="receipt-item">Cargos<b>'+escapeHtml(cargos.join(' • '))+'</b></div>'+
       '<div class="receipt-item">Supabase<b>NÃO ENVIADO</b></div></div></div>';
-    const stateEl=document.getElementById('qrState');if(stateEl)stateEl.textContent='QR Mestre reconhecido. Massa completa de teste local carregada para Arauá/Zona 4.';
+    const stateEl=document.getElementById('qrState');if(stateEl)stateEl.textContent='QR Mestre reconhecido. Resultado carregado; atualizando os painéis em segundo plano.';
+    try{toastV21(msg)}catch(e){}
+
+    /* Do not block the scanner/UI with JSON serialization, IndexedDB or repeated chart passes. */
+    const deferred=()=>{
+      try{localStorage.setItem(storageKey,JSON.stringify({at:new Date().toISOString(),tenantId,records:generated.length,sections:sectionsBase.length,cargos}))}catch(e){}
+      try{if(typeof auditEvent==='function')auditEvent('MASTER_TEST_V154','QR Mestre ativado: '+generated.length+' registros sinteticos locais em '+sectionsBase.length+' secoes de Arauá/Z4.')}catch(e){}
+      try{if(typeof qgPersistStateSafe==='function')qgPersistStateSafe()}catch(e){}
+    };
+    try{
+      if(typeof requestIdleCallback==='function')requestIdleCallback(deferred,{timeout:1500});
+      else setTimeout(deferred,80);
+    }catch(e){setTimeout(deferred,80)}
+
+    qgRenderAfterMasterV154();
     return {ok:true,master:true,complete:true,records:generated.length,sections:sectionsBase.length,cargos,message:msg};
   }catch(e){
     const msg='Falha ao ativar QR Mestre: '+(e?.message||String(e));
