@@ -19355,4 +19355,161 @@ function qgOperationalAreasAuditV157(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',qgOperationalAreasAuditV157,{once:true});else setTimeout(qgOperationalAreasAuditV157,0);
 </script>
 
+
+<script id="qg-supabase-access-fix-v158">
+/* V158 — correção cirúrgica da sincronização de Clientes e acessos.
+   Corrige incompatibilidade V157 (cfg.anonKey x cfg.anon), usa o RPC vigente de 3 parâmetros
+   e mantém compatibilidade com os nomes de colunas V97 + migração atual. */
+window.QG_PATCH_VERSION=158;
+
+function qgCredentialConfigV158(){
+  const cfg=(typeof qgRealtimeConfigV88==='function'?qgRealtimeConfigV88():{})||{};
+  const def=window.QG_SUPABASE_DEFAULT_V89||{};
+  const url=String(cfg.url||def.url||'').trim().replace(/\/+$/,'');
+  const key=String(cfg.anon||cfg.anonKey||def.anon||def.anonKey||'').trim();
+  return {url,key,enabled:cfg.enabled!==false};
+}
+
+async function qgRestV158(path,options={},timeout=12000){
+  const c=qgCredentialConfigV158();
+  if(!c.enabled||!c.url||!c.key||typeof fetch!=='function'){
+    return {ok:false,status:0,__qgError:'Configuração do Supabase incompleta.'};
+  }
+  const headers={
+    apikey:c.key,
+    Authorization:'Bearer '+c.key,
+    'Content-Type':'application/json',
+    ...(options.headers||{})
+  };
+  const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),timeout);
+  try{
+    return await fetch(c.url+'/rest/v1/'+path,{...options,headers,signal:ctl.signal});
+  }catch(e){
+    return {ok:false,status:0,__qgError:String(e?.message||e)};
+  }finally{clearTimeout(timer)}
+}
+
+async function qgReadRestErrorV158(res){
+  if(res?.__qgError)return res.__qgError;
+  let txt='';try{txt=await res.text()}catch(e){}
+  try{const j=JSON.parse(txt);return j.message||j.details||j.hint||txt}catch(e){return txt||('HTTP '+(res?.status||0))}
+}
+
+function qgTenantFromRpcRowV158(row,login){
+  if(!row||!row.tenant_id)return null;
+  const cargos=Array.isArray(row.cargos)?row.cargos:(Array.isArray(row.cargo_package)?row.cargo_package:[]);
+  return {
+    account:{tenantId:row.tenant_id,role:row.role,login:String(login||'').trim().toLowerCase()},
+    tenant:{
+      id:row.tenant_id,
+      nome:row.nome??row.client_name??'',
+      numero:row.numero??row.candidate_number??'',
+      partido:row.partido??row.party??'',
+      logoData:row.logo_data??row.logo_url??'',
+      cargos,
+      active:row.active!==false
+    }
+  };
+}
+
+async function qgRpcTenantLoginV158(login,passHash,role){
+  const res=await qgRestV158('rpc/qg_tenant_login_v97',{
+    method:'POST',
+    headers:{Prefer:'return=representation'},
+    body:JSON.stringify({p_login:String(login||'').trim().toLowerCase(),p_role:role,p_password_hash:passHash})
+  },7000);
+  if(!res.ok)return {ok:false,error:await qgReadRestErrorV158(res)};
+  let data=null;try{data=await res.json()}catch(e){data=null}
+  const row=Array.isArray(data)?data[0]:data;
+  const match=qgTenantFromRpcRowV158(row,login);
+  return {ok:!!match,match,error:match?'':'Credencial não confirmada pelo RPC.'};
+}
+
+async function qgRemoteSaveTenantV158(t,accounts){
+  const c=qgCredentialConfigV158();
+  if(!c.enabled||!c.url||!c.key)return {ok:false,local:true,error:'Configuração do Supabase incompleta.'};
+
+  async function exists(table,filter){
+    const r=await qgRestV158(table+'?'+filter+'&select=*',{method:'GET'});
+    if(!r.ok)throw new Error(await qgReadRestErrorV158(r));
+    const d=await r.json();return Array.isArray(d)&&d.length?d[0]:null;
+  }
+  async function write(table,filter,row,variants){
+    const current=await exists(table,filter);
+    let last='';
+    for(const body of variants){
+      const method=current?'PATCH':'POST';
+      const path=current?table+'?'+filter:table;
+      const r=await qgRestV158(path,{method,headers:{Prefer:'return=representation'},body:JSON.stringify(body)});
+      if(r.ok)return true;
+      last=await qgReadRestErrorV158(r);
+      if(!/column|schema cache|could not find|does not exist/i.test(last))break;
+    }
+    throw new Error(last||('Falha ao gravar '+table));
+  }
+
+  try{
+    const now=new Date().toISOString();
+    const profileOld={tenant_id:t.id,nome:t.nome,numero:t.numero||'',partido:t.partido||'',logo_data:t.logoData||'',cargos:t.cargos||[],active:t.active!==false,updated_at:now};
+    const profileNew={tenant_id:t.id,client_name:t.nome,candidate_number:t.numero||'',party:t.partido||'',logo_url:t.logoData||'',cargo_package:t.cargos||[],active:t.active!==false,updated_at:now};
+    await write('qg_tenant_profiles_v97','tenant_id=eq.'+encodeURIComponent(t.id),{...profileOld,...profileNew},[ {...profileOld,...profileNew}, profileOld, profileNew ]);
+
+    for(const a of (accounts||[])){
+      if(!a?.login||!a?.passHash)continue;
+      const login=String(a.login).trim().toLowerCase();
+      const existingLogin=await exists('qg_tenant_accounts_v97','login=eq.'+encodeURIComponent(login));
+      if(existingLogin && (String(existingLogin.tenant_id)!==String(t.id)||String(existingLogin.role)!==String(a.role))){
+        throw new Error('O login "'+login+'" já está cadastrado em outro acesso. Escolha outro login.');
+      }
+      const accountOld={tenant_id:t.id,role:a.role,login,pass_hash:a.passHash,active:a.active!==false,updated_at:now};
+      const accountNew={tenant_id:t.id,role:a.role,login,password_hash:a.passHash,active:a.active!==false,updated_at:now};
+      await write('qg_tenant_accounts_v97','login=eq.'+encodeURIComponent(login),{...accountOld,...accountNew},[ {...accountOld,...accountNew}, accountOld, accountNew ]);
+
+      const verify=await qgRpcTenantLoginV158(login,a.passHash,a.role);
+      if(!verify.ok||!verify.match||String(verify.match.account.tenantId)!==String(t.id)){
+        throw new Error('Credencial gravada, mas o login remoto não foi confirmado: '+(verify.error||'falha de validação.'));
+      }
+
+      const cleanup=await qgRestV158('qg_tenant_accounts_v97?tenant_id=eq.'+encodeURIComponent(t.id)+'&role=eq.'+encodeURIComponent(a.role)+'&login=neq.'+encodeURIComponent(login),{
+        method:'DELETE',headers:{Prefer:'return=minimal'}
+      });
+      if(!cleanup.ok)console.warn('V158: credencial nova confirmada; limpeza do login antigo pendente:',await qgReadRestErrorV158(cleanup));
+    }
+    return {ok:true,verified:true,transport:'REST+RPC3'};
+  }catch(e){
+    const raw=String(e?.message||e||'Falha desconhecida');
+    return {ok:false,error:raw,migrationRequired:/relation|does not exist|schema cache|qg_tenant_/i.test(raw)};
+  }
+}
+
+/* API já usada pelo formulário; nenhuma alteração no corpo de qgSaveTenantV97. */
+qgRemoteSaveTenantV97=qgRemoteSaveTenantV158;
+
+/* Login dos cartões Fiscal/Coordenação passa a consultar o RPC vigente com p_role. */
+qgResolveTenantLoginV102=async function(login,password,role){
+  const normalized=String(login||'').trim().toLowerCase();
+  const hash=await qgSha256V97(String(password||''));
+  if(!normalized||!password)return null;
+  try{
+    const remote=await qgRpcTenantLoginV158(normalized,hash,role);
+    if(remote.ok&&remote.match)return remote.match;
+  }catch(e){console.warn('V158 login remoto',e)}
+  qgTenantEnsureV97();
+  const account=state.tenantAccountsV97.find(a=>a.active!==false&&String(a.login||'').toLowerCase()===normalized&&a.passHash===hash&&a.role===role);
+  const tenant=account?state.tenantsV97.find(t=>t.id===account.tenantId&&t.active!==false):null;
+  return account&&tenant?{account,tenant}:null;
+};
+
+window.QG_SUPABASE_ACCESS_AUDIT_V158=function(){
+  const c=qgCredentialConfigV158();
+  return {
+    configured:!!(c.enabled&&c.url&&c.key),
+    url:!!c.url,
+    publicKey:!!c.key,
+    rpc:'qg_tenant_login_v97(p_login,p_role,p_password_hash)',
+    checkedAt:new Date().toISOString()
+  };
+};
+</script>
+
 </body></html>
