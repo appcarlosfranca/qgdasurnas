@@ -1,5 +1,70 @@
 <!doctype html><html lang="pt-BR"><head>
 
+<script id="qg-v193-early-storage-migration">
+/* v193 — migração precoce, executada ANTES do carregamento do estado do app.
+   Remove a causa mais grave de quota/lentidão: snapshots completos repetidos
+   dentro de state.backups e qg_latest_backup em localStorage. */
+(function(){
+  const FLAG='qg_storage_migrated_v193';
+  try{
+    /* O snapshot completo em localStorage era redundante e pode ultrapassar 5–10 MB.
+       O download passa a ser gerado sob demanda e os snapshots locais completos vão para IndexedDB. */
+    try{localStorage.removeItem('qg_latest_backup')}catch(_){}
+
+    const raw=localStorage.getItem('qg_state');
+    if(raw){
+      const parsed=JSON.parse(raw);
+      let changed=false;
+
+      if(Array.isArray(parsed.backups)){
+        parsed.backups=parsed.backups.slice(-20).map(b=>{
+          if(!b||typeof b!=='object')return b;
+          const meta={
+            id:b.id||('BKP-'+Date.now()),
+            time:b.time||b.generatedAt||new Date().toISOString(),
+            count:Number(b.count??b.payload?.recordCount??0),
+            reason:b.reason||'LEGACY'
+          };
+          if(b.payload)changed=true;
+          return meta;
+        });
+      }
+
+      /* A base oficial está embutida no HTML. Não há razão para duplicar ~6 mil seções no storage. */
+      if(Array.isArray(parsed.sectionBase) && parsed.sectionBase.length>=5000 &&
+         parsed.sectionBaseMeta?.userOverride!==true){
+        parsed.sectionBase=null;
+        parsed.sectionBaseMeta={...(parsed.sectionBaseMeta||{}),
+          source:'EMBEDDED_2026_SE',count:Number(parsed.sectionBaseMeta?.count||0)||6052,
+          notPersistedV193:true};
+        changed=true;
+      }
+
+      /* Filas e auditorias seguem preservadas; apenas checkpoints pesados são removidos. */
+      if(changed || localStorage.getItem(FLAG)!=='1'){
+        localStorage.setItem('qg_state',JSON.stringify(parsed));
+      }
+    }
+
+    /* Remove cópias de estado corrompido muito antigas que podem ocupar quota sem serem usadas. */
+    const corrupted=[];
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&k.startsWith('qg_state_corrupted_'))corrupted.push(k);
+    }
+    corrupted.sort().slice(0,Math.max(0,corrupted.length-1)).forEach(k=>{
+      try{localStorage.removeItem(k)}catch(_){}
+    });
+
+    localStorage.setItem(FLAG,'1');
+  }catch(e){
+    console.warn('QG v193 • migração precoce de storage não concluída:',e);
+  }
+})();
+</script>
+
+
+
 <script id="qg-v191-safe-dom-insert">
 /* v191 — correção cirúrgica do NotFoundError de insertBefore.
    Não altera as funções críticas v160. Intervém somente quando um painel legado
@@ -24225,5 +24290,395 @@ if(document.readyState==='loading')
 else qgV192Boot();
 </script>
 <!-- QG_V192_PACKAGE_GATE_FIX_END -->
+
+
+<!-- QG_V193_PERFORMANCE_BEGIN -->
+<style id="qg-v193-responsive-performance-css">
+/* Responsividade global final: aplica-se a Fiscal, Coordenação e Administrador. */
+html,body{max-width:100%!important;overflow-x:hidden!important}
+.app,.main,.section,.card{min-width:0!important;max-width:100%!important}
+.table-wrap,.qg-v164-table-wrap,[style*="overflow:auto"]{max-width:100%!important;-webkit-overflow-scrolling:touch}
+
+/* Evita efeitos caros em dispositivos menores/menos potentes. */
+@media(max-width:1100px){
+  .card,.qg-v185-panel,.qg-v186-card{backdrop-filter:none!important}
+}
+@media(max-width:900px){
+  .app{display:block!important;grid-template-columns:none!important;width:100%!important}
+  .side{
+    position:sticky!important;top:0!important;left:0!important;z-index:1000!important;
+    width:100%!important;max-width:none!important;height:auto!important;min-height:0!important;
+    padding:8px 10px!important;overflow:visible!important;border-right:0!important;
+    border-bottom:1px solid rgba(23,216,255,.18)!important
+  }
+  .side>.brand,.qg-v185-side-brand,.qg-v185-side-footer{display:none!important}
+  .side>select{display:none!important}
+  #nav{
+    display:flex!important;flex-direction:row!important;gap:6px!important;
+    width:100%!important;overflow-x:auto!important;overflow-y:hidden!important;
+    padding:2px 0 4px!important;scrollbar-width:none!important
+  }
+  #nav::-webkit-scrollbar{display:none!important}
+  #nav button{
+    flex:0 0 auto!important;width:auto!important;min-width:max-content!important;
+    min-height:40px!important;padding:9px 12px!important;margin:0!important
+  }
+  .main{width:100%!important;padding:10px!important}
+  .top{gap:8px!important;flex-wrap:wrap!important}
+  .top>div{min-width:0!important}
+  .grid4,.metrics-row,.report-grid,.security-grid,.base-status{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .two,.chart-grid,.chart-grid-2,.offline-panel,.base-import-grid,.qr-live-wrap,
+  .qg-v185-hero-grid,.qg-v186-main-grid,.qg-v186-lower-grid{grid-template-columns:1fr!important}
+  .form,.formgrid,.filter-bar,.assignment-tools{grid-template-columns:1fr!important}
+  input,select,textarea,button{max-width:100%!important}
+  table{min-width:640px!important}
+}
+@media(max-width:560px){
+  .main{padding:7px!important}
+  .grid4,.metrics-row,.report-grid,.security-grid,.base-status,.qg-v185-kpis{grid-template-columns:1fr!important}
+  .card,.qg-v185-panel{padding:10px!important;border-radius:11px!important}
+  .qg-v185-campaignbar{grid-template-columns:1fr!important}
+  .qg-v185-campaign-actions{display:grid!important;grid-template-columns:1fr!important}
+  .qg-v185-thermo-body,.qg-v185-seat-summary{grid-template-columns:1fr!important}
+  table{min-width:560px!important}
+  h1{font-size:clamp(18px,6vw,24px)!important}
+  h2{font-size:clamp(16px,5vw,21px)!important}
+  .btn,.ghost,button{min-height:42px!important}
+}
+@media(max-width:390px){
+  .main{padding:5px!important}
+  table{min-width:520px!important}
+}
+
+/* Status de desempenho no diagnóstico, sem animações contínuas. */
+.qg-v193-perf-note{
+  padding:9px 11px;margin-top:8px;border-radius:10px;
+  border:1px solid rgba(126,229,44,.18);background:rgba(126,229,44,.045);
+  color:#bfe8d0;font-size:10px
+}
+</style>
+
+<script id="qg-v193-performance-js">
+/* QG DAS URNAS v193
+   Objetivo: eliminar travas de UI e QuotaExceeded sem alterar QR/Multi-QR,
+   antiduplicidade, protocolo, backend canônico ou a baseline v160. */
+window.QG_APP_PATCH_V193={
+  version:193,base:'v192',scope:'performance-storage-responsive',
+  safetyBaseline:'v160',at:'2026-09-07'
+};
+window.__qgV193=window.__qgV193||{
+  persistTimer:null,idbTimer:null,lastPersistMs:0,lastPersistBytes:0,
+  receivedStamp:'',receivedSet:new Set(),storageMigrated:true
+};
+
+function qgV193BackupMeta(b){
+  if(!b||typeof b!=='object')return b;
+  return {
+    id:b.id||('BKP-'+Date.now()),
+    time:b.time||b.generatedAt||new Date().toISOString(),
+    count:Number(b.count??b.payload?.recordCount??0),
+    reason:b.reason||'AUTO'
+  };
+}
+function qgV193CompactBackupsInMemory(){
+  if(!Array.isArray(state.backups))state.backups=[];
+  state.backups=state.backups.slice(-20).map(qgV193BackupMeta);
+}
+function qgV193CompactStateForStorage(){
+  qgV193CompactBackupsInMemory();
+  const p={...state};
+  p.backups=(state.backups||[]).slice(-20).map(qgV193BackupMeta);
+
+  if(typeof qgCompactBuPayloadRowsV158==='function'){
+    p.subs=qgCompactBuPayloadRowsV158(state.subs);
+    p.offlineQueue=qgCompactBuPayloadRowsV158(state.offlineQueue);
+    p.syncQueueV34=qgCompactBuPayloadRowsV158(state.syncQueueV34);
+  }
+
+  /* Bases oficiais já vivem no HTML e não devem duplicar storage. */
+  const embedded=(window.QG_SECTIONS_V27||[]).length;
+  if(state.sectionBaseMeta?.userOverride!==true &&
+     Array.isArray(state.sectionBase) && embedded>=5000 &&
+     state.sectionBase.length===embedded){
+    p.sectionBase=null;
+    p.sectionBaseMeta={...(state.sectionBaseMeta||{}),
+      source:'EMBEDDED_2026_SE',count:embedded,notPersistedV193:true};
+  }
+
+  /* Audit completo permanece em memória/Supabase. O fallback local guarda a cauda útil,
+     reduzindo serialização síncrona e mantendo diagnóstico offline recente. */
+  if(Array.isArray(p.auditEvents)&&p.auditEvents.length>500)
+    p.auditEvents=p.auditEvents.slice(-500);
+  if(Array.isArray(p.migrations)&&p.migrations.length>100)
+    p.migrations=p.migrations.slice(-100);
+
+  return p;
+}
+function qgV193FlushPersist(){
+  clearTimeout(window.__qgV193.persistTimer);
+  window.__qgV193.persistTimer=null;
+  const t0=performance.now();
+  try{
+    state.lastSavedAt=new Date().toISOString();
+    const p=qgV193CompactStateForStorage();
+    const raw=JSON.stringify(p);
+    localStorage.setItem('qg_state',raw);
+    window.__qgV193.lastPersistBytes=raw.length;
+  }catch(e){
+    /* Uma falha de quota não derruba a interface. Remove somente artefatos legados
+       redundantes e tenta uma vez com o estado compacto. */
+    if(e?.name==='QuotaExceededError'){
+      try{localStorage.removeItem('qg_latest_backup')}catch(_){}
+      try{
+        const p=qgV193CompactStateForStorage();
+        p.auditEvents=(p.auditEvents||[]).slice(-200);
+        const raw=JSON.stringify(p);
+        localStorage.setItem('qg_state',raw);
+        window.__qgV193.lastPersistBytes=raw.length;
+      }catch(e2){console.warn('QG v193 • storage local cheio; estado remoto/IDB preservado.',e2)}
+    }else console.warn('QG v193 • persistência local:',e);
+  }
+  window.__qgV193.lastPersistMs=Math.round((performance.now()-t0)*10)/10;
+
+  /* IndexedDB também recebe a versão compacta. A fonte canônica remota não é alterada. */
+  clearTimeout(window.__qgV193.idbTimer);
+  window.__qgV193.idbTimer=setTimeout(()=>{
+    try{
+      if(window.QGDB?.saveState){
+        const p=qgV193CompactStateForStorage();
+        QGDB.saveState(p).catch(()=>{});
+      }
+    }catch(_){}
+  },180);
+  return true;
+}
+
+/* Persistência passa a ser debounceada: ações pequenas deixam de serializar centenas
+   de KB/MB várias vezes no mesmo clique. Estado fiscal por dispositivo continua imediato. */
+window.qgPersistStateSafe=function(){
+  try{if(typeof qgSaveTenantFiscalStateV97==='function')qgSaveTenantFiscalStateV97()}catch(_){}
+  state.lastSavedAt=new Date().toISOString();
+  clearTimeout(window.__qgV193.persistTimer);
+  window.__qgV193.persistTimer=setTimeout(qgV193FlushPersist,120);
+  return true;
+};
+window.saveNoSnapshot=function(){
+  qgPersistStateSafe();
+  return true;
+};
+
+/* Snapshot local: payload completo NÃO é mais guardado no localStorage nem dentro
+   de state.backups. O conteúdo completo vai para IndexedDB; o estado guarda metadados. */
+window.snapshotPayload=function(){
+  const p=qgV193CompactStateForStorage();
+  return {
+    app:'QG das Urnas',
+    version:'v193',
+    generatedAt:new Date().toISOString(),
+    role:state.role,
+    state:p,
+    submissions:p.subs||[],
+    recordCount:(p.subs||[]).length
+  };
+};
+window.makeSnapshot=function(reason='AUTO'){
+  qgV193CompactBackupsInMemory();
+  const payload=snapshotPayload();
+  const meta={
+    id:'BKP-'+Date.now()+'-'+Math.random().toString(36).slice(2,6).toUpperCase(),
+    time:payload.generatedAt,count:payload.recordCount,reason
+  };
+  state.backups.push(meta);
+  if(state.backups.length>20)state.backups=state.backups.slice(-20);
+
+  try{
+    if(window.QGDB?.saveSnapshot){
+      QGDB.saveSnapshot({...meta,payload}).catch(()=>{});
+    }
+  }catch(_){}
+  try{
+    /* apenas ponteiro pequeno; nunca mais o JSON completo */
+    localStorage.setItem('qg_latest_backup',JSON.stringify(meta));
+  }catch(_){}
+  return meta;
+};
+window.save=function(){
+  state.lastSavedAt=new Date().toISOString();
+  makeSnapshot('AUTO');
+  qgPersistStateSafe();
+  try{if(window.QGAPI)QGAPI.queueStateSync(state).catch(()=>{})}catch(_){}
+  return true;
+};
+window.downloadLatestBackup=function(){
+  const data=snapshotPayload();
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='QG_DAS_URNAS_BACKUP_'+data.generatedAt.replace(/[:.]/g,'-')+'.json';
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+};
+
+/* Índice eleitoral fiscal em O(1) após a primeira construção, sem refiltrar
+   as 6 mil seções a cada mudança de Município/Zona. */
+window.qgSectionIndexV148=function(force=false){
+  const base=(Array.isArray(window.QG_SECTIONS_V27)&&window.QG_SECTIONS_V27.length>=5000)
+    ?window.QG_SECTIONS_V27
+    :(typeof qgSectionBaseV110==='function'?qgSectionBaseV110():(sections||[]));
+  const stamp=base.length+'|'+(state.sectionBaseMeta?.loadedAt||state.sectionBaseMeta?.updatedAt||'embedded-v193');
+  if(!force && window.__qgSectionIndexV148?.stamp===stamp &&
+     window.__qgSectionIndexV148?.byId)return window.__qgSectionIndexV148;
+
+  const municipalities=new Map(),byId=new Map();
+  for(let i=0;i<base.length;i++){
+    const row=base[i];
+    if(!row)continue;
+    const mun=String(row.municipio||'').trim();
+    const zona=Number(row.zona||0),secao=Number(row.secao||0);
+    if(!mun||!zona||!secao)continue;
+    if(!municipalities.has(mun))municipalities.set(mun,new Map());
+    const zones=municipalities.get(mun);
+    if(!zones.has(zona))zones.set(zona,[]);
+    zones.get(zona).push(row);
+    byId.set([mun,zona,secao].join('|'),row);
+  }
+  for(const zones of municipalities.values())
+    for(const rows of zones.values())
+      rows.sort((a,b)=>Number(a.secao)-Number(b.secao));
+  const municipios=[...municipalities.keys()].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  window.__qgSectionIndexV148={stamp,municipalities,municipios,count:base.length,byId};
+  return window.__qgSectionIndexV148;
+};
+
+/* Cache de recebimento: evita reconstruir arrays e percorrer todos os BUs para
+   cada linha de seção renderizada. */
+window.isSectionReceivedV66=function(s){
+  const subs=Array.isArray(state.subs)?state.subs:[];
+  const ev=Array.isArray(state.localBackendV60?.events)?state.localBackendV60.events:[];
+  const lastS=subs.length?String(subs[subs.length-1]?.time||subs[subs.length-1]?.createdAt||''):'';
+  const lastE=ev.length?String(ev[ev.length-1]?.time||ev[ev.length-1]?.createdAt||''):'';
+  const stamp=subs.length+'|'+ev.length+'|'+lastS+'|'+lastE;
+  if(window.__qgV193.receivedStamp!==stamp){
+    const set=new Set();
+    for(const x of subs)try{set.add(sectionIdV76(x))}catch(_){}
+    for(const x of ev)try{set.add(sectionIdV76(x))}catch(_){}
+    window.__qgV193.receivedSet=set;
+    window.__qgV193.receivedStamp=stamp;
+  }
+  try{return window.__qgV193.receivedSet.has(sectionIdV76(s))}catch(_){return false}
+};
+
+/* Salvar carteira fiscal sem montar Map de todas as 6 mil seções em cada clique. */
+window.saveFiscalSectionsV66=function(){
+  const f=ensureFiscalV66();
+  const visible=[...document.querySelectorAll('.f66-sec-check')];
+  const visibleIds=new Set(visible.map(x=>x.dataset.id));
+  const checked=visible.filter(x=>x.checked).map(x=>x.dataset.id);
+  const keep=f.sections.filter(x=>!visibleIds.has(sectionIdV66(x)));
+  const idx=qgSectionIndexV148();
+  const add=checked.map(id=>idx.byId.get(id)).filter(Boolean).map(x=>({
+    municipio:x.municipio,zona:Number(x.zona),secao:Number(x.secao),
+    local:x.local||'',eleitores:Number(x.eleitores||0)
+  }));
+  f.sections=[...keep,...add];
+  f.updatedAt=new Date().toISOString();
+
+  /* O estado fiscal específico do aparelho é pequeno e é salvo imediatamente. */
+  try{qgSaveTenantFiscalStateV97?.()}catch(_){}
+  qgPersistStateSafe();
+  renderFiscalSetupV66();
+  try{populateFiscalConferenceV67()}catch(_){}
+  /* Não renderiza tabelas globais que não estão visíveis. */
+  try{
+    if(document.getElementById('sections')?.classList.contains('active'))renderSectionsV15?.();
+  }catch(_){}
+  toastV21('Carteira atualizada: '+f.sections.length+' seção(ões).');
+};
+
+/* Supabase Realtime continua imediato; o polling passa a ser fallback mais leve.
+   Isso reduz consultas periódicas enquanto o WebSocket já está fazendo o trabalho. */
+const qgV193StartRealtimeBase=window.qgStartRealtimeV88;
+if(typeof qgV193StartRealtimeBase==='function'){
+  window.qgStartRealtimeV88=async function(forcePull=false){
+    const ok=await qgV193StartRealtimeBase.apply(this,arguments);
+    try{
+      if(window.__qgSbPollV88){
+        clearInterval(window.__qgSbPollV88);
+        window.__qgSbPollV88=setInterval(()=>{
+          if(document.hidden||window.__qgPullBusyV114)return;
+          window.__qgPullBusyV114=true;
+          qgPullSupabaseV88().catch(()=>{}).finally(()=>window.__qgPullBusyV114=false);
+        },10000);
+      }
+    }catch(_){}
+    return ok;
+  };
+}
+
+/* Sync legado de API deixa de rodar em paralelo quando o Supabase canônico está ativo. */
+window.startAutoSyncV35=function(){
+  ensureSyncStateV35();
+  if(autoSyncTimerV35){clearInterval(autoSyncTimerV35);autoSyncTimerV35=null}
+  if(state.syncV35.enabled && !qgRealtimeConfiguredV88()){
+    autoSyncTimerV35=setInterval(()=>{
+      if(!document.hidden&&navigator.onLine&&['coordenacao','admin'].includes(state.role))
+        pullRemoteV35(false).catch(()=>{});
+    },15000);
+  }
+  try{renderSyncV35()}catch(_){}
+};
+
+/* Flush garantido ao sair/ocultar a página. */
+window.addEventListener('pagehide',()=>{try{qgV193FlushPersist()}catch(_){}},{capture:true});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden)try{qgV193FlushPersist()}catch(_){}
+},{passive:true});
+
+function qgV193PerformanceReport(){
+  const idx=qgSectionIndexV148();
+  const raw=localStorage.getItem('qg_state')||'';
+  return {
+    release:'v193',
+    sectionIndex:{count:idx.count,municipios:idx.municipios.length,cached:!!idx.byId},
+    storage:{
+      qgStateBytes:raw.length,
+      latestBackupBytes:(localStorage.getItem('qg_latest_backup')||'').length,
+      backupsMetadata:(state.backups||[]).length,
+      backupPayloadsInMemory:(state.backups||[]).filter(x=>x&&x.payload).length
+    },
+    persist:{lastMs:window.__qgV193.lastPersistMs,lastBytes:window.__qgV193.lastPersistBytes},
+    responsive:{viewport:window.innerWidth,mode:window.innerWidth<=560?'phone':window.innerWidth<=900?'tablet':'desktop'}
+  };
+}
+
+function qgV193ApplyRelease(){
+  document.documentElement.dataset.qgRelease='v193';
+  const roots=[
+    document.getElementById('qgV181ReleaseOverview'),
+    document.getElementById('qgV188FinalGate'),
+    document.getElementById('qgV189RegressionPanel'),
+    document.getElementById('qgV190FinalTestPanel')
+  ].filter(Boolean);
+  roots.forEach(root=>root.querySelectorAll('h1,h2,h3,b,span,p,small').forEach(el=>{
+    if(el.childElementCount)return;
+    let t=String(el.textContent||'');
+    t=t.replace(/\bv188\b/g,'v193').replace(/\bv189\b/g,'v193')
+       .replace(/\bv190\b/g,'v193').replace(/\bv191\b/g,'v193').replace(/\bv192\b/g,'v193');
+    el.textContent=t;
+  }));
+}
+function qgV193Boot(){
+  qgV193CompactBackupsInMemory();
+  try{localStorage.removeItem('qg_latest_backup')}catch(_){}
+  /* recria apenas o ponteiro pequeno no próximo snapshot */
+  qgV193ApplyRelease();
+  /* índice construído depois do primeiro paint, não durante login */
+  setTimeout(()=>{try{qgSectionIndexV148()}catch(_){}},350);
+}
+if(document.readyState==='loading')
+  document.addEventListener('DOMContentLoaded',qgV193Boot,{once:true,passive:true});
+else qgV193Boot();
+</script>
+<!-- QG_V193_PERFORMANCE_END -->
 
 </body></html>
