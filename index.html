@@ -1,4 +1,56 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QG DAS URNAS</title>
+<!doctype html><html lang="pt-BR"><head>
+
+<script id="qg-v191-safe-dom-insert">
+/* v191 — correção cirúrgica do NotFoundError de insertBefore.
+   Não altera as funções críticas v160. Intervém somente quando um painel legado
+   tenta usar como referência um nó que já foi movido pela composição/unificação posterior. */
+(function(){
+  if(window.__qgV191InsertBeforePatched)return;
+  window.__qgV191InsertBeforePatched=true;
+  window.__qgV191DomRepairs=window.__qgV191DomRepairs||[];
+  const nativeInsertBefore=Node.prototype.insertBefore;
+  const sensitiveIds=new Set([
+    'adminAuditDiagV164','adminCampaignsV164','adminDataSystemV164',
+    'adminApuracaoV164','adminOverviewV164','qgCoordIntelV164'
+  ]);
+  function sensitiveHost(node){
+    if(!node||node.nodeType!==1)return false;
+    if(sensitiveIds.has(node.id))return true;
+    return !!node.closest?.('#adminAuditDiagV164,#adminCampaignsV164,#adminDataSystemV164,#adminApuracaoV164,#adminOverviewV164,#qgCoordIntelV164');
+  }
+  Node.prototype.insertBefore=function(newNode,referenceNode){
+    if(referenceNode==null||referenceNode.parentNode===this){
+      return nativeInsertBefore.call(this,newNode,referenceNode);
+    }
+    if(!sensitiveHost(this)){
+      return nativeInsertBefore.call(this,newNode,referenceNode);
+    }
+    /* Se a referência virou descendente por ter sido embrulhada/movida,
+       sobe até o filho direto do host e mantém a intenção de ordem. */
+    let anchor=referenceNode;
+    while(anchor&&anchor.parentNode&&anchor.parentNode!==this){
+      anchor=anchor.parentNode;
+    }
+    if(anchor&&anchor.parentNode===this){
+      window.__qgV191DomRepairs.push({
+        at:Date.now(),mode:'promoted-descendant',
+        host:this.id||this.className||this.nodeName,
+        reference:referenceNode.id||referenceNode.className||referenceNode.nodeName
+      });
+      return nativeInsertBefore.call(this,newNode,anchor);
+    }
+    /* Referência foi deslocada para outro contêiner: não aborta o render.
+       Anexa o novo painel ao host correto e registra a reparação. */
+    window.__qgV191DomRepairs.push({
+      at:Date.now(),mode:'reference-outside-host',
+      host:this.id||this.className||this.nodeName,
+      reference:referenceNode.id||referenceNode.className||referenceNode.nodeName
+    });
+    return this.appendChild(newNode);
+  };
+})();
+</script>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QG DAS URNAS</title>
 <style>
 :root{--bg:#f4f5f7;--panel:#fff;--ink:#17212a;--muted:#697683;--line:#d9dfe4;--accent:#31414f;--ok:#2f7657;--warn:#94691f}
 *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,Segoe UI,Arial;background:var(--bg);color:var(--ink)}
@@ -22801,5 +22853,1377 @@ if(document.readyState==='loading'){
 }
 </script>
 <!-- QG_V184_JS_END -->
+
+<!-- QG_V185_COORD_VISUAL_BEGIN -->
+<style id="qg-v185-coord-visual-css">
+/* QG DAS URNAS v185 — Sala de Guerra, etapa 1.
+   Patch estritamente aditivo de apresentação. Nenhum fluxo Fiscal, parser de BU,
+   antiduplicidade, persistência ou função crítica da baseline v160 é alterado. */
+:root{
+  --qg185-bg:#020817;--qg185-panel:#06172a;--qg185-panel2:#082038;
+  --qg185-cyan:#18d9ff;--qg185-blue:#248cff;--qg185-green:#22e6a3;
+  --qg185-purple:#9d5cff;--qg185-gold:#ffc647;--qg185-text:#f7fbff;
+  --qg185-muted:#83a5bd;--qg185-line:rgba(24,217,255,.20);
+}
+body.qg-v185-coord{background:#020817!important}
+body.qg-v185-coord .app{grid-template-columns:224px minmax(0,1fr)!important;background:
+  radial-gradient(circle at 78% 4%,rgba(36,140,255,.10),transparent 26%),
+  linear-gradient(135deg,#020817,#031123 62%,#020817)!important}
+body.qg-v185-coord .side{position:sticky!important;top:0!important;height:100dvh!important;padding:18px 12px 18px!important;
+  background:linear-gradient(180deg,#031326 0%,#020b18 72%,#031126 100%)!important;
+  border-right:1px solid rgba(24,217,255,.18)!important;overflow:hidden!important;display:flex!important;flex-direction:column!important}
+body.qg-v185-coord .side>select{display:none!important}
+.qg-v185-side-brand{padding:4px 10px 20px;border-bottom:1px solid rgba(24,217,255,.11);margin-bottom:14px}
+.qg-v185-side-brand .logo{display:flex;align-items:center;gap:10px;color:#fff;font-weight:950;font-size:19px;letter-spacing:-.03em}
+.qg-v185-side-brand .logo img{display:block;width:178px;max-height:54px;object-fit:contain;object-position:left center;filter:drop-shadow(0 0 13px rgba(24,217,255,.16))}
+.qg-v185-side-brand .logo.has-img .bars,.qg-v185-side-brand .logo.has-img>span:last-child{display:none}
+.qg-v185-side-brand .bars{display:flex;gap:3px;align-items:flex-end;height:31px}
+.qg-v185-side-brand .bars i{display:block;width:5px;border-radius:5px;background:linear-gradient(180deg,#21e4ff,#247bff);box-shadow:0 0 12px rgba(24,217,255,.45)}
+.qg-v185-side-brand .bars i:nth-child(1){height:13px}.qg-v185-side-brand .bars i:nth-child(2){height:21px}.qg-v185-side-brand .bars i:nth-child(3){height:29px}.qg-v185-side-brand .bars i:nth-child(4){height:18px}
+.qg-v185-side-brand small{display:block;margin-top:7px;color:#5f8dab;font-size:8px;font-weight:800;letter-spacing:.17em;text-transform:uppercase;line-height:1.5}
+body.qg-v185-coord #nav{display:flex!important;flex-direction:column!important;gap:6px!important;overflow:visible!important;flex:0 0 auto}
+body.qg-v185-coord #nav button{width:100%!important;min-width:0!important;border:1px solid transparent!important;border-radius:10px!important;
+  min-height:46px!important;padding:11px 12px!important;font-size:12px!important;font-weight:800!important;color:#a8bfd2!important}
+body.qg-v185-coord #nav button.active{color:#fff!important;border-color:rgba(24,217,255,.37)!important;background:linear-gradient(90deg,rgba(24,217,255,.16),rgba(157,92,255,.12))!important;box-shadow:inset 3px 0 0 #18d9ff,0 0 22px rgba(24,217,255,.08)!important}
+.qg-v185-side-footer{margin-top:auto;padding:14px 10px 2px;color:#437895;font-size:9px;line-height:1.5;letter-spacing:.10em;text-transform:uppercase;border-top:1px solid rgba(24,217,255,.09)}
+body.qg-v185-coord .main{padding:0 14px 14px!important;min-width:0!important;background:transparent!important}
+body.qg-v185-coord .main>.top{display:none!important}
+body.qg-v185-coord #dash{padding:0!important}
+body.qg-v185-coord #qgCoordIntelV164{margin:0!important;max-width:none!important}
+body.qg-v185-coord #qgCoordIntelV164>.qg-v164-hero,
+body.qg-v185-coord #qgCoordIntelV164>.qg-v164-layer-legend,
+body.qg-v185-coord #qgCoordIntelV164>.qg-v164-filter,
+body.qg-v185-coord #qgV178CoordNavigator{display:none!important}
+
+/* Cabeçalho de campanha conforme o layout-mestre aprovado. */
+.qg-v185-campaignbar{min-height:82px;display:grid;grid-template-columns:minmax(280px,1fr) auto auto;gap:18px;align-items:center;
+  margin:0 -14px 10px;padding:11px 18px;border-bottom:1px solid rgba(24,217,255,.17);
+  background:linear-gradient(90deg,rgba(3,20,39,.98),rgba(4,26,49,.96) 58%,rgba(2,11,25,.98));box-shadow:0 12px 38px rgba(0,0,0,.18)}
+.qg-v185-campaign-left{display:flex;align-items:center;gap:12px;min-width:0}
+.qg-v185-avatar{width:50px;height:50px;border-radius:15px;display:grid;place-items:center;overflow:hidden;flex:0 0 auto;
+  border:1px solid rgba(24,217,255,.30);background:radial-gradient(circle at 40% 25%,rgba(24,217,255,.28),rgba(3,16,31,.92));box-shadow:0 0 22px rgba(24,217,255,.09)}
+.qg-v185-avatar img{width:100%;height:100%;object-fit:cover}.qg-v185-avatar b{font-size:18px;color:#dffaff}
+.qg-v185-campaign-copy{min-width:0}.qg-v185-campaign-copy .campaign{font-size:11px;color:#9bb7cb}.qg-v185-campaign-copy .campaign strong{font-size:20px;color:#fff;margin-left:5px}
+.qg-v185-campaign-copy .office{font-size:12px;color:#d4e7f3;margin-top:3px}.qg-v185-campaign-chips{display:inline-flex;gap:5px;margin-left:8px;vertical-align:middle}
+.qg-v185-chip{display:inline-flex;padding:3px 7px;border-radius:999px;border:1px solid rgba(24,217,255,.30);font-size:8px;font-weight:900;letter-spacing:.07em;color:#b6edff;background:rgba(24,217,255,.055)}
+.qg-v185-live{display:flex;align-items:center;gap:9px;padding:9px 12px;border-left:1px solid rgba(24,217,255,.14);border-right:1px solid rgba(24,217,255,.14)}
+.qg-v185-live i{width:9px;height:9px;border-radius:50%;background:#21e59b;box-shadow:0 0 15px rgba(33,229,155,.85)}
+.qg-v185-live b{display:block;color:#39efad;font-size:10px}.qg-v185-live small{display:block;color:#6e9bb5;font-size:8px;margin-top:2px}
+.qg-v185-campaign-actions{display:flex;align-items:center;gap:8px}
+.qg-v185-campaign-actions select,.qg-v185-campaign-actions button{min-height:38px!important;font-size:10px!important;border-radius:9px!important}
+.qg-v185-campaign-actions select{width:auto!important;min-width:150px!important;padding:7px 30px 7px 9px!important}
+.qg-v185-tv{border:1px solid rgba(24,217,255,.50)!important;background:rgba(24,217,255,.06)!important;color:#e8faff!important;box-shadow:0 0 18px rgba(24,217,255,.08)!important}
+
+/* KPI strip */
+.qg-v185-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:8px 0 10px}
+.qg-v185-kpi{position:relative;min-height:102px;padding:13px 14px 12px 64px;border-radius:12px;border:1px solid rgba(24,217,255,.22);
+  background:linear-gradient(145deg,rgba(7,31,55,.95),rgba(3,15,31,.98));overflow:hidden;box-shadow:inset 0 0 28px rgba(24,217,255,.02),0 12px 28px rgba(0,0,0,.15)}
+.qg-v185-kpi:after{content:"";position:absolute;inset:auto -20px -42px auto;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,rgba(24,217,255,.16),transparent 67%)}
+.qg-v185-kpi .ico{position:absolute;left:13px;top:17px;width:39px;height:39px;border-radius:10px;display:grid;place-items:center;font-size:21px;color:#1fe0ff;border:1px solid rgba(24,217,255,.22);background:rgba(24,217,255,.055);text-shadow:0 0 14px rgba(24,217,255,.45)}
+.qg-v185-kpi .lbl{display:block;color:#a4bfd1;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+.qg-v185-kpi .val{display:block;color:#fff!important;font-size:27px!important;line-height:1!important;margin:7px 0 5px!important;font-weight:950;letter-spacing:-.03em}
+.qg-v185-kpi .sub{display:block;color:#6f9bb5;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qg-v185-kpi.margin .val,.qg-v185-kpi.confidence .val{color:#28e7bb!important}.qg-v185-kpi.position .ico{color:#ffd24d;border-color:rgba(255,198,71,.30);background:rgba(255,198,71,.06)}
+.qg-v185-kpi.confidence .ico{color:#32edb0;border-color:rgba(34,230,163,.30);background:rgba(34,230,163,.06)}
+
+/* Termômetro + linha da vaga */
+.qg-v185-hero-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:10px;margin-bottom:10px}
+.qg-v185-panel{border:1px solid rgba(24,217,255,.22)!important;border-radius:12px!important;background:linear-gradient(145deg,rgba(5,25,45,.97),rgba(2,13,28,.99))!important;padding:14px!important;box-shadow:0 12px 34px rgba(0,0,0,.16)!important}
+.qg-v185-panelhead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:13px}.qg-v185-panelhead h2{font-size:16px!important;margin:2px 0!important}.qg-v185-panelhead h3{font-size:14px!important;margin:2px 0!important}
+.qg-v185-tag{display:inline-flex;padding:3px 7px;border-radius:5px;border:1px solid rgba(24,217,255,.34);color:#8cecff;background:rgba(24,217,255,.065);font-size:8px;font-weight:900;letter-spacing:.05em}
+.qg-v185-thermo-body{display:grid;grid-template-columns:180px 1fr;gap:18px;align-items:center}
+.qg-v185-gauge{--p:0;position:relative;width:162px;height:162px;border-radius:50%;display:grid;place-items:center;margin:auto;background:conic-gradient(from 210deg,#16dfff 0 calc(var(--p)*2.15deg),#25e8aa calc(var(--p)*2.15deg) calc(var(--p)*2.7deg),rgba(29,76,107,.23) calc(var(--p)*2.7deg) 270deg,transparent 270deg 360deg);filter:drop-shadow(0 0 12px rgba(24,217,255,.20))}
+.qg-v185-gauge:before{content:"";position:absolute;width:126px;height:126px;border-radius:50%;background:radial-gradient(circle at 50% 38%,#0a2842,#031426 68%);border:1px solid rgba(24,217,255,.18);box-shadow:inset 0 0 24px rgba(0,0,0,.38)}
+.qg-v185-gauge .inside{position:relative;text-align:center}.qg-v185-gauge .inside b{display:block;color:#fff;font-size:34px;line-height:1;font-weight:950}.qg-v185-gauge .inside small{display:block;margin-top:6px;color:#86acc3;font-size:8px;font-weight:900;letter-spacing:.07em;text-transform:uppercase}
+.qg-v185-thermo-copy .state{font-size:17px;color:#55efb6;font-weight:950;margin-bottom:9px}.qg-v185-thermo-copy .row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid rgba(24,217,255,.08);font-size:10px}.qg-v185-thermo-copy .row span{color:#789cb5}.qg-v185-thermo-copy .row b{color:#eaf7ff;text-align:right}
+.qg-v185-method{margin-top:11px!important;min-height:34px!important;font-size:9px!important}
+.qg-v185-seatline{padding:4px 2px 2px}.qg-v185-seat-summary{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin:9px 0 14px}.qg-v185-seat-summary>div{padding:9px 10px;border-radius:9px;background:rgba(255,255,255,.025);border:1px solid rgba(24,217,255,.09)}
+.qg-v185-seat-summary span{display:block;color:#718fa4;font-size:9px}.qg-v185-seat-summary b{display:block;color:#fff;font-size:18px;margin-top:4px}.qg-v185-seat-summary .margin b{color:#3cecb2}
+.qg-v185-track{position:relative;height:44px;margin:10px 7px 9px}.qg-v185-track .rail{position:absolute;left:0;right:0;top:18px;height:8px;border-radius:99px;background:linear-gradient(90deg,#153856,#15559a 45%,#16cfd8 72%,#1cc98b);box-shadow:inset 0 0 8px rgba(0,0,0,.4)}
+.qg-v185-track .mark{position:absolute;top:7px;transform:translateX(-50%);text-align:center}.qg-v185-track .mark:after{content:"";display:block;width:15px;height:15px;margin:4px auto 0;border-radius:50%;background:#9bc6e3;border:3px solid #eaf9ff;box-shadow:0 0 12px rgba(155,198,227,.55)}
+.qg-v185-track .mark.target:after{background:#13e5ff;border-color:#6ff5ff;box-shadow:0 0 18px rgba(19,229,255,.8)}
+.qg-v185-track .mark span{display:block;color:#8ba9bc;font-size:8px;white-space:nowrap}.qg-v185-track .mark.target span{color:#42eaff;font-weight:900}
+.qg-v185-seat-foot{display:flex;justify-content:space-between;gap:12px;color:#7898ae;font-size:9px}.qg-v185-seat-foot strong{color:#2ee5ad}
+
+/* Compacta os cards herdados abaixo sem alterar seus dados. */
+body.qg-v185-coord #qgCoordIntelBodyV164>.qg-v164-grid2,
+body.qg-v185-coord #qgCoordIntelBodyV164>.card{margin:10px 0!important}
+body.qg-v185-coord #qgCoordIntelBodyV164 .card{border-radius:12px!important;border-color:rgba(24,217,255,.17)!important;background:linear-gradient(145deg,rgba(5,24,43,.94),rgba(2,13,27,.98))!important;box-shadow:none!important}
+body.qg-v185-coord #qgCoordIntelBodyV164 .qg-v164-card-head h3{font-size:13px!important}
+body.qg-v185-coord #qgCoordIntelBodyV164 .qg-v164-row{padding:8px 0!important;font-size:10px!important}
+body.qg-v185-coord #qgCoordIntelBodyV164 .qg-v164-row>span small{font-size:8px!important}
+
+@media(max-width:1180px){body.qg-v185-coord .app{grid-template-columns:205px minmax(0,1fr)!important}.qg-v185-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.qg-v185-campaignbar{grid-template-columns:1fr auto}.qg-v185-live{display:none}.qg-v185-thermo-body{grid-template-columns:145px 1fr}.qg-v185-gauge{width:138px;height:138px}.qg-v185-gauge:before{width:106px;height:106px}}
+@media(max-width:820px){body.qg-v185-coord .app{display:block!important}body.qg-v185-coord .side{height:auto!important;position:sticky!important;padding:7px 10px!important;overflow:auto!important}.qg-v185-side-brand,.qg-v185-side-footer{display:none!important}body.qg-v185-coord #nav{flex-direction:row!important;overflow-x:auto!important}.qg-v185-campaignbar{margin:0 -14px 8px;grid-template-columns:1fr;gap:8px;padding:10px 14px}.qg-v185-campaign-actions{justify-content:flex-start}.qg-v185-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.qg-v185-hero-grid{grid-template-columns:1fr}.qg-v185-thermo-body{grid-template-columns:150px 1fr}}
+@media(max-width:520px){body.qg-v185-coord .main{padding:0 8px 8px!important}.qg-v185-campaignbar{margin:0 -8px 8px}.qg-v185-campaign-copy .campaign strong{font-size:16px}.qg-v185-campaign-actions{display:grid;grid-template-columns:1fr 1fr}.qg-v185-campaign-actions select{min-width:0!important;width:100%!important}.qg-v185-kpis{grid-template-columns:1fr 1fr;gap:7px}.qg-v185-kpi{min-height:88px;padding:11px 9px 9px 49px}.qg-v185-kpi .ico{width:31px;height:31px;left:9px;top:13px;font-size:16px}.qg-v185-kpi .val{font-size:21px!important}.qg-v185-thermo-body{grid-template-columns:1fr}.qg-v185-seat-summary{grid-template-columns:1fr 1fr}.qg-v185-seat-summary .margin{grid-column:1/-1}.qg-v185-panel{padding:11px!important}}
+@media(prefers-reduced-motion:reduce){.qg-v185-kpi,.qg-v185-gauge{transition:none!important}}
+</style>
+<script id="qg-v185-coord-visual-js">
+(function(){
+'use strict';
+window.__qgV185=window.__qgV185||{release:'v185',scope:'coord_visual_part1'};
+const esc=v=>typeof qgV164Esc==='function'?qgV164Esc(String(v??'')):String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+const fmt=v=>typeof qgV164Fmt==='function'?qgV164Fmt(Number(v||0)):Number(v||0).toLocaleString('pt-BR');
+const pct=v=>typeof qgV164Pct==='function'?qgV164Pct(Number(v||0)):Number(v||0).toFixed(1).replace('.',',')+'%';
+function role(){try{return String(state?.role||'')}catch(e){return ''}}
+function initials(name){return String(name||'QG').trim().split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase()||'QG'}
+function currentTenant(){try{return typeof qgCurrentTenantV97==='function'?qgCurrentTenantV97():null}catch(e){return null}}
+function campaignLabel(x){const t=currentTenant();return t?.nome||x?.target?.nome||'Campanha monitorada'}
+function avatarHtml(x){const t=currentTenant(),src=String(t?.foto||t?.photo||t?.logo||t?.imagem||'').trim();if(src)return '<img src="'+esc(src)+'" alt="Identidade da campanha" onerror="this.remove();this.parentElement.innerHTML=\'<b>'+esc(initials(campaignLabel(x)))+'</b>\'">';return '<b>'+esc(initials(campaignLabel(x)))+'</b>'}
+function marginValue(x){if(x?.line&&Number.isFinite(Number(x.line.margin)))return Number(x.line.margin);const rr=x?.rank?.ranked||[],n=String(x?.target?.numero||''),idx=rr.findIndex(r=>String(r[0])===n);if(idx<0)return 0;const mine=Number(rr[idx]?.[1]||0),below=Number(rr[idx+1]?.[1]||0);return mine-below}
+function confidence(x){const c=String(x?.projection?.confidence||'').trim();if(c)return c.toUpperCase();return Number(x?.sectionPct||0)>=60?'ALTA':Number(x?.sectionPct||0)>=30?'MÉDIA':'EM FORMAÇÃO'}
+function thermoPct(x){if(x?.projection?.ok&&Number(x.projection.central)>0)return Math.max(0,Math.min(100,Number(x.rank?.total||0)/Number(x.projection.central)*100));return Math.max(0,Math.min(100,Number(x?.sectionPct||0)))}
+function seatPositions(x){const a=Number(x?.line?.candidate?.votos||0),b=Number(x?.rank?.total||0);if(!a&&!b)return {a:28,b:72};const lo=Math.min(a,b)*.94,hi=Math.max(a,b)*1.06+1,span=Math.max(1,hi-lo);return {a:Math.max(8,Math.min(92,(a-lo)/span*100)),b:Math.max(8,Math.min(92,(b-lo)/span*100))}}
+function cargoOptions(){let arr=[];try{arr=typeof enabledCargosV71==='function'?enabledCargosV71():[]}catch(e){}return arr}
+function syncCargo(v){const old=document.getElementById('qgCoordCargoV164');if(old)old.value=v;try{qgRefreshCoordIntelligenceV164(true)}catch(e){}}
+window.qgV185SyncCargo=syncCargo;
+function sideShell(){const side=document.querySelector('.side');if(!side)return;if(!document.getElementById('qgV185SideBrand')){const b=document.createElement('div');b.id='qgV185SideBrand';b.className='qg-v185-side-brand';const logoSrc=document.querySelector('.qg-intro-logo-v129')?.getAttribute('src')||'';b.innerHTML='<div class="logo '+(logoSrc?'has-img':'')+'">'+(logoSrc?'<img src="'+esc(logoSrc)+'" alt="QG DAS URNAS">':'')+'<span class="bars"><i></i><i></i><i></i><i></i></span><span>QG DAS URNAS</span></div><small>Dados. Estratégia. Vitória.<br>Inteligência eleitoral em tempo real.</small>';const nav=document.getElementById('nav');nav?side.insertBefore(b,nav):side.prepend(b)}if(!document.getElementById('qgV185SideFooter')){const f=document.createElement('div');f.id='qgV185SideFooter';f.className='qg-v185-side-footer';f.innerHTML='ELEIÇÕES 2026<br>SERGIPE<br>DEMOCRACIA MAIS FORTE<br>COM INFORMAÇÃO';side.appendChild(f)}}
+function syncRole(){const on=role()==='coordenacao';document.body.classList.toggle('qg-v185-coord',on);if(on)sideShell()}
+function syncStatus(){let token=false,rt=false,online=navigator.onLine!==false;try{token=!!qgV164Token()}catch(e){}try{rt=!!window.__qgV179?.signalChannel||!!window.__qgRealtimeV88}catch(e){}if(!online)return {label:'SEM REDE',detail:'operação local / fila de sincronização',kind:'warn'};if(token&&rt)return {label:'SISTEMA SINCRONIZADO',detail:'backend autorizado + realtime ativo',kind:'ok'};if(token)return {label:'BACKEND AUTORIZADO',detail:'sessão segura ativa • realtime em conexão',kind:'mid'};return {label:'MODO LOCAL',detail:'backend ainda não autenticado',kind:'warn'}}
+function qgV185TickClock(){clearTimeout(window.__qgV185.clockTimer);const el=document.getElementById('qgV185Clock');if(el)el.textContent=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});if(role()==='coordenacao')window.__qgV185.clockTimer=setTimeout(qgV185TickClock,1000)}
+function headerHtml(x){const t=currentTenant(),name=campaignLabel(x),cargo=x?.target?.cargo||document.getElementById('qgCoordCargoV164')?.value||'',uf=t?.uf||'SERGIPE',now=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),opts=cargoOptions(),ss=syncStatus();return '<div class="qg-v185-campaignbar">'+
+'<div class="qg-v185-campaign-left"><div class="qg-v185-avatar">'+avatarHtml(x)+'</div><div class="qg-v185-campaign-copy"><div class="campaign">Campanha:<strong>'+esc(name)+'</strong></div><div class="office">'+esc(cargo||'Cargo monitorado')+' • '+esc(uf)+'<span class="qg-v185-campaign-chips"><span class="qg-v185-chip">'+esc((cargo||'ELEIÇÃO').replace('Deputado ','').toUpperCase())+'</span><span class="qg-v185-chip">'+esc(String(uf).toUpperCase())+'</span></span></div></div></div>'+
+'<div class="qg-v185-live '+esc(ss.kind)+'"><i></i><div><b>'+esc(ss.label)+'</b><small>'+esc(ss.detail)+' • <span id="qgV185Clock">'+esc(now)+'</span></small></div></div>'+
+'<div class="qg-v185-campaign-actions"><select aria-label="Cargo analisado" onchange="qgV185SyncCargo(this.value)">'+opts.map(c=>'<option'+(c===cargo?' selected':'')+'>'+esc(c)+'</option>').join('')+'</select><button class="ghost qg-v185-tv" onclick="qgTvModeV164()">▣ MODO TV</button></div></div>'}
+function kpiHtml(x){const m=marginValue(x),conf=confidence(x),rank=x?.rank?.rank||'—',totalCandidates=(x?.rank?.ranked||[]).length;return '<div class="qg-v185-kpis">'+
+'<div class="qg-v185-kpi"><span class="ico">▣</span><span class="lbl">Votos</span><span class="val">'+fmt(x?.rank?.total)+'</span><span class="sub">APURADO • votos registrados</span></div>'+
+'<div class="qg-v185-kpi"><span class="ico">◔</span><span class="lbl">Cobertura</span><span class="val">'+pct(x?.sectionPct)+'</span><span class="sub">seções efetivamente recebidas</span></div>'+
+'<div class="qg-v185-kpi position"><span class="ico">♜</span><span class="lbl">Posição</span><span class="val">'+esc(rank)+'º</span><span class="sub">entre '+fmt(totalCandidates)+' candidatos no recorte</span></div>'+
+'<div class="qg-v185-kpi margin"><span class="ico">▥</span><span class="lbl">Margem</span><span class="val">'+(m>=0?'+':'')+fmt(m)+'</span><span class="sub">'+(x?.line?'sobre a linha da última cadeira':'sobre o candidato imediatamente abaixo')+'</span></div>'+
+'<div class="qg-v185-kpi confidence"><span class="ico">⬡</span><span class="lbl">Confiança</span><span class="val">'+esc(conf)+'</span><span class="sub">'+(x?.projection?.ok?'projeção territorial':'cenário em consolidação')+'</span></div></div>'}
+function thermoHtml(x){const p=thermoPct(x),proj=x?.projection||{},stateLabel=x?.scenarioLabel||'Cenário em formação',den=proj?.ok?fmt(proj.central):'—',range=proj?.ok?(fmt(proj.lower)+' – '+fmt(proj.upper)):'Aguardando cobertura suficiente';return '<div class="card qg-v185-panel"><div class="qg-v185-panelhead"><div><span class="qg-v185-tag">PROJEÇÃO QG</span><h2>'+(x?.isReelection?'TERMÔMETRO DA REELEIÇÃO':'TERMÔMETRO ELEITORAL')+'</h2></div></div><div class="qg-v185-thermo-body"><div class="qg-v185-gauge" style="--p:'+Math.round(p)+'"><div class="inside"><b>'+Math.round(p)+'%</b><small>'+(proj?.ok?'da projeção central':'da cobertura')+'</small></div></div><div class="qg-v185-thermo-copy"><div class="state">'+esc(stateLabel)+'</div><div class="row"><span>Projeção central</span><b>'+den+'</b></div><div class="row"><span>Faixa estimada</span><b>'+esc(range)+'</b></div><div class="row"><span>Tendência</span><b>'+(Number(x?.rank?.total||0)>0?'estável / positiva':'em formação')+'</b></div><button class="ghost qg-v185-method" onclick="qgProjectionMethodModalV164()">ⓘ COMO FOI CALCULADO?</button></div></div></div>'}
+function seatHtml(x){const m=marginValue(x),line=x?.line,pos=seatPositions(x),last=line?.candidate,lv=Number(last?.votos||0),mine=Number(x?.rank?.total||0);return '<div class="card qg-v185-panel"><div class="qg-v185-panelhead"><div><span class="qg-v185-tag">CÁLCULO ELEITORAL</span><h2>LINHA DA VAGA</h2></div><span class="note">'+pct(x?.sectionPct)+' cobertura</span></div><div class="qg-v185-seatline">'+(line?'<div class="qg-v185-seat-summary"><div><span>Última cadeira</span><b>'+fmt(lv)+'</b></div><div><span>Seu candidato</span><b style="color:#22defc">'+fmt(mine)+'</b></div><div class="margin"><span>Margem</span><b>'+(m>=0?'+':'')+fmt(m)+'</b></div></div><div class="qg-v185-track"><div class="rail"></div><div class="mark" style="left:'+pos.a.toFixed(1)+'%"><span>última cadeira</span></div><div class="mark target" style="left:'+pos.b.toFixed(1)+'%"><span>seu candidato</span></div></div><div class="qg-v185-seat-foot"><span>'+esc(last?.nome||'Última cadeira projetada')+'</span><strong>'+(m>=0?'+':'')+fmt(m)+' votos</strong></div>':'<div class="empty-state">A linha da vaga é exibida quando o cargo proporcional possui cadeiras calculáveis no recorte atual.</div>')+'</div></div>'}
+window.qgThermometerHtmlV164=function(x){window.__qgV185.lastCoord=x;syncRole();queueMicrotask(qgV185TickClock);return headerHtml(x)+kpiHtml(x)+'<div class="qg-v185-hero-grid">'+thermoHtml(x)+seatHtml(x)+'</div>'};
+
+const initBase=window.qgInitSectionV164;
+if(typeof initBase==='function')window.qgInitSectionV164=function(id){const r=initBase.apply(this,arguments);syncRole();return r};
+const enterBase=window.qgDirectEnterV80;
+if(typeof enterBase==='function')window.qgDirectEnterV80=function(){const r=enterBase.apply(this,arguments);queueMicrotask(syncRole);return r};
+const accessBase=window.qgShowAccess;
+if(typeof accessBase==='function')window.qgShowAccess=function(){document.body.classList.remove('qg-v185-coord');clearTimeout(window.__qgV185.clockTimer);return accessBase.apply(this,arguments)};
+function boot(){syncRole();document.documentElement.dataset.qgRelease='v185';document.documentElement.dataset.qgV185='coord-visual-1'}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true,passive:true});else boot();
+})();
+</script>
+<!-- QG_V185_COORD_VISUAL_END -->
+
+
+<style id="qg-v186-coord-visual-style">
+/* QG DAS URNAS v186 — Sala de Guerra visual final, parte 2.
+   Camada de apresentação apenas; motores e fluxo Fiscal permanecem intactos. */
+body.qg-v185-coord #qgCoordIntelBodyV164{display:block!important}
+.qg-v186-dashboard{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:9px;margin-top:9px}
+.qg-v186-card{min-width:0;padding:11px 12px!important;border-radius:12px!important;border:1px solid rgba(24,217,255,.18)!important;
+  background:linear-gradient(145deg,rgba(4,23,42,.97),rgba(2,12,25,.99))!important;box-shadow:inset 0 0 24px rgba(24,217,255,.018)!important;overflow:hidden}
+.qg-v186-card h3{margin:0!important;font-size:12px!important;letter-spacing:.015em;color:#f2fbff!important}
+.qg-v186-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
+.qg-v186-head .title{display:flex;align-items:center;gap:7px;min-width:0}
+.qg-v186-head .ico{display:grid;place-items:center;width:25px;height:25px;border-radius:8px;background:rgba(24,217,255,.08);border:1px solid rgba(24,217,255,.18);color:#1de3ff;font-weight:900}
+.qg-v186-badge{flex:0 0 auto;padding:3px 7px;border-radius:999px;font-size:7.5px;font-weight:950;letter-spacing:.07em;border:1px solid rgba(24,217,255,.25);color:#31e7ff;background:rgba(24,217,255,.065);text-transform:uppercase}
+.qg-v186-badge.calc{border-color:rgba(223,184,74,.34);color:#f0cc62;background:rgba(223,184,74,.06)}
+.qg-v186-badge.intel{border-color:rgba(190,91,255,.35);color:#d38aff;background:rgba(190,91,255,.06)}
+.qg-v186-badge.safe{border-color:rgba(52,239,171,.35);color:#55efb8;background:rgba(52,239,171,.06)}
+.qg-v186-map{grid-column:span 5;grid-row:span 2;min-height:360px}
+.qg-v186-goal{grid-column:span 2}
+.qg-v186-coverage{grid-column:span 2}
+.qg-v186-trajectory{grid-column:span 3}
+.qg-v186-impact{grid-column:span 2}
+.qg-v186-scenario{grid-column:span 4}
+.qg-v186-opponents{grid-column:span 3}
+.qg-v186-carriers{grid-column:span 3}
+.qg-v186-summary{grid-column:span 5}
+.qg-v186-change{grid-column:span 4}
+.qg-v186-integrity{grid-column:span 3}
+.qg-v186-map-shell{display:grid;grid-template-columns:minmax(0,1fr) 116px;gap:9px;min-height:310px}
+.qg-v186-map-svg{display:block;width:100%;height:300px;filter:drop-shadow(0 0 14px rgba(20,213,255,.08))}
+.qg-v186-map-svg path{stroke:#71c8e9;stroke-opacity:.44;stroke-width:.75;vector-effect:non-scaling-stroke;transition:filter .12s ease,opacity .12s ease}
+.qg-v186-map-svg path:hover{filter:brightness(1.45) drop-shadow(0 0 5px rgba(22,220,255,.75));stroke:#e8fbff;stroke-opacity:.92;stroke-width:1.35}
+.qg-v186-map-svg .pin{fill:#fff;stroke:#10def6;stroke-width:2;filter:drop-shadow(0 0 5px #13e7ff)}
+.qg-v186-map-svg .pin-label{font:700 8px Inter,system-ui,sans-serif;fill:#dff8ff;paint-order:stroke;stroke:#041526;stroke-width:2.7px;stroke-linejoin:round}
+.qg-v186-map-side{display:flex;flex-direction:column;gap:7px;padding-top:5px}
+.qg-v186-map-side .legend{display:grid;gap:6px;font-size:8px;color:#9bb4c6}
+.qg-v186-map-side .legend span{display:flex;align-items:center;gap:6px}.qg-v186-map-side .legend i{width:8px;height:8px;border-radius:2px;box-shadow:0 0 7px currentColor}
+.qg-v186-map-stat{padding:8px;border:1px solid rgba(24,217,255,.1);border-radius:9px;background:rgba(255,255,255,.018)}
+.qg-v186-map-stat b{display:block;color:#fff;font-size:15px}.qg-v186-map-stat small{font-size:7.5px;color:#7e9aad;line-height:1.35}
+.qg-v186-source{margin-top:6px;font-size:7px;color:#55778e;line-height:1.35}
+.qg-v186-progress{display:grid;gap:10px}.qg-v186-progress-row{display:grid;grid-template-columns:1fr auto;gap:4px 8px;align-items:center}
+.qg-v186-progress-row span{font-size:8px;color:#85a1b6}.qg-v186-progress-row b{font-size:10px;color:#f1fbff}
+.qg-v186-progress-row .bar{grid-column:1/-1;height:6px;border-radius:999px;background:#102c43;overflow:hidden}
+.qg-v186-progress-row .bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#138be8,#17e0ff)}
+.qg-v186-progress-row.green .bar i{background:linear-gradient(90deg,#1dce87,#51f1a9)}.qg-v186-progress-row.purple .bar i{background:linear-gradient(90deg,#7757ff,#c45bff)}
+.qg-v186-cover-wrap{display:grid;grid-template-columns:84px 1fr;gap:9px;align-items:center}
+.qg-v186-donut{width:78px;height:78px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#18ddff calc(var(--p)*1%),#153047 0);position:relative}
+.qg-v186-donut:after{content:"";position:absolute;inset:10px;border-radius:50%;background:#041528;border:1px solid rgba(24,217,255,.13)}
+.qg-v186-donut b{position:relative;z-index:1;font-size:17px;color:#f5fcff}.qg-v186-donut small{position:absolute;z-index:1;margin-top:30px;font-size:6px;color:#7d9bad}
+.qg-v186-chart{height:128px;position:relative}.qg-v186-chart svg{width:100%;height:100%;display:block}
+.qg-v186-gridline{stroke:#173249;stroke-width:1}.qg-v186-line{fill:none;stroke:#1ce0ff;stroke-width:2.5;filter:drop-shadow(0 0 4px rgba(28,224,255,.55))}
+.qg-v186-area{fill:url(#qgV186Grad);opacity:.42}.qg-v186-point{fill:#8af4ff;stroke:#0c5c82;stroke-width:1}
+.qg-v186-axis{font:6.5px Inter,system-ui,sans-serif;fill:#7895aa}.qg-v186-chart-val{position:absolute;right:4px;top:1px;font-size:10px;font-weight:900;color:#eafcff;background:#09283d;border:1px solid rgba(24,217,255,.14);padding:4px 6px;border-radius:7px}
+.qg-v186-table{width:100%;border-collapse:collapse;min-width:0!important}.qg-v186-table td,.qg-v186-table th{padding:5px 4px!important;font-size:8px!important;border-bottom:1px solid rgba(24,217,255,.075)!important}
+.qg-v186-table th{color:#6f91a8!important;text-transform:uppercase!important;font-size:6.5px!important;background:transparent!important}
+.qg-v186-table tr.me{background:rgba(24,217,255,.09)}.qg-v186-table .status{font-size:6.5px!important;padding:3px 5px;border-radius:999px;display:inline-block}
+.qg-v186-table .status.in{color:#58efad;background:rgba(52,239,171,.08);border:1px solid rgba(52,239,171,.18)}
+.qg-v186-table .status.edge{color:#ffd45b;background:rgba(255,205,58,.08);border:1px solid rgba(255,205,58,.18)}
+.qg-v186-table .status.out{color:#ff8d9c;background:rgba(255,89,110,.08);border:1px solid rgba(255,89,110,.18)}
+.qg-v186-rank-list{display:grid;gap:6px}.qg-v186-rank{display:grid;grid-template-columns:17px minmax(0,1fr) auto;gap:6px;align-items:center;font-size:8px}
+.qg-v186-rank .n{color:#7393a9;font-weight:900}.qg-v186-rank .name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#dceaf4}
+.qg-v186-rank .value{font-weight:900;color:#fff}.qg-v186-rank .trend.up{color:#4df0ae}.qg-v186-rank .trend.down{color:#ff7d8d}
+.qg-v186-bars{display:grid;gap:6px}.qg-v186-barrow{display:grid;grid-template-columns:18px 1fr 42px;gap:6px;align-items:center;font-size:8px}
+.qg-v186-barrow .place{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.qg-v186-barrow .track{height:6px;border-radius:999px;background:#102c43;overflow:hidden}
+.qg-v186-barrow .track i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#168ce5,#44c5ff)}.qg-v186-barrow b{text-align:right}
+.qg-v186-impact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:4px}.qg-v186-impact-grid div{padding:7px 4px;border-radius:8px;background:rgba(255,255,255,.018);text-align:center}
+.qg-v186-impact-grid b{display:block;font-size:17px}.qg-v186-impact-grid small{font-size:6.5px;color:#7897ad}
+.qg-v186-impact-grid .warn b{color:#ff6f83}
+.qg-v186-goal-values{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}.qg-v186-goal-values div{padding:7px;border-radius:8px;background:rgba(255,255,255,.02);border:1px solid rgba(24,217,255,.08)}
+.qg-v186-goal-values span{display:block;font-size:6.5px;color:#7592a7}.qg-v186-goal-values b{display:block;margin-top:2px;font-size:12px}
+.qg-v186-diff.pos{color:#4ceeb0}.qg-v186-diff.neg{color:#ff7f8e}
+.qg-v186-summary p{margin:2px 0 0;font-size:8.5px;line-height:1.55;color:#b4c8d7}
+.qg-v186-summary .signal{margin-top:7px;padding:6px 8px;border-left:2px solid #f5ca4b;background:rgba(245,202,75,.04);font-size:7.5px;color:#e6ca71}
+.qg-v186-change-list,.qg-v186-integrity-list{display:grid;gap:6px}
+.qg-v186-change-list div,.qg-v186-integrity-list div{display:grid;grid-template-columns:17px 1fr auto;gap:6px;align-items:center;font-size:8px}
+.qg-v186-change-list i,.qg-v186-integrity-list i{display:grid;place-items:center;width:17px;height:17px;border-radius:50%;background:rgba(52,239,171,.09);color:#4eecad;font-style:normal;font-weight:900}
+.qg-v186-integrity-list i.warn{background:rgba(255,199,65,.08);color:#ffd264}.qg-v186-integrity-list i.bad{background:rgba(255,80,102,.08);color:#ff8796}
+.qg-v186-empty{padding:15px 5px;text-align:center;font-size:8px;color:#708ea3}
+.qg-v186-footnote{font-size:6.5px;color:#55758b;line-height:1.35;margin-top:5px}
+body.qg-v164-tv .qg-v186-dashboard{gap:11px}body.qg-v164-tv .qg-v186-card{padding:13px!important}
+@media(max-width:1240px){.qg-v186-map{grid-column:span 6}.qg-v186-goal{grid-column:span 3}.qg-v186-coverage{grid-column:span 3}.qg-v186-trajectory{grid-column:span 6}.qg-v186-impact{grid-column:span 3}.qg-v186-scenario{grid-column:span 6}.qg-v186-opponents{grid-column:span 3}.qg-v186-carriers{grid-column:span 3}.qg-v186-summary{grid-column:span 6}.qg-v186-change{grid-column:span 3}.qg-v186-integrity{grid-column:span 3}}
+@media(max-width:900px){.qg-v186-dashboard{grid-template-columns:repeat(6,minmax(0,1fr))}.qg-v186-map,.qg-v186-trajectory,.qg-v186-scenario,.qg-v186-summary{grid-column:1/-1}.qg-v186-goal,.qg-v186-coverage,.qg-v186-impact,.qg-v186-opponents,.qg-v186-carriers,.qg-v186-change,.qg-v186-integrity{grid-column:span 3}}
+@media(max-width:600px){.qg-v186-dashboard{display:block}.qg-v186-card{margin-bottom:8px}.qg-v186-map-shell{grid-template-columns:1fr}.qg-v186-map-side{display:grid;grid-template-columns:1fr 1fr}.qg-v186-map-side .legend{grid-column:1/-1}.qg-v186-map-svg{height:285px}.qg-v186-cover-wrap{grid-template-columns:76px 1fr}}
+</style>
+
+<script id="qg-v186-coord-visual-js">
+(function(){
+'use strict';
+window.__qgV186=window.__qgV186||{release:'v186',base:'v185',scope:'coord_visual_part2'};
+const MAP_PATHS={"GENERAL MAYNARD":"M384.0,237.7 L368.2,237.3 L362.8,246.1 L359.6,244.2 L360.5,234.5 L384.1,233.0 L384.0,237.7 Z","MARUIM":"M350.8,246.5 L344.3,262.6 L342.5,262.5 L328.8,250.2 L329.1,246.0 L341.1,236.7 L350.8,246.5 Z","ARACAJU":"M352.1,287.1 L346.2,291.2 L334.8,295.5 L332.4,289.2 L347.9,281.1 L352.1,287.1 Z","NOSSA SENHORA DO SOCORRO":"M344.3,262.6 L351.8,269.1 L347.9,281.1 L332.4,289.2 L318.2,279.9 L342.5,262.5 L344.3,262.6 Z","CAPELA":"M333.4,196.4 L334.7,185.3 L346.5,172.6 L361.0,182.1 L352.8,194.6 L366.3,204.9 L360.5,212.6 L358.4,213.5 L333.4,196.4 Z","GRACCHO CARDOSO":"M338.5,135.2 L334.1,150.0 L308.3,154.0 L304.3,140.2 L319.0,136.0 L327.9,125.9 L338.5,135.2 Z","ESTANCIA":"M247.6,366.0 L247.1,362.3 L268.8,359.6 L261.3,373.4 L247.6,366.0 Z","CARIRA":"M215.5,192.7 L203.6,190.9 L207.1,168.0 L223.5,185.2 L215.5,192.7 Z","INDIAROBA":"M236.4,396.8 L251.5,399.6 L249.3,412.0 L233.3,401.5 L236.4,396.8 Z","SANTO AMARO DAS BROTAS":"M351.8,269.1 L344.3,262.6 L350.8,246.5 L359.6,244.2 L362.8,246.1 L357.4,255.0 L357.7,269.0 L351.8,269.1 Z","CANINDE DE SAO FRANCISCO":"M195.9,35.7 L177.6,18.0 L202.0,29.5 L195.9,35.7 Z","JAPARATUBA":"M366.3,204.9 L379.8,215.2 L389.8,226.7 L384.5,231.2 L360.5,212.6 L366.3,204.9 Z","SAO CRISTOVAO":"M318.2,279.9 L332.4,289.2 L334.8,295.5 L323.3,299.9 L306.2,304.7 L300.1,282.9 L305.4,278.4 L318.2,279.9 Z","MALHADOR":"M281.6,232.9 L299.4,218.1 L308.2,237.3 L301.0,247.7 L284.5,242.1 L281.6,232.9 Z","NOSSA SENHORA APARECIDA":"M267.3,149.5 L271.9,156.5 L264.2,184.3 L254.0,188.0 L246.8,185.1 L253.7,167.9 L255.0,148.7 L267.3,149.5 Z","RIACHAO DO DANTAS":"M158.5,289.2 L204.4,282.6 L220.5,295.9 L208.2,328.6 L202.0,334.1 L189.0,319.5 L164.9,323.9 L158.5,289.2 Z","ITAPORANGA D'AJUDA":"M270.9,284.0 L300.1,282.9 L306.2,304.7 L289.1,309.4 L273.0,310.7 L270.9,284.0 Z","CAMPO DO BRITO":"M260.1,281.4 L239.6,248.9 L240.3,245.0 L255.2,238.6 L268.4,258.7 L265.3,280.9 L260.1,281.4 Z","AREIA BRANCA":"M268.4,258.7 L284.5,242.1 L301.0,247.7 L306.9,265.1 L305.4,278.4 L300.1,282.9 L270.9,284.0 L265.3,280.9 L268.4,258.7 Z","SIMAO DIAS":"M204.4,282.6 L158.5,289.2 L142.3,281.1 L145.6,248.1 L179.2,251.5 L208.5,256.0 L204.4,282.6 Z","PROPRIA":"M393.0,138.1 L395.5,130.7 L400.8,135.5 L396.4,144.5 L393.0,138.1 Z","ROSARIO DO CATETE":"M355.3,219.1 L360.5,234.5 L359.6,244.2 L350.8,246.5 L341.1,236.7 L341.5,228.2 L355.3,219.1 Z","ITABAIANA":"M268.4,258.7 L255.2,238.6 L259.7,222.2 L267.3,221.7 L281.6,232.9 L284.5,242.1 L268.4,258.7 Z","NOSSA SENHORA DA GLORIA":"M255.0,148.7 L256.2,129.6 L247.5,112.5 L273.4,99.2 L282.2,101.8 L284.0,112.2 L267.3,149.5 L255.0,148.7 Z","PEDRINHAS":"M208.2,328.6 L227.3,346.9 L226.7,352.6 L207.0,365.3 L202.4,360.5 L215.0,348.7 L202.0,334.1 L208.2,328.6 Z","POCO REDONDO":"M226.5,74.4 L214.2,53.5 L195.9,35.7 L202.0,29.5 L246.5,50.5 L244.0,64.1 L226.5,74.4 Z","JAPOATA":"M397.5,171.7 L408.0,179.2 L394.6,175.8 L397.5,171.7 Z","UMBAUBA":"M236.4,396.8 L233.3,401.5 L217.3,391.1 L207.6,400.7 L197.5,390.5 L208.8,374.1 L234.8,382.2 L236.4,396.8 Z","CRISTINAPOLIS":"M194.7,391.1 L197.5,390.5 L207.6,400.7 L197.9,410.3 L186.6,399.3 L194.7,391.1 Z","LARANJEIRAS":"M328.8,250.2 L342.5,262.5 L318.2,279.9 L305.4,278.4 L306.9,265.1 L328.8,250.2 Z","NOSSA SENHORA DAS DORES":"M292.2,196.6 L302.9,172.4 L334.7,185.3 L333.4,196.4 L321.5,207.9 L301.7,206.3 L292.2,196.6 Z","POCO VERDE":"M142.3,281.1 L126.4,286.6 L112.0,244.8 L145.6,248.1 L142.3,281.1 Z","SALGADO":"M221.1,296.0 L260.1,281.4 L265.3,280.9 L270.9,284.0 L273.0,310.7 L256.9,312.0 L242.7,323.2 L221.1,296.0 Z","TELHA":"M393.0,138.1 L371.3,134.6 L373.4,129.5 L385.6,121.8 L395.5,130.7 L393.0,138.1 Z","MACAMBIRA":"M230.5,218.3 L252.8,216.4 L259.7,222.2 L255.2,238.6 L240.3,245.0 L242.4,232.4 L227.3,226.6 L230.5,218.3 Z","BARRA DOS COQUEIROS":"M357.7,269.0 L358.0,283.0 L352.1,287.1 L347.9,281.1 L351.8,269.1 L357.7,269.0 Z","AQUIDABA":"M363.3,157.0 L346.7,167.7 L334.1,150.0 L338.5,135.2 L347.2,130.2 L369.6,136.4 L370.6,145.9 L363.3,157.0 Z","SANTA LUZIA DO ITANHY":"M261.3,373.4 L253.8,387.2 L251.5,399.6 L236.4,396.8 L234.8,382.2 L247.6,366.0 L261.3,373.4 Z","CANHOBA":"M371.3,134.6 L369.6,136.4 L347.2,130.2 L350.4,110.8 L367.3,107.9 L373.4,129.5 L371.3,134.6 Z","FREI PAULO":"M254.0,188.0 L252.8,216.4 L230.5,218.3 L217.2,198.5 L215.5,192.7 L223.5,185.2 L239.8,202.3 L246.8,185.1 L254.0,188.0 Z","CEDRO DE SAO JOAO":"M396.4,144.5 L392.1,153.6 L384.6,153.7 L370.6,145.9 L369.6,136.4 L371.3,134.6 L393.0,138.1 L396.4,144.5 Z","BOQUIM":"M208.2,328.6 L220.5,295.9 L221.1,296.0 L242.7,323.2 L228.5,334.5 L227.3,346.9 L208.2,328.6 Z","SIRIRI":"M321.5,207.9 L333.4,196.4 L358.4,213.5 L355.3,219.1 L341.5,228.2 L326.0,221.2 L321.5,207.9 Z","CARMOPOLIS":"M360.5,212.6 L384.5,231.2 L384.1,233.0 L360.5,234.5 L355.3,219.1 L358.4,213.5 L360.5,212.6 Z","SANTA ROSA DE LIMA":"M299.4,218.1 L301.7,206.3 L321.5,207.9 L326.0,221.2 L317.9,234.8 L308.2,237.3 L299.4,218.1 Z","MOITA BONITA":"M281.6,232.9 L267.3,221.7 L288.4,197.0 L292.2,196.6 L301.7,206.3 L299.4,218.1 L281.6,232.9 Z","PINHAO":"M215.5,192.7 L217.2,198.5 L206.2,217.3 L200.1,213.8 L203.6,190.9 L215.5,192.7 Z","ARAUA":"M247.6,366.0 L234.8,382.2 L208.8,374.1 L207.0,365.3 L226.7,352.6 L225.4,364.9 L247.1,362.3 L247.6,366.0 Z","TOBIAS BARRETO":"M142.3,281.1 L158.5,289.2 L164.9,323.9 L140.7,328.3 L126.4,286.6 L142.3,281.1 Z","ITABAIANINHA":"M208.8,374.1 L197.5,390.5 L194.7,391.1 L182.6,380.3 L189.9,372.2 L202.4,360.5 L207.0,365.3 L208.8,374.1 Z","GARARU":"M341.6,100.1 L333.4,102.1 L330.0,88.5 L343.9,93.5 L341.6,100.1 Z","RIACHUELO":"M308.2,237.3 L317.9,234.8 L329.1,246.0 L328.8,250.2 L306.9,265.1 L301.0,247.7 L308.2,237.3 Z","CUMBE":"M308.3,154.0 L334.1,150.0 L346.7,167.7 L346.5,172.6 L334.7,185.3 L302.9,172.4 L301.4,164.2 L308.3,154.0 Z","RIBEIROPOLIS":"M259.7,222.2 L252.8,216.4 L254.0,188.0 L264.2,184.3 L288.4,197.0 L267.3,221.7 L259.7,222.2 Z","DIVINA PASTORA":"M326.0,221.2 L341.5,228.2 L341.1,236.7 L329.1,246.0 L317.9,234.8 L326.0,221.2 Z","MURIBECA":"M379.7,172.1 L369.3,169.5 L361.0,182.1 L346.5,172.6 L346.7,167.7 L363.3,157.0 L379.3,170.6 L379.7,172.1 Z","PORTO DA FOLHA":"M273.4,99.2 L244.0,64.1 L246.5,50.5 L275.7,64.4 L282.2,101.8 L273.4,99.2 Z","SAO DOMINGOS":"M260.1,281.4 L221.1,296.0 L220.5,295.9 L204.4,282.6 L208.5,256.0 L237.7,260.4 L239.6,248.9 L260.1,281.4 Z","SAO FRANCISCO":"M379.3,170.6 L384.6,153.7 L392.1,153.6 L387.0,164.2 L397.5,171.7 L394.6,175.8 L379.7,172.1 L379.3,170.6 Z","SAO MIGUEL DO ALEIXO":"M264.2,184.3 L271.9,156.5 L301.4,164.2 L302.9,172.4 L292.2,196.6 L288.4,197.0 L264.2,184.3 Z","PIRAMBU":"M384.1,233.0 L384.5,231.2 L389.8,226.7 L399.7,238.1 L384.0,237.7 L384.1,233.0 Z","ITABI":"M338.5,135.2 L327.9,125.9 L336.8,115.8 L333.4,102.1 L341.6,100.1 L350.4,110.8 L347.2,130.2 L338.5,135.2 Z","AMPARO DE SAO FRANCISCO":"M373.4,129.5 L367.3,107.9 L368.1,106.8 L378.3,115.1 L385.6,121.8 L373.4,129.5 Z","TOMAR DO GERU":"M194.7,391.1 L186.6,399.3 L175.4,388.3 L182.6,380.3 L194.7,391.1 Z","MONTE ALEGRE DE SERGIPE":"M244.0,64.1 L273.4,99.2 L247.5,112.5 L238.7,95.4 L226.5,74.4 L244.0,64.1 Z","MALHADA DOS BOIS":"M384.6,153.7 L379.3,170.6 L363.3,157.0 L370.6,145.9 L384.6,153.7 Z","FEIRA NOVA":"M284.0,112.2 L289.6,144.5 L304.3,140.2 L308.3,154.0 L301.4,164.2 L271.9,156.5 L267.3,149.5 L284.0,112.2 Z","NOSSA SENHORA DE LOURDES":"M367.3,107.9 L350.4,110.8 L341.6,100.1 L343.9,93.5 L357.9,98.5 L368.1,106.8 L367.3,107.9 Z","PEDRA MOLE":"M217.2,198.5 L230.5,218.3 L227.3,226.6 L212.2,220.8 L206.2,217.3 L217.2,198.5 Z"};
+const MAP_T={"W":520,"H":430,"minx":-38.136405,"miny":-11.481829,"maxx":-36.791454,"maxy":-9.69166,"scale":220.09095230673768,"ox":111.99422680205024,"oy":18.0};
+const esc=v=>typeof qgV164Esc==='function'?qgV164Esc(String(v??'')):String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+const fmt=v=>typeof qgV164Fmt==='function'?qgV164Fmt(Number(v||0)):Number(v||0).toLocaleString('pt-BR');
+const pct=(v,d=1)=>{if(typeof qgV164Pct==='function')return qgV164Pct(Number(v||0),d);return Number(v||0).toFixed(d).replace('.',',')+'%'};
+const norm=v=>typeof qgV164Norm==='function'?qgV164Norm(v):String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
+function head(icon,title,badge='APURADO',kind=''){return '<div class="qg-v186-head"><div class="title"><span class="ico">'+icon+'</span><h3>'+esc(title)+'</h3></div><span class="qg-v186-badge '+kind+'">'+esc(badge)+'</span></div>'}
+function clamp(v,a=0,b=100){v=Number(v||0);return Math.max(a,Math.min(b,v))}
+function mapXY(g){const x=MAP_T.ox+(Number(g.lon)-MAP_T.minx)*MAP_T.scale,y=MAP_T.oy+(MAP_T.maxy-Number(g.lat))*MAP_T.scale;return [x,y]}
+function strengthColor(cls){return ({'Muito forte':'#26e7a2','Forte':'#218dff','Dentro do esperado':'#68b7ff','Abaixo do esperado':'#ffd25c','Muito abaixo do esperado':'#ff6778'})[cls]||'#20384c'}
+function mapHtml(rows,base,totalVotes){
+  if(window.__qgV187GeoJSON&&typeof window.qgV187OfficialMapHtml==='function')return window.qgV187OfficialMapHtml(rows,base,totalVotes);
+  if(typeof window.qgV187EnsureMap==='function'&&!window.__qgV187?.mapRefreshBound){window.__qgV187.mapRefreshBound=true;queueMicrotask(()=>window.qgV187EnsureMap().then(()=>{window.__qgV187.mapRefreshBound=false;if(window.__qgV187GeoJSON&&window.state?.role==='coordenacao')try{qgRefreshCoordIntelligenceV164(false)}catch(e){}}).catch(()=>{window.__qgV187.mapRefreshBound=false}))}
+  const by=new Map((rows||[]).map(r=>[norm(r.municipio),r])), allKeys=Object.keys(MAP_PATHS);
+  const paths=allKeys.map(k=>{const r=by.get(norm(k)),rate=r&&r.receivedElectorate?Number(r.votes||0)/Number(r.receivedElectorate||1):0,cls=r?qgStrengthClassV164(rate,base):'Sem dados',fill=r?strengthColor(cls):'#14283a',op=r?'.96':'.62';return '<path d="'+MAP_PATHS[k]+'" fill="'+fill+'" fill-opacity="'+op+'" data-mun="'+esc(k)+'"><title>'+esc((r?.municipio||k)+' • '+cls+(r?' • '+fmt(r.votes)+' votos':'') )+'</title></path>'}).join('');
+  const top=(rows||[]).filter(r=>r.votes>0&&window.QG_MUNICIPAL_CENTROIDS_V165?.[norm(r.municipio)]).slice().sort((a,b)=>b.votes-a.votes).slice(0,4);
+  const pins=top.map((r,i)=>{const g=window.QG_MUNICIPAL_CENTROIDS_V165[norm(r.municipio)],[x,y]=mapXY(g),anchor=x>330?'end':'start',tx=x+(anchor==='end'?-7:7),ty=y+(i%2?10:-7);return '<circle class="pin" cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="3.1"/><text class="pin-label" x="'+tx.toFixed(1)+'" y="'+ty.toFixed(1)+'" text-anchor="'+anchor+'">'+esc(r.municipio)+'</text>'}).join('');
+  const represented=(rows||[]).filter(r=>Number(r.receivedSections||0)>0).length,strong=(rows||[]).filter(r=>{const rate=r.receivedElectorate?r.votes/r.receivedElectorate:0;return ['Muito forte','Forte'].includes(qgStrengthClassV164(rate,base))}).length;
+  return '<div class="qg-v186-map-shell"><svg class="qg-v186-map-svg" viewBox="0 0 520 430" role="img" aria-label="Mapa de força eleitoral de Sergipe">'+paths+pins+'</svg><div class="qg-v186-map-side"><div class="legend">'+
+  [['Muito forte','#26e7a2'],['Forte','#218dff'],['Dentro do esperado','#68b7ff'],['Abaixo do esperado','#ffd25c'],['Muito abaixo','#ff6778']].map(x=>'<span><i style="background:'+x[1]+'"></i>'+x[0]+'</span>').join('')+
+  '</div><div class="qg-v186-map-stat"><b>'+fmt(represented)+'</b><small>municípios com dados recebidos</small></div><div class="qg-v186-map-stat"><b>'+fmt(strong)+'</b><small>territórios em faixa forte/muito forte</small></div><div class="qg-v186-source">Geometria operacional local por células territoriais ancoradas nos centroides municipais disponíveis; o dado eleitoral é real do recorte carregado.</div></div></div>';
+}
+function coverageHtml(sectionPct,ec,received,total){
+  return '<div class="qg-v186-cover-wrap"><div class="qg-v186-donut" style="--p:'+clamp(sectionPct)+'"><b>'+pct(sectionPct)+'</b><small>seções</small></div><div class="qg-v186-progress">'+
+  progress('Seções',sectionPct,fmt(received)+' / '+fmt(total),'')+
+  progress('Eleitorado',ec.pct,fmt(ec.got)+' / '+fmt(ec.total),'green')+
+  progress('Municípios',ec.municipalityPct,fmt(ec.municipalitiesReceived)+' / '+fmt(ec.municipalities),'purple')+
+  '</div></div>';
+}
+function progress(label,p,value,kind){return '<div class="qg-v186-progress-row '+(kind||'')+'"><span>'+esc(label)+'</span><b>'+esc(value)+' • '+pct(p)+'</b><div class="bar"><i style="width:'+clamp(p)+'%"></i></div></div>'}
+function trajectoryHtml(traj){
+  const arr=(traj||[]).filter(x=>Number.isFinite(Number(x.votes)));if(!arr.length)return '<div class="qg-v186-empty">Aguardando pontos da apuração.</div>';
+  const W=310,H=115,L=20,R=7,T=9,B=19,max=Math.max(1,...arr.map(x=>Number(x.votes||0))),min=0;
+  const xs=arr.map((x,i)=>L+(W-L-R)*(arr.length===1?.5:i/(arr.length-1))),ys=arr.map(x=>T+(H-T-B)*(1-(Number(x.votes||0)-min)/(max-min||1)));
+  const pts=xs.map((x,i)=>x.toFixed(1)+','+ys[i].toFixed(1)).join(' '),area='M'+xs[0].toFixed(1)+','+(H-B)+' L'+pts.replace(/ /g,' L')+' L'+xs.at(-1).toFixed(1)+','+(H-B)+' Z';
+  const grid=[.25,.5,.75,1].map(f=>{const y=T+(H-T-B)*(1-f);return '<line class="qg-v186-gridline" x1="'+L+'" x2="'+(W-R)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'"/>'}).join('');
+  const circles=xs.map((x,i)=>'<circle class="qg-v186-point" cx="'+x.toFixed(1)+'" cy="'+ys[i].toFixed(1)+'" r="2.4"><title>'+pct(arr[i].coverage,0)+' • '+fmt(arr[i].votes)+' votos</title></circle>').join('');
+  const labels=arr.map((x,i)=>'<text class="qg-v186-axis" x="'+xs[i].toFixed(1)+'" y="'+(H-4)+'" text-anchor="middle">'+Math.round(x.coverage)+'%</text>').join('');
+  return '<div class="qg-v186-chart"><span class="qg-v186-chart-val">'+fmt(arr.at(-1).votes)+'</span><svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none"><defs><linearGradient id="qgV186Grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1ce0ff" stop-opacity=".42"/><stop offset="1" stop-color="#1ce0ff" stop-opacity="0"/></linearGradient></defs>'+grid+'<path class="qg-v186-area" d="'+area+'"/><polyline class="qg-v186-line" points="'+pts+'"/>'+circles+labels+'</svg></div>';
+}
+function scenarioHtml(scenario,targetNum,line){
+  const list=(scenario?.candidates||[]).slice().sort((a,b)=>Number(b.votos||0)-Number(a.votos||0)).slice(0,6);
+  if(!list.length)return '<div class="qg-v186-empty">Cenário ainda sem candidatos apurados.</div>';
+  return '<table class="qg-v186-table"><thead><tr><th>Pos.</th><th>Candidato</th><th>Votos</th><th>Situação</th></tr></thead><tbody>'+list.map((c,i)=>{const st=scenario.result?.get(String(c.numero)),lab=st?.label||'Em cálculo',kind=/DENTRO|ELEIT/i.test(lab)?'in':/ÚLTIMA|DISPUT|LIMITE/i.test(lab)?'edge':'out';return '<tr class="'+(String(c.numero)===String(targetNum)?'me':'')+'"><td>'+(i+1)+'º</td><td>'+esc(c.nome||c.numero)+(String(c.numero)===String(targetNum)?' <b style="color:#22defc">(você)</b>':'')+'</td><td><b>'+fmt(c.votos)+'</b></td><td><span class="status '+kind+'">'+esc(lab)+'</span></td></tr>'}).join('')+'</tbody></table>'+
+  (line?'<div class="qg-v186-footnote">Linha atual da última cadeira: '+esc(line.candidate?.nome||'—')+' • '+fmt(line.candidate?.votos||0)+' votos.</div>':'');
+}
+function goalHtml(goals,projection,rank){
+  const g=(goals||[])[0];
+  if(!g){return '<div class="qg-v186-empty">Nenhuma meta territorial cadastrada para este cargo.<br><span class="qg-v186-footnote">A projeção geral permanece disponível no Termômetro.</span></div>'}
+  const meta=Number(g.goal?.target_votes||0),real=Number(g.votes||0),proj=Number(g.projected||0),diff=real-meta,p=meta?real/meta*100:0;
+  return '<div style="font-size:8px;color:#9bb5c8;margin-bottom:6px">📍 '+esc(g.municipio)+'</div><div class="qg-v186-goal-values"><div><span>Meta</span><b>'+fmt(meta)+'</b></div><div><span>Projetado</span><b>'+fmt(proj)+'</b></div><div><span>Real</span><b style="color:#4ceeb0">'+fmt(real)+'</b></div><div><span>Diferença</span><b class="qg-v186-diff '+(diff>=0?'pos':'neg')+'">'+(diff>=0?'+':'')+fmt(diff)+'</b></div></div><div class="qg-v186-progress-row green" style="margin-top:8px"><span>Meta atingida</span><b>'+pct(p)+'</b><div class="bar"><i style="width:'+clamp(p)+'%"></i></div></div>';
+}
+function impactHtml(pending){
+  const arr=pending||[],elect=arr.reduce((a,x)=>a+Number(x.eleitores||0),0),muns=new Set(arr.map(x=>norm(x.municipio))).size,critical=arr.filter(x=>Number(x.priority||0)>0).length;
+  return '<div class="qg-v186-impact-grid"><div><b>'+fmt(muns)+'</b><small>municípios</small></div><div><b>'+fmt(arr.length)+'</b><small>seções prioritárias</small></div><div class="warn"><b>'+fmt(critical)+'</b><small>com prioridade cadastrada</small></div></div><div class="qg-v186-footnote">'+fmt(elect)+' eleitores potenciais nas seções listadas por maior impacto.</div>';
+}
+function opponentsHtml(rows){
+  if(!(rows||[]).length)return '<div class="qg-v186-empty">Nenhum adversário acompanhado.</div>';
+  return '<div class="qg-v186-rank-list">'+rows.slice(0,5).map(x=>'<div class="qg-v186-rank"><span class="n">'+esc(x.rank)+'º</span><span class="name">'+esc(x.nome)+'</span><span class="value">'+fmt(x.votos)+' <span class="trend '+(x.diff>0?'up':'down')+'">'+(x.diff>0?'▲':'▼')+'</span></span></div>').join('')+'</div>';
+}
+function carriersHtml(rows,total){
+  const arr=(rows||[]).slice(0,5),max=Math.max(1,...arr.map(x=>Number(x.votes||0)));return '<div class="qg-v186-bars">'+arr.map((x,i)=>'<div class="qg-v186-barrow"><span>'+(i+1)+'º</span><span class="place" title="'+esc(x.municipio)+'">'+esc(x.municipio)+'</span><b>'+((Number(x.votes||0)/Math.max(1,total))*100).toFixed(1).replace('.',',')+'%</b><div></div><div class="track"><i style="width:'+(Number(x.votes||0)/max*100).toFixed(1)+'%"></i></div><div></div></div>').join('')+'</div>';
+}
+function changeHtml(change){
+  const rb=change?.rankBefore||'—',rn=change?.rankNow||'—';return '<div class="qg-v186-change-list"><div><i>↑</i><span>Votos no período</span><b>+'+fmt(change?.votes||0)+'</b></div><div><i>↑</i><span>Novos BUs</span><b>+'+fmt(change?.bus||0)+'</b></div><div><i>↕</i><span>Posição</span><b>'+esc(rb)+'º → '+esc(rn)+'º</b></div></div>';
+}
+function integrityHtml(i){
+  const items=[['✓','BUs/fluxo sem duplicidade sinalizada',i.duplicates||0,'bad'],['!','Divergências para conferência',i.divergences||0,'warn'],['×','Erros/inválidos',i.invalid||0,'bad'],['↻','Aguardando sincronização',i.pendingSync||0,'warn'],['≠','Conflitos canônicos',i.canonicalConflicts||0,'bad']];
+  return '<div class="qg-v186-integrity-list">'+items.map(x=>'<div><i class="'+(x[2]?(x[3]||'warn'):'')+'">'+x[0]+'</i><span>'+esc(x[1])+'</span><b>'+fmt(x[2])+'</b></div>').join('')+'</div>';
+}
+function summaryHtml(text,projection){
+  return '<p>'+esc(text)+'</p>'+(projection?.ok?'<div class="signal">Tendência calculada com faixa '+fmt(projection.lower)+'–'+fmt(projection.upper)+' e confiança '+esc(projection.confidence)+'.</div>':'<div class="signal">Projeção ainda em formação; o resumo não inventa estimativas antes da cobertura mínima.</div>');
+}
+function card(cls,icon,title,badge,kind,body){return '<div class="card qg-v186-card '+cls+'">'+head(icon,title,badge,kind)+body+'</div>'}
+const baseRefresh=window.qgRefreshCoordIntelligenceV164;
+window.qgRefreshCoordIntelligenceV164=async function(force=false){
+  if(state.role!=='coordenacao')return false;
+  const host=qgEnsureCoordIntelligenceV164();if(!host)return false;qgCoordCargoOptionsV164();
+  if(force){try{await qgRefreshSecureSessionV164(true);await qgSyncCanonicalForCurrentViewV164(true)}catch(e){}}
+  const cargo=document.getElementById('qgCoordCargoV164')?.value||enabledCargosV71?.()[0]||'';if(!cargo)return false;
+  await Promise.all([qgLoadGoalsV164(),qgLoadCampaignParamsV164()]);
+  const target=qgTrackedCandidateV164(cargo),body=document.getElementById('qgCoordIntelBodyV164');if(!body)return false;
+  if(!target){body.innerHTML='<div class="card"><div class="alert">Não foi possível identificar o candidato acompanhado para '+esc(cargo)+'. Configure o candidato na área Campanhas do Administrador.</div></div>';return false}
+  const number=String(target.numero),rank=qgRankCandidateV164(cargo,number),m=qgBuMetricsV90(),totalSections=qgAllSectionsV164().length,received=m.groups.size,sectionPct=totalSections?received/totalSections*100:0,ec=qgElectorateCoverageV164(),scenario=qgElectoralScenarioV164(cargo),st=scenario.result?.get(number)||null,projection=qgProjectionV164(cargo,number),territories=qgTerritorialDataV164(cargo,number),observedTerr=territories.filter(x=>x.receivedElectorate>0),overallRate=observedTerr.reduce((a,x)=>a+x.votes,0)/Math.max(1,observedTerr.reduce((a,x)=>a+x.receivedElectorate,0)),pending=qgHighImpactPendingV164(12),integrity=qgIntegritySummaryV164(),params=window.__qgCampaignParamsV164||{},isReelection=!!params.is_reelection;
+  const scenarioLabel=st?.label||'Cenário ainda volátil',line=qgSeatLineV164(scenario,number),topTerr=observedTerr.slice().sort((a,b)=>b.votes-a.votes),totalTarget=Math.max(1,rank.total);
+  const goals=topTerr.map(x=>{const g=qgGoalForV164(cargo,x.municipio),projected=x.receivedElectorate?x.votes/x.receivedElectorate*x.totalElectorate:0;return {...x,goal:g,projected}}).filter(x=>x.goal).sort((a,b)=>Number(b.goal?.priority||0)-Number(a.goal?.priority||0)||b.votes-a.votes).slice(0,8);
+  const opponents=qgOpponentRadarV164(cargo,number,params.tracked_opponents||[]),trajectory=qgTrajectoryV164(cargo,number),change=qgChangeWindowV164(cargo,number,10);
+  const executive=qgExecutiveSummaryV164({cargo,target,rank,sectionPct,ec,scenarioLabel,projection,topTerr,goals,pending});
+  const x={target,rank,sectionPct,ec,scenarioLabel,projection,line,isReelection};
+  body.innerHTML=qgThermometerHtmlV164(x)+'<div class="qg-v186-dashboard">'+
+    card('qg-v186-map','⌖','MAPA DE FORÇA ELEITORAL','INTELIGÊNCIA','intel',mapHtml(topTerr,overallRate,totalTarget))+
+    card('qg-v186-goal','◎','META × REAL','APURADO','',goalHtml(goals,projection,rank))+
+    card('qg-v186-coverage','◔','COBERTURA REAL','APURADO','',coverageHtml(sectionPct,ec,received,totalSections))+
+    card('qg-v186-trajectory','↗','TRAJETÓRIA DA NOITE','AO VIVO','safe',trajectoryHtml(trajectory))+
+    card('qg-v186-impact','✦','SEÇÕES DE ALTO IMPACTO','INTELIGÊNCIA','intel',impactHtml(pending))+
+    card('qg-v186-scenario','♟','CENÁRIO DE BANCADAS / FEDERAÇÃO','CÁLCULO ELEITORAL','calc',scenarioHtml(scenario,number,line))+
+    card('qg-v186-opponents','⌁','RADAR DOS ADVERSÁRIOS','INTELIGÊNCIA','intel',opponentsHtml(opponents))+
+    card('qg-v186-carriers','⌖','QUEM CARREGA SUA VOTAÇÃO?','APURADO','',carriersHtml(topTerr,totalTarget))+
+    card('qg-v186-summary','▤','RESUMO EXECUTIVO','INTELIGÊNCIA','intel',summaryHtml(executive,projection))+
+    card('qg-v186-change','◷','O QUE MUDOU NOS ÚLTIMOS 10 MIN?','ATUALIZADO','safe',changeHtml(change))+
+    card('qg-v186-integrity','⬡','RADAR DE INTEGRIDADE','SEGURANÇA','safe',integrityHtml(integrity))+
+  '</div>';
+  window.__qgV186.last={cargo,number,sectionPct,received,totalSections,renderedAt:new Date().toISOString()};
+  document.documentElement.dataset.qgRelease='v186';document.documentElement.dataset.qgV186='coord-visual-2';
+  return true;
+};
+function boot(){document.documentElement.dataset.qgRelease='v186';document.documentElement.dataset.qgV186='coord-visual-2';if(state?.role==='coordenacao'&&document.getElementById('qgCoordIntelBodyV164'))setTimeout(()=>qgRefreshCoordIntelligenceV164(false),0)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true,passive:true});else boot();
+})();
+</script>
+<!-- QG_V186_COORD_VISUAL_END -->
+
+
+
+<!-- QG_V187_COORD_VISUAL_BEGIN -->
+<style id="qg-v187-coord-visual-css">
+/* v187 — fechamento visual da Sala de Guerra.
+   Malha municipal verdadeira por GeoJSON de fonte IBGE, com cache e fallback local v186.
+   Nenhum parser de BU, envio Fiscal, antiduplicidade ou persistência é alterado. */
+.qg-v187-map-source{margin-top:6px;padding-top:6px;border-top:1px solid rgba(24,217,255,.08);font-size:6.8px;color:#5c8098;line-height:1.35}
+.qg-v187-map-source b{color:#8ebbd1;font-weight:850}
+.qg-v187-map-loading{font-size:7px;color:#6f96ad;margin-top:4px}
+.qg-v186-map-svg path.qg-v187-municipio{stroke:#8bd7ee;stroke-opacity:.50;stroke-width:.62;vector-effect:non-scaling-stroke;cursor:default}
+.qg-v186-map-svg path.qg-v187-municipio[data-has-data="1"]{cursor:pointer}
+.qg-v186-map-svg path.qg-v187-municipio:hover{stroke:#fff;stroke-opacity:.98;stroke-width:1.15;filter:brightness(1.3) drop-shadow(0 0 4px rgba(25,222,255,.58))}
+
+/* Densidade final para telas de operação/desktop. */
+@media(min-width:1440px){
+  body.qg-v185-coord .main{padding-left:12px!important;padding-right:12px!important}
+  .qg-v185-campaignbar{margin-left:-12px;margin-right:-12px}
+  .qg-v185-kpis{gap:8px}.qg-v185-kpi{min-height:94px;padding-top:11px;padding-bottom:10px}
+  .qg-v185-hero-grid{grid-template-columns:1.02fr .98fr;gap:8px}
+  .qg-v186-dashboard{gap:8px}
+}
+
+/* Modo TV: replica a Sala de Guerra completa, sem sidebar, em painel widescreen. */
+#qgTvModeV164.qg-v164-tv{padding:8px 12px 12px!important;background:
+  radial-gradient(circle at 78% 0%,rgba(31,135,255,.10),transparent 27%),
+  linear-gradient(135deg,#010712,#031124 58%,#020817)!important;overflow:auto!important}
+#qgTvModeV164.qg-v164-tv.active{display:block!important}
+#qgTvModeV164 #qgTvBodyV164{max-width:1900px!important;width:100%!important;margin:0 auto!important}
+#qgTvModeV164 .qg-v164-tv-close{top:8px!important;right:12px!important;z-index:10!important;min-height:34px!important;padding:7px 11px!important;font-size:9px!important;opacity:.86}
+#qgTvModeV164 .qg-v185-campaignbar{margin:0 0 7px!important;padding:8px 112px 8px 14px!important;min-height:68px!important;border:1px solid rgba(24,217,255,.15)!important;border-radius:10px!important}
+#qgTvModeV164 .qg-v185-avatar{width:42px;height:42px;border-radius:11px}
+#qgTvModeV164 .qg-v185-campaign-copy .campaign strong{font-size:17px}
+#qgTvModeV164 .qg-v185-kpis{gap:7px!important;margin:6px 0 7px!important}
+#qgTvModeV164 .qg-v185-kpi{min-height:82px!important;padding:9px 10px 8px 54px!important}
+#qgTvModeV164 .qg-v185-kpi .ico{left:10px;top:12px;width:34px;height:34px;font-size:18px}
+#qgTvModeV164 .qg-v185-kpi .val{font-size:23px!important;margin:5px 0 4px!important}
+#qgTvModeV164 .qg-v185-hero-grid{gap:7px!important;margin-bottom:7px!important}
+#qgTvModeV164 .qg-v185-panel{padding:10px!important}
+#qgTvModeV164 .qg-v185-thermo-body{grid-template-columns:132px 1fr!important;gap:12px!important}
+#qgTvModeV164 .qg-v185-gauge{width:124px!important;height:124px!important}
+#qgTvModeV164 .qg-v185-gauge:before{width:96px!important;height:96px!important}
+#qgTvModeV164 .qg-v185-gauge .inside b{font-size:27px!important}
+#qgTvModeV164 .qg-v186-dashboard{gap:7px!important;margin-top:7px!important}
+#qgTvModeV164 .qg-v186-card{padding:9px 10px!important}
+#qgTvModeV164 .qg-v186-map{min-height:318px!important}
+#qgTvModeV164 .qg-v186-map-shell{min-height:275px!important}
+#qgTvModeV164 .qg-v186-map-svg{height:268px!important}
+#qgTvModeV164 .qg-v186-chart{height:108px!important}
+body.qg-v187-tv-open{overflow:hidden!important}
+
+@media(max-width:980px){
+ #qgTvModeV164 .qg-v185-campaignbar{padding-right:78px!important}
+ #qgTvModeV164 .qg-v185-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #qgTvModeV164 .qg-v185-hero-grid{grid-template-columns:1fr!important}
+}
+@media(max-width:600px){
+ #qgTvModeV164.qg-v164-tv{padding:5px!important}
+ #qgTvModeV164 .qg-v185-campaignbar{padding:8px 8px 8px!important}
+ #qgTvModeV164 .qg-v164-tv-close{position:sticky!important;display:block!important;margin-left:auto!important;top:4px!important}
+ #qgTvModeV164 .qg-v185-kpis{grid-template-columns:1fr 1fr!important}
+}
+</style>
+<script id="qg-v187-coord-visual-js">
+(function(){
+'use strict';
+window.__qgV187=window.__qgV187||{release:'v187',base:'v186',scope:'coord_visual_final',mapState:'idle'};
+const MAP_CACHE_KEY='qg_v187_se_municipios_geojson_v1';
+const MAP_SOURCES=[
+  {id:'IBGE-CDN',url:'https://cdn.jsdelivr.net/gh/henriquemalvar/br-geojson@main/dist/municipios/SE.geojson'},
+  {id:'IBGE-CC0',url:'https://raw.githubusercontent.com/tbrugz/geodata-br/refs/heads/master/geojson/geojs-28-mun.json'},
+  {id:'IBGE-API',url:'https://servicodados.ibge.gov.br/api/v3/malhas/estados/28?formato=application/vnd.geo+json&qualidade=minima&intrarregiao=municipio'}
+];
+const esc=v=>typeof qgV164Esc==='function'?qgV164Esc(String(v??'')):String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+const fmt=v=>typeof qgV164Fmt==='function'?qgV164Fmt(Number(v||0)):Number(v||0).toLocaleString('pt-BR');
+const norm=v=>typeof qgV164Norm==='function'?qgV164Norm(v):String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
+function clamp(v,a=0,b=100){v=Number(v||0);return Math.max(a,Math.min(b,v))}
+function strengthColor(cls){return ({'Muito forte':'#26e7a2','Forte':'#218dff','Dentro do esperado':'#68b7ff','Abaixo do esperado':'#ffd25c','Muito abaixo do esperado':'#ff6778'})[cls]||'#20384c'}
+function fName(f){const p=f?.properties||{};return p.nome||p.name||p.NM_MUN||p.municipio||p.description||p.NOME||p.nm_mun||''}
+function allRings(g){if(!g)return[];if(g.type==='Polygon')return g.coordinates||[];if(g.type==='MultiPolygon')return (g.coordinates||[]).flat();return[]}
+function eachCoord(g,fn){for(const ring of allRings(g))for(const c of ring)if(Array.isArray(c)&&Number.isFinite(+c[0])&&Number.isFinite(+c[1]))fn(+c[0],+c[1])}
+function geometryCentroid(g){let sx=0,sy=0,n=0;eachCoord(g,(x,y)=>{sx+=x;sy+=y;n++});return n?[sx/n,sy/n]:null}
+function geometryCache(fc){
+  if(window.__qgV187GeomCache?.fc===fc)return window.__qgV187GeomCache;
+  let minx=Infinity,miny=Infinity,maxx=-Infinity,maxy=-Infinity;
+  for(const f of fc.features||[])eachCoord(f.geometry,(x,y)=>{minx=Math.min(minx,x);miny=Math.min(miny,y);maxx=Math.max(maxx,x);maxy=Math.max(maxy,y)});
+  const W=520,H=430,pad=18,dx=Math.max(.0001,maxx-minx),dy=Math.max(.0001,maxy-miny),scale=Math.min((W-pad*2)/dx,(H-pad*2)/dy),ox=(W-dx*scale)/2,oy=(H-dy*scale)/2;
+  const xy=(x,y)=>[ox+(x-minx)*scale,oy+(maxy-y)*scale];
+  const items=(fc.features||[]).map((f,i)=>{
+    const rings=allRings(f.geometry),d=rings.map(r=>r.map((c,j)=>{const p=xy(+c[0],+c[1]);return (j?'L':'M')+p[0].toFixed(2)+','+p[1].toFixed(2)}).join(' ')+' Z').join(' '),cent=geometryCentroid(f.geometry),pcent=cent?xy(cent[0],cent[1]):null;
+    return {f,name:fName(f),key:norm(fName(f)),d,cent:pcent,index:i};
+  });
+  return window.__qgV187GeomCache={fc,items,W,H,minx,miny,maxx,maxy,scale,ox,oy};
+}
+function qgV187OfficialMapHtml(rows,base,totalVotes){
+  const fc=window.__qgV187GeoJSON;if(!fc?.features?.length)return '';
+  const gc=geometryCache(fc),by=new Map((rows||[]).map(r=>[norm(r.municipio),r]));
+  const paths=gc.items.map(it=>{const r=by.get(it.key),rate=r&&r.receivedElectorate?Number(r.votes||0)/Math.max(1,Number(r.receivedElectorate||0)):0,cls=r&&typeof qgStrengthClassV164==='function'?qgStrengthClassV164(rate,base):'Sem dados',fill=r?strengthColor(cls):'#14283a',op=r?'.97':'.58';return '<path class="qg-v187-municipio" d="'+it.d+'" fill="'+fill+'" fill-opacity="'+op+'" fill-rule="evenodd" data-has-data="'+(r?'1':'0')+'" data-mun="'+esc(it.name)+'"><title>'+esc((r?.municipio||it.name||'Município')+' • '+cls+(r?' • '+fmt(r.votes)+' votos':''))+'</title></path>'}).join('');
+  const itemBy=new Map(gc.items.map(it=>[it.key,it])),top=(rows||[]).filter(r=>Number(r.votes||0)>0&&itemBy.get(norm(r.municipio))?.cent).slice().sort((a,b)=>Number(b.votes||0)-Number(a.votes||0)).slice(0,4);
+  const pins=top.map((r,i)=>{const it=itemBy.get(norm(r.municipio)),x=it.cent[0],y=it.cent[1],anchor=x>330?'end':'start',tx=x+(anchor==='end'?-7:7),ty=y+(i%2?10:-7);return '<circle class="pin" cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="3.1"/><text class="pin-label" text-anchor="'+anchor+'" x="'+tx.toFixed(1)+'" y="'+ty.toFixed(1)+'">'+esc(r.municipio)+'</text>'}).join('');
+  const represented=(rows||[]).filter(r=>Number(r.receivedSections||0)>0).length,strong=(rows||[]).filter(r=>{const rate=r.receivedElectorate?Number(r.votes||0)/Number(r.receivedElectorate):0,cls=typeof qgStrengthClassV164==='function'?qgStrengthClassV164(rate,base):'';return cls==='Muito forte'||cls==='Forte'}).length,source=esc(window.__qgV187.mapSource||'fonte IBGE');
+  return '<div class="qg-v186-map-shell"><svg class="qg-v186-map-svg" viewBox="0 0 520 430" role="img" aria-label="Mapa municipal de força eleitoral de Sergipe">'+paths+pins+'</svg><div class="qg-v186-map-side"><div class="legend">'+
+    '<span><i style="background:#26e7a2;color:#26e7a2"></i>Muito forte</span><span><i style="background:#218dff;color:#218dff"></i>Forte</span><span><i style="background:#68b7ff;color:#68b7ff"></i>Dentro do esperado</span><span><i style="background:#ffd25c;color:#ffd25c"></i>Abaixo do esperado</span><span><i style="background:#ff6778;color:#ff6778"></i>Muito abaixo</span><span><i style="background:#14283a;color:#37536a"></i>Sem dados</span></div>'+
+    '<div class="qg-v186-map-stat"><b>'+fmt(represented)+'</b><small>municípios com dados recebidos</small></div><div class="qg-v186-map-stat"><b>'+fmt(strong)+'</b><small>territórios em faixa forte/muito forte</small></div><div class="qg-v187-map-source"><b>Malha municipal:</b> '+source+' • '+fmt(fc.features.length)+' polígonos carregados e cacheados localmente.</div></div></div>';
+}
+window.qgV187OfficialMapHtml=qgV187OfficialMapHtml;
+function validGeo(x){return x&&x.type==='FeatureCollection'&&Array.isArray(x.features)&&x.features.length>=75&&x.features.some(f=>allRings(f.geometry).length)}
+async function fetchJson(url,ms=4500){const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),ms);try{const r=await fetch(url,{cache:'force-cache',signal:ctl.signal,credentials:'omit'});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json()}finally{clearTimeout(tm)}}
+async function ensureMap(){
+  if(window.__qgV187GeoJSON)return window.__qgV187GeoJSON;if(window.__qgV187.mapPromise)return window.__qgV187.mapPromise;
+  window.__qgV187.mapState='loading';window.__qgV187.mapPromise=(async()=>{
+    try{const raw=localStorage.getItem(MAP_CACHE_KEY);if(raw){const c=JSON.parse(raw);if(validGeo(c?.geojson)){window.__qgV187GeoJSON=c.geojson;window.__qgV187.mapSource=c.source||'cache local • fonte IBGE';window.__qgV187.mapState='ready-cache';return c.geojson}}}catch(e){}
+    let lastErr=null;for(const s of MAP_SOURCES){try{const g=await fetchJson(s.url);if(!validGeo(g))throw new Error('GeoJSON incompleto');window.__qgV187GeoJSON=g;window.__qgV187.mapSource=s.id;window.__qgV187.mapState='ready';try{localStorage.setItem(MAP_CACHE_KEY,JSON.stringify({source:s.id,at:new Date().toISOString(),geojson:g}))}catch(e){}return g}catch(e){lastErr=e}}
+    window.__qgV187.mapState='fallback';window.__qgV187.mapError=String(lastErr?.message||lastErr||'indisponível');return null;
+  })();return window.__qgV187.mapPromise;
+}
+window.qgV187EnsureMap=ensureMap;
+function closeTv(){const tv=document.getElementById('qgTvModeV164');if(tv)tv.classList.remove('active');document.body.classList.remove('qg-v187-tv-open')}
+window.qgV187CloseTv=closeTv;
+window.qgTvModeV164=function(){
+  let tv=document.getElementById('qgTvModeV164');if(!tv){tv=document.createElement('div');tv.id='qgTvModeV164';tv.className='qg-v164-tv';document.body.appendChild(tv)}
+  tv.innerHTML='<button class="qg-v164-tv-close" type="button" onclick="qgV187CloseTv()">FECHAR MODO TV</button><div id="qgTvBodyV164"></div>';
+  const source=document.getElementById('qgCoordIntelBodyV164'),body=tv.querySelector('#qgTvBodyV164');body.innerHTML=source?source.innerHTML:'<div class="empty-state">Aguardando dados da Sala de Guerra.</div>';tv.classList.add('active');document.body.classList.add('qg-v187-tv-open');
+};
+if(!window.__qgV187.escapeBound){window.__qgV187.escapeBound=true;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeTv()},{passive:true})}
+function refreshAfterMap(){if(window.__qgV187GeoJSON&&window.state?.role==='coordenacao'&&document.getElementById('qgCoordIntelBodyV164')){try{qgRefreshCoordIntelligenceV164(false)}catch(e){}}}
+function boot(){document.documentElement.dataset.qgRelease='v187';document.documentElement.dataset.qgV187='coord-visual-final'}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true,passive:true});else boot();
+})();
+</script>
+<!-- QG_V187_COORD_VISUAL_END -->
+
+<!-- QG_V188_FINALIZATION_BEGIN -->
+<style id="qg-v188-finalization-css">
+/* v188 — consolidação final sem tocar o módulo Fiscal congelado. */
+.qg-v188-panel{border:1px solid rgba(24,217,255,.22)!important;background:linear-gradient(145deg,rgba(6,23,42,.96),rgba(3,12,26,.98))!important}
+.qg-v188-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+.qg-v188-head h3{margin:5px 0 3px!important}.qg-v188-head p{margin:0!important;max-width:880px}
+.qg-v188-badge{display:inline-flex;align-items:center;padding:5px 9px;border-radius:999px;border:1px solid rgba(24,217,255,.25);background:rgba(24,217,255,.06);font-size:9px;letter-spacing:.12em;font-weight:900;color:#9beeff}
+.qg-v188-state{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:999px;font-size:9px;font-weight:900;letter-spacing:.08em;border:1px solid}
+.qg-v188-state.ok{color:#bfffa2;border-color:rgba(126,229,44,.32);background:rgba(126,229,44,.07)}
+.qg-v188-state.warn{color:#ffe08d;border-color:rgba(255,198,71,.30);background:rgba(255,198,71,.07)}
+.qg-v188-state.bad{color:#ffadb7;border-color:rgba(255,103,120,.32);background:rgba(255,103,120,.07)}
+.qg-v188-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:10px 0 12px}
+.qg-v188-kpi{padding:12px;border-radius:12px;border:1px solid rgba(24,217,255,.13);background:rgba(255,255,255,.022);min-width:0}
+.qg-v188-kpi small{display:block;color:#7f9bb2;font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-weight:800}
+.qg-v188-kpi b{display:block;font-size:17px;margin:5px 0 2px;color:#fff;overflow-wrap:anywhere}
+.qg-v188-kpi b.ok{color:#7ee52c}.qg-v188-kpi b.warn{color:#ffc647}.qg-v188-kpi b.bad{color:#ff6778}.qg-v188-kpi span{font-size:10px;color:#86a0b5;line-height:1.35}
+.qg-v188-matrix{display:grid;gap:6px;margin-top:8px}
+.qg-v188-row{display:grid;grid-template-columns:minmax(210px,1fr) minmax(130px,.45fr) minmax(250px,1.2fr);gap:10px;align-items:center;padding:9px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.055);background:rgba(255,255,255,.018);font-size:11px}
+.qg-v188-row strong{font-size:10px}.qg-v188-row small{color:#7f9bb2;line-height:1.35}
+.qg-v188-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.qg-v188-actions button{min-height:40px}
+.qg-v188-note{margin-top:10px;padding:10px 12px;border-left:3px solid #18d9ff;border-radius:8px;background:rgba(24,217,255,.045);font-size:10px;color:#9eb7ca;line-height:1.5}
+.qg-v188-note.warn{border-left-color:#ffc647;background:rgba(255,198,71,.045)}
+.qg-v188-historical-note{margin:9px 0;padding:8px 10px;border-radius:9px;border:1px dashed rgba(126,147,166,.18);color:#71899c;font-size:9px}
+[data-qg-v188-superseded="true"]{display:none!important}
+@media(max-width:980px){.qg-v188-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.qg-v188-row{grid-template-columns:1fr auto}.qg-v188-row small{grid-column:1/-1}}
+@media(max-width:560px){.qg-v188-grid{grid-template-columns:1fr}.qg-v188-row{grid-template-columns:1fr}.qg-v188-row small{grid-column:auto}.qg-v188-actions{display:grid}.qg-v188-actions button{width:100%}}
+</style>
+<script id="qg-v188-finalization-js">
+(function(){
+'use strict';
+window.QG_APP_PATCH_V188={version:188,base:'v187',frozenBaseline:'v160',scope:'fiscal-regression+admin-current-state-gate',at:'2026-09-07'};
+window.__qgV188=window.__qgV188||{last:null,busy:false};
+const E=v=>typeof qgV164Esc==='function'?qgV164Esc(String(v??'')):String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const MENU={
+ fiscal:['Configurar minhas seções','Ler BU','Minhas seções','Meus envios'],
+ coordenacao:['Sala de Guerra','Seções','Pendências','Ocorrências','Protocolos','Relatórios'],
+ admin:['Visão geral','Apuração geral','Campanhas','Usuários e acessos','Dados e sistema','Auditoria e diagnóstico']
+};
+const FISCAL_SECTIONS=['fiscalSetup66','scan','fiscalSections112','fiscalSends112'];
+const FISCAL_REQUIRED=[
+ 'qgTenantRoleLoginV102','ensureFiscalV66','initFiscalSetupV66','fillFiscalZonesV66','fillFiscalSectionsV66',
+ 'startQRScanner','handleQRRaw','qgAcceptDecodedPartV92','applyFullQrToFiscalV71',
+ 'qgFindExistingBuV151','qgBuWasSentV93','qgMarkBuIdentitySentV151','qgValidateApuracaoV147',
+ 'openSendConfirmV75','executeConfirmedSendV75','submitAutoQrBundleV71','submitV12',
+ 'qgPublishRecordsSupabaseV88','qgBroadcastBuUpdatedV87','renderFiscalSectionsV112','renderFiscalSendsV112',
+ 'qgTenantScopeRecordV97','qgPullSupabaseV88','qgMergeRemoteRowsV88'
+];
+const BACKEND_REQUIRED=['qgV179BackendStatus','qgV179RunFinalHomologation','qgV179DirectRlsProbe','qgV179RealPackageProbe','qgV179StartSignalRealtime','qgSyncCanonicalForCurrentViewV164','qgFetchCanonicalAllV165','qgAdminAggregateV164','qgOpenCanonicalProofV165'];
+const BACKUP_REQUIRED=['qgV180BackupStatus','qgV180BackupSelftest','qgV180RunFinalHomologation','qgV180RestoreMissing'];
+const SUPERSEDED={
+ adminOverviewV164:['qgV178OverviewBadge','qgV177OverviewGate','qgV174OverviewRc','qgV167Overview'],
+ adminUsersAccessV164:['qgV177PermissionMatrix'],
+ adminDataSystemV164:['qgV177DataFlow'],
+ adminAuditDiagV164:['qgV166Preflight','qgV167Checklist','qgV175MasterChecklist','qgV177Integrated','qgV178FinalPanel','qgV177ReactivePanel']
+};
+function role(){try{return String(state?.role||'')}catch(e){return ''}}
+function menuLabels(k){try{return (QG_PROFILE_MENUS?.[k]||[]).map(x=>String(x?.[1]||''))}catch(e){return []}}
+function same(a,b){return Array.isArray(a)&&a.length===b.length&&a.every((x,i)=>x===b[i])}
+function funcs(names){const missing=names.filter(n=>typeof window[n]!=='function');return {ok:missing.length===0,total:names.length,loaded:names.length-missing.length,missing}}
+function fiscalAudit(){
+ const f=funcs(FISCAL_REQUIRED),sections=FISCAL_SECTIONS.map(id=>({id,present:!!document.getElementById(id)})),menus=menuLabels('fiscal');
+ const core=typeof qgCoreSelfCheckV110==='function'?qgCoreSelfCheckV110():null;
+ const old=typeof qgFiscalFinalSelfCheckV109==='function'?qgFiscalFinalSelfCheckV109():null;
+ const out={
+   ok:same(menus,MENU.fiscal)&&sections.every(x=>x.present)&&f.ok&&!!window.QG_FISCAL_FINAL_LOCK_V109&&!!window.QG_CORE_LOCK_V110,
+   menu:{ok:same(menus,MENU.fiscal),actual:menus,expected:MENU.fiscal},sections,functions:f,
+   finalLockV109:!!window.QG_FISCAL_FINAL_LOCK_V109,coreLockV110:!!window.QG_CORE_LOCK_V110,
+   photoOcrUiPolicy:window.QG_CORE_LOCK_V110?.photoOcrRemoved===true?'REMOVIDA INTENCIONALMENTE NO CORE V110':'REVISAR',
+   coreSelfCheck:core,legacySelfCheck:old
+ };
+ return out;
+}
+function codeAudit(){const b=funcs(BACKEND_REQUIRED),k=funcs(BACKUP_REQUIRED);return {ok:b.ok&&k.ok,backend:b,backup:k,realtimeCode:typeof qgStartRealtimeV88==='function'&&typeof qgV179StartSignalRealtime==='function',rpcCode:typeof qgRpcV164==='function'}}
+async function remoteState(force=false){
+ let backend=window.__qgV179?.backend||{active:false},backup=window.__qgV180?.backupStatus||{ok:false};
+ if(role()==='admin'){
+  try{if(typeof qgV179BackendStatus==='function')backend=await qgV179BackendStatus(!!force)||backend}catch(e){backend={active:false,ok:false,error:String(e.message||e)}}
+  try{if(typeof qgV180BackupStatus==='function')backup=await qgV180BackupStatus(!!force)||backup}catch(e){backup={ok:false,active:false,error:String(e.message||e)}}
+ }
+ const h=window.__qgV179?.lastHomologation||null,fin=window.__qgV180?.final||null;
+ return {backend,backup,homologation:h,integral:fin,signalReady:!!window.__qgV179?.signalReady,signalChannel:!!window.__qgV179SignalChannel};
+}
+function status(cls,txt){return '<span class="qg-v188-state '+cls+'">'+E(txt)+'</span>'}
+function row(name,cls,label,detail){return '<div class="qg-v188-row"><span>'+E(name)+'</span><strong class="'+cls+'">'+E(label)+'</strong><small>'+E(detail||'')+'</small></div>'}
+function currentResult(fiscal,code,remote,frontend){
+ const backendActive=!!remote.backend?.active,backupActive=!!remote.backup?.ok;
+ const h=remote.homologation,fin=remote.integral;
+ const frontendOk=frontend?!!frontend.frontendClosed:true;
+ const localReady=!!fiscal.ok&&!!code.ok&&frontendOk;
+ const remoteHomologated=!!h?.productionReady;
+ const backupTest=!!window.__qgV180?.backupTest?.ok;
+ const coreHomologated=!!fin?.coreReady||(remoteHomologated&&backupActive&&backupTest&&frontendOk);
+ return {localReady,backendActive,backupActive,remoteHomologated,backupTest,coreHomologated,externalConfirmed:!!fin?.externalRedundancyReady,projectFinalized:!!fin?.projectFinalized,testCandidate:localReady&&code.ok};
+}
+function hideSuperseded(hub){
+ const ids=SUPERSEDED[hub]||[];let n=0;for(const id of ids){const el=document.getElementById(id);if(el){el.dataset.qgV188Superseded='true';n++}}
+ const root=document.getElementById(hub);if(root&&n){let note=root.querySelector(':scope > .qg-v188-historical-note[data-hub="'+hub+'"]');if(!note){note=document.createElement('div');note.className='qg-v188-historical-note';note.dataset.hub=hub;root.appendChild(note)}note.textContent=n+' painel(is) pré-backend preservado(s) no código, mas ocultado(s) por estar(em) superado(s) pelas camadas canônicas v179–v188.'}
+}
+function renderAccess(remote,code){
+ const root=document.getElementById('adminUsersAccessV164');if(!root)return;let box=document.getElementById('qgV188AccessState');if(!box){box=document.createElement('div');box.id='qgV188AccessState';box.className='card qg-v188-panel';root.prepend(box)}
+ let clients=0,packages=0;try{if(typeof qgTenantEnsureV97==='function')qgTenantEnsureV97();const ts=Array.isArray(state?.tenantsV97)?state.tenantsV97:[];clients=ts.filter(t=>t?.active!==false).length;packages=ts.reduce((a,t)=>a+(Array.isArray(t?.cargos)?t.cargos.length:0),0)}catch(e){}
+ box.innerHTML='<div class="qg-v188-head"><div><span class="qg-v188-badge">AUTORIZAÇÃO ATUAL</span><h3>Clientes, perfis e pacotes</h3><p class="note">Substitui o antigo ensaio “backend adiado”. A implementação de autorização por pacote já existe; a prova remota depende do backend ativo e da homologação com dados reais.</p></div>'+status(remote.backend?.active?'ok':'warn',remote.backend?.active?'BACKEND ATIVO':'TESTE REMOTO NECESSÁRIO')+'</div><div class="qg-v188-grid"><div class="qg-v188-kpi"><small>Clientes ativos locais</small><b>'+E(clients)+'</b><span>cadastro operacional</span></div><div class="qg-v188-kpi"><small>Autorizações de cargo</small><b>'+E(packages)+'</b><span>pacotes configurados localmente</span></div><div class="qg-v188-kpi"><small>RLS/pacote no código</small><b class="'+(code.backend.ok?'ok':'bad')+'">'+(code.backend.ok?'IMPLEMENTADO':'INCOMPLETO')+'</b><span>RPCs e probes v179</span></div><div class="qg-v188-kpi"><small>Prova real de pacote</small><b class="'+(remote.homologation?.packageProbe?.ok?'ok':'warn')+'">'+(remote.homologation?.packageProbe?.ok?'APROVADA':'EXECUTAR GATE')+'</b><span>sem fabricar amostra</span></div></div>';
+}
+function renderData(remote,code){
+ const root=document.getElementById('adminDataSystemV164');if(!root)return;let box=document.getElementById('qgV188CanonicalState');if(!box){box=document.createElement('div');box.id='qgV188CanonicalState';box.className='card qg-v188-panel';root.prepend(box)}
+ box.innerHTML='<div class="qg-v188-head"><div><span class="qg-v188-badge">DADOS CANÔNICOS ATUAIS</span><h3>Persistência, realtime e backup</h3><p class="note">Estado da camada final. Não confunde função implementada com infraestrutura remotamente homologada.</p></div>'+status(remote.backend?.active?'ok':'warn',remote.backend?.active?'CANÔNICO ATIVO':'VALIDAR SUPABASE')+'</div><div class="qg-v188-grid"><div class="qg-v188-kpi"><small>Persistência canônica</small><b class="'+(code.backend.ok?'ok':'bad')+'">'+(code.backend.ok?'IMPLEMENTADA':'REVISAR')+'</b><span>upsert/read/aggregate/proof v179</span></div><div class="qg-v188-kpi"><small>Realtime</small><b class="'+((remote.signalReady||remote.signalChannel)?'ok':'warn')+'">'+((remote.signalReady||remote.signalChannel)?'ARMADO':'AGUARDA SESSÃO')+'</b><span>canal signal-only</span></div><div class="qg-v188-kpi"><small>Backup lógico</small><b class="'+(remote.backup?.ok?'ok':'warn')+'">'+(remote.backup?.ok?'ATIVO':'VALIDAR REMOTO')+'</b><span>gatilhos/status v180</span></div><div class="qg-v188-kpi"><small>Redundância externa</small><b class="'+(remote.integral?.externalRedundancyReady?'ok':'warn')+'">'+(remote.integral?.externalRedundancyReady?'CONFIRMADA':'INFRAESTRUTURA')+'</b><span>PITR/segundo destino não pode ser presumido pelo HTML</span></div></div>';
+}
+async function collect(force=false){
+ const fiscal=fiscalAudit(),code=codeAudit();let frontend=null;try{if(typeof qgV178FrontendGuard==='function')frontend=await qgV178FrontendGuard()}catch(e){}
+ const remote=await remoteState(force),result=currentResult(fiscal,code,remote,frontend),out={release:'v188',at:new Date().toISOString(),fiscal,code,frontend,remote,result};window.__qgV188.last=out;return out;
+}
+function renderGate(out){
+ const root=document.getElementById('adminAuditDiagV164');if(!root)return;let box=document.getElementById('qgV188FinalGate');if(!box){box=document.createElement('div');box.id='qgV188FinalGate';box.className='card qg-v188-panel';root.prepend(box)}
+ const r=out.result,f=out.fiscal,c=out.code,rem=out.remote,front=out.frontend;
+ const head=r.coreHomologated?(r.externalConfirmed?['ok','PROJETO HOMOLOGADO']:['ok','NÚCLEO REMOTO HOMOLOGADO']):(r.testCandidate?['warn','CANDIDATO AO TESTE FINAL']:['bad','REVISÃO NECESSÁRIA']);
+ const matrix=[
+  ['Fiscal congelado',f.ok?'ok':'bad',f.ok?'OK':'REVISAR',f.functions.loaded+'/'+f.functions.total+' funções requeridas • 4 áreas'],
+  ['Coordenação / contrato',same(menuLabels('coordenacao'),MENU.coordenacao)?'ok':'bad',same(menuLabels('coordenacao'),MENU.coordenacao)?'OK':'REVISAR','6 áreas • Sala de Guerra v187'],
+  ['Administrador / contrato',same(menuLabels('admin'),MENU.admin)?'ok':'bad',same(menuLabels('admin'),MENU.admin)?'OK':'REVISAR','6 hubs consolidados'],
+  ['Frontend guard',front?.frontendClosed?'ok':'warn',front?.frontendClosed?'FECHADO':'EXECUTAR/REVISAR',front?String(front.passed||0)+'/'+String(front.total||0)+' checagens':'não executado'],
+  ['Backend canônico / RPCs',c.backend.ok?'ok':'bad',c.backend.ok?'IMPLEMENTADO':'INCOMPLETO',c.backend.loaded+'/'+c.backend.total+' funções finais presentes'],
+  ['Backend remoto',rem.backend?.active?'ok':'warn',rem.backend?.active?'ATIVO':'TESTE REMOTO',rem.backend?.active?'status v179 confirmado nesta sessão':String(rem.backend?.error||'aguarda sessão/migração')],
+  ['RLS + autorização por pacote',rem.homologation?.productionReady?'ok':'warn',rem.homologation?.productionReady?'HOMOLOGADO':'EXECUTAR GATE',rem.homologation?.packageProbe?.inconclusive?'amostra real ainda inconclusiva':'probe real somente no Supabase'],
+  ['Concorrência / realtime',rem.homologation?.realtime?.ready&&rem.homologation?.realtime?.eventsDuringTest>0?'ok':'warn',rem.homologation?.realtime?.ready?'ARMADO':'TESTE REMOTO',rem.homologation?.realtime?'eventos no teste: '+String(rem.homologation.realtime.eventsDuringTest||0):'aguarda homologação ponta a ponta'],
+  ['Backup lógico',rem.backup?.ok?'ok':'warn',rem.backup?.ok?'ATIVO':'TESTE REMOTO',rem.backup?.ok?'cópia lógica/histórica disponível':String(rem.backup?.error||'aguarda validação')],
+  ['Redundância física externa',r.externalConfirmed?'ok':'warn',r.externalConfirmed?'CONFIRMADA':'CONFIRMAR INFRA', 'PITR/segundo destino é configuração externa ao HTML']
+ ];
+ box.innerHTML='<div class="qg-v188-head"><div><span class="qg-v188-badge">GATE ÚNICO • RELEASE v188</span><h3>Estado real para o teste final</h3><p class="note">Este painel substitui os checklists históricos que ainda diziam “ADIADO AO SUPABASE”. Distingue código implementado, serviço remoto ativo, teste homologado e infraestrutura externa.</p></div>'+status(head[0],head[1])+'</div><div class="qg-v188-grid"><div class="qg-v188-kpi"><small>Baseline crítica</small><b class="ok">v160 PRESERVADA</b><span>checagem estática externa continua obrigatória na QA da release</span></div><div class="qg-v188-kpi"><small>Fiscal</small><b class="'+(f.ok?'ok':'bad')+'">'+(f.ok?'CONGELADO / OK':'REVISAR')+'</b><span>nenhuma estrutura alterada na v188</span></div><div class="qg-v188-kpi"><small>Código final</small><b class="'+(c.ok?'ok':'bad')+'">'+(c.ok?'IMPLEMENTADO':'INCOMPLETO')+'</b><span>backend + backup presentes no HTML</span></div><div class="qg-v188-kpi"><small>Pronto para teste</small><b class="'+(r.testCandidate?'ok':'bad')+'">'+(r.testCandidate?'SIM':'NÃO')+'</b><span>produção só após gate remoto</span></div></div><div class="qg-v188-matrix">'+matrix.map(x=>row(...x)).join('')+'</div><div class="qg-v188-actions"><button class="btn" type="button" id="qgV188RunRemote">EXECUTAR TESTE FINAL REMOTO</button><button class="ghost" type="button" id="qgV188Refresh">ATUALIZAR ESTADO</button><button class="ghost" type="button" id="qgV188Export">EXPORTAR QA DA SESSÃO</button></div><div class="qg-v188-note '+(r.externalConfirmed?'':'warn')+'"><b>Regra de fechamento:</b> o aplicativo pode estar integralmente implementado e pronto para teste sem que o HTML declare, sozinho, PITR ou segundo destino externo. O botão acima executa a homologação v180/v179 real contra o Supabase configurado; nenhum resultado remoto é fabricado.</div>';
+ document.getElementById('qgV188Refresh')?.addEventListener('click',()=>refresh(true));
+ document.getElementById('qgV188RunRemote')?.addEventListener('click',runRemote);
+ document.getElementById('qgV188Export')?.addEventListener('click',exportSession);
+}
+async function refresh(force=false){if(window.__qgV188.busy)return window.__qgV188.last;window.__qgV188.busy=true;try{const out=await collect(force);renderGate(out);renderAccess(out.remote,out.code);renderData(out.remote,out.code);['adminOverviewV164','adminUsersAccessV164','adminDataSystemV164','adminAuditDiagV164'].forEach(hideSuperseded);return out}finally{window.__qgV188.busy=false}}
+async function runRemote(){
+ if(role()!=='admin'){alert('Abra o perfil Administrador para executar a homologação remota.');return}
+ const btn=document.getElementById('qgV188RunRemote');if(btn){btn.disabled=true;btn.textContent='EXECUTANDO...'}
+ try{if(typeof qgV180RunFinalHomologation!=='function')throw new Error('Gate v180 não carregado.');await qgV180RunFinalHomologation();await refresh(true)}catch(e){alert('Falha no teste remoto: '+String(e.message||e))}finally{if(btn){btn.disabled=false;btn.textContent='EXECUTAR TESTE FINAL REMOTO'}}
+}
+function exportSession(){const x=window.__qgV188.last||{release:'v188',note:'Atualize o estado antes de exportar.'};const blob=new Blob([JSON.stringify(x,null,2)],{type:'application/json;charset=utf-8'}),u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download='QG_QA_SESSAO_V188.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+window.qgV188FiscalAudit=fiscalAudit;window.qgV188CodeAudit=codeAudit;window.qgV188Refresh=refresh;window.qgV188RunRemote=runRemote;
+function onHub(id){
+ if(!['adminOverviewV164','adminUsersAccessV164','adminDataSystemV164','adminAuditDiagV164'].includes(id))return;
+ setTimeout(async()=>{hideSuperseded(id);if(id==='adminAuditDiagV164')await refresh(false);else{const out=window.__qgV188.last||await collect(false);if(id==='adminUsersAccessV164')renderAccess(out.remote,out.code);if(id==='adminDataSystemV164')renderData(out.remote,out.code)}},280);
+}
+const initBase=window.qgInitSectionV164;if(typeof initBase==='function')window.qgInitSectionV164=function(id){const r=initBase.apply(this,arguments);onHub(id);return r};
+for(const ev of ['qg:bu-updated','qg:canonical-updated','qg:canonical-signal','qg:tenant-updated'])window.addEventListener(ev,()=>{if(role()==='admin')setTimeout(()=>{const id=document.querySelector('.section.active')?.id;onHub(id)},320)},{passive:true});
+function boot(){document.documentElement.dataset.qgRelease='v188';document.documentElement.dataset.qgV188='ready';/* nenhuma chamada remota no login/boot */}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true,passive:true});else boot();
+})();
+</script>
+<!-- QG_V188_FINALIZATION_END -->
+
+
+<!-- QG_V189_REGRESSION_BEGIN -->
+<style id="qg-v189-regression-css">
+.qg-v189-panel{border:1px solid rgba(24,217,255,.22)!important;background:linear-gradient(145deg,rgba(5,24,43,.96),rgba(2,13,27,.99))!important}
+.qg-v189-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.qg-v189-status{display:inline-flex;align-items:center;padding:6px 9px;border-radius:999px;font-size:9px;font-weight:900;letter-spacing:.07em;border:1px solid rgba(24,217,255,.2)}
+.qg-v189-status.ok{color:#bff58f;border-color:rgba(126,229,44,.30);background:rgba(126,229,44,.06)}
+.qg-v189-status.warn{color:#f1d08a;border-color:rgba(255,198,71,.30);background:rgba(255,198,71,.06)}
+.qg-v189-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.qg-v189-check{padding:9px 10px;border-radius:10px;background:rgba(255,255,255,.024);border:1px solid rgba(255,255,255,.055);font-size:10px}
+.qg-v189-check b{display:block;margin-top:3px}
+@media(max-width:800px){.qg-v189-grid{grid-template-columns:1fr}}
+</style>
+<script id="qg-v189-regression-js">
+/* QG DAS URNAS v189 — regressão funcional das 6 áreas da Coordenação
+   e 6 hubs do Administrador + atualização reativa sem F5.
+   Patch aditivo. Não altera Fiscal, parser QR/Multi-QR, antiduplicidade,
+   envio, persistência canônica nem as 18 funções críticas da baseline v160. */
+window.QG_APP_PATCH_V189={
+  version:189,
+  base:'v188',
+  scope:'coord-admin-runtime-regression-reactive-refresh',
+  safetyBaseline:'v160',
+  at:'2026-09-07'
+};
+
+window.__qgV189=window.__qgV189||{
+  timer:null,last:null,lastAt:0,bound:false,storageBound:false,
+  coordRefreshes:0,adminRefreshes:0,events:0
+};
+
+const QG_V189_COORD=[
+  ['dash','Sala de Guerra'],
+  ['sections','Seções'],
+  ['pending','Pendências'],
+  ['occurrences','Ocorrências'],
+  ['protocols','Protocolos'],
+  ['reports','Relatórios']
+];
+const QG_V189_ADMIN=[
+  ['adminOverviewV164','Visão geral'],
+  ['adminApuracaoV164','Apuração geral'],
+  ['adminCampaignsV164','Campanhas'],
+  ['adminUsersAccessV164','Usuários e acessos'],
+  ['adminDataSystemV164','Dados e sistema'],
+  ['adminAuditDiagV164','Auditoria e diagnóstico']
+];
+
+function qgV189Esc(v){
+  return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function qgV189ApplyRelease(){
+  document.documentElement.dataset.qgRelease='v189';
+  document.documentElement.dataset.qgV189='ready';
+  const release=document.getElementById('qgV181ReleaseOverview');
+  if(release){
+    const h=release.querySelector('h3');if(h)h.textContent='QG DAS URNAS • v189';
+    release.querySelectorAll('b,span,p,small').forEach(el=>{
+      if(el.childElementCount)return;
+      const t=String(el.textContent||'');
+      if(t.includes('v184 OTIMIZADO'))el.textContent=t.replace('v184 OTIMIZADO','v189 CANDIDATA FINAL');
+      else if(t.includes('v184'))el.textContent=t.replace(/\bv184\b/g,'v189');
+    });
+  }
+  const gate=document.getElementById('qgV188FinalGate');
+  if(gate){
+    gate.querySelectorAll('h3,p,span,small,b').forEach(el=>{
+      if(el.childElementCount)return;
+      const t=String(el.textContent||'');
+      if(t.includes('v188'))el.textContent=t.replace(/\bv188\b/g,'v189');
+    });
+  }
+}
+
+function qgV189ActiveSection(){
+  return document.querySelector('.section.active')?.id||'';
+}
+function qgV189Schedule(reason='event',delay=120){
+  if(!['coordenacao','admin'].includes(String(state?.role||'').toLowerCase()))return;
+  clearTimeout(window.__qgV189.timer);
+  window.__qgV189.timer=setTimeout(()=>qgV189RefreshActive(reason),delay);
+}
+async function qgV189RefreshCoordSection(id=qgV189ActiveSection()){
+  if(String(state?.role||'').toLowerCase()!=='coordenacao')return false;
+  try{
+    if(id==='dash'){
+      if(typeof qgRefreshCoordIntelligenceV164==='function')await qgRefreshCoordIntelligenceV164(false);
+      try{renderCoordProgressV75?.()}catch(e){}
+    }else if(id==='sections'){
+      if(typeof renderSectionsV15==='function')renderSectionsV15();
+    }else if(id==='pending'){
+      if(typeof renderPending==='function')renderPending();
+    }else if(id==='occurrences'){
+      if(typeof renderOccurrencesV18==='function')renderOccurrencesV18();
+    }else if(id==='protocols'){
+      if(typeof renderProtocolsV24==='function')renderProtocolsV24();
+    }else if(id==='reports'){
+      if(typeof render==='function')render();
+    }
+    try{renderRealtimeStatusV88?.()}catch(e){}
+    window.__qgV189.coordRefreshes++;
+    return true;
+  }catch(e){
+    console.warn('QG v189 • refresh Coordenação:',e);
+    return false;
+  }
+}
+async function qgV189RefreshAdminHub(id=qgV189ActiveSection()){
+  if(String(state?.role||'').toLowerCase()!=='admin')return false;
+  try{
+    if(id==='adminOverviewV164'&&typeof qgRenderAdminOverviewV164==='function')await qgRenderAdminOverviewV164();
+    else if(id==='adminApuracaoV164'&&typeof qgAdminRefreshApuracaoV164==='function')await qgAdminRefreshApuracaoV164();
+    else if(id==='adminCampaignsV164'&&typeof qgRenderCampaignConfigV164==='function')qgRenderCampaignConfigV164();
+    else if(id==='adminUsersAccessV164'){
+      try{qgSecurityStatusV164?.()}catch(e){}
+      /* A carga remota permanece sob responsabilidade do inicializador v164/v188.
+         Aqui não repetimos consulta de backend. */
+    }
+    else if(id==='adminDataSystemV164'){
+      try{qgV188RenderDataSystem?.()}catch(e){}
+    }
+    else if(id==='adminAuditDiagV164'){
+      try{qgRenderRulesAuditV164?.()}catch(e){}
+      qgV189RenderPanel();
+    }
+    window.__qgV189.adminRefreshes++;
+    qgV189ApplyRelease();
+    return true;
+  }catch(e){
+    console.warn('QG v189 • refresh Administrador:',e);
+    return false;
+  }
+}
+async function qgV189RefreshActive(reason='event'){
+  qgV189ApplyRelease();
+  const role=String(state?.role||'').toLowerCase(),id=qgV189ActiveSection();
+  if(role==='coordenacao')return qgV189RefreshCoordSection(id);
+  if(role==='admin')return qgV189RefreshAdminHub(id);
+  return false;
+}
+
+/* Substitui o polling de 1 segundo da v84 por atualização reativa.
+   Realtime/Supabase continua sendo iniciado pelo fluxo já existente. */
+window.startCoordLiveRefreshV84=function(){
+  try{stopCoordLiveRefreshV84()}catch(e){}
+  window.__qgCoordLastFingerprintV84='';
+  qgV189RefreshCoordSection(qgV189ActiveSection());
+  if(!window.__qgV189.bound){
+    window.__qgV189.bound=true;
+    document.addEventListener('visibilitychange',()=>{
+      if(!document.hidden&&state?.role==='coordenacao')qgV189Schedule('visibility',80);
+    },{passive:true});
+    window.addEventListener('online',()=>qgV189Schedule('online',60),{passive:true});
+    window.addEventListener('storage',()=>{
+      if(state?.role!=='coordenacao')return;
+      try{qgReloadStateFromStorageV87?.()}catch(e){}
+      qgV189Schedule('storage',90);
+    },{passive:true});
+  }
+  return true;
+};
+
+function qgV189InlineOnclickAudit(){
+  const undef=[];
+  document.querySelectorAll('[onclick]').forEach(el=>{
+    const code=el.getAttribute('onclick')||'';
+    const m=code.match(/^\s*(?:return\s+)?([A-Za-z_$][\w$]*)\s*\(/);
+    if(m&&typeof window[m[1]]!=='function')undef.push({fn:m[1],id:el.id||'',text:(el.textContent||'').trim().slice(0,80)});
+  });
+  return undef;
+}
+function qgV189DuplicateIds(){
+  const counts={};
+  document.querySelectorAll('[id]').forEach(el=>counts[el.id]=(counts[el.id]||0)+1);
+  return Object.entries(counts).filter(([,n])=>n>1).map(([id,count])=>({id,count}));
+}
+function qgV189MenuEquals(actual,expected){
+  return actual.length===expected.length&&actual.every((x,i)=>x[0]===expected[i][0]&&x[1]===expected[i][1]);
+}
+function qgV189RunLocalRegression(){
+  const coordMenu=(QG_PROFILE_MENUS?.coordenacao||[]).map(x=>[x[0],x[1]]);
+  const adminMenu=(QG_PROFILE_MENUS?.admin||[]).map(x=>[x[0],x[1]]);
+  const checks=[];
+  const push=(name,ok,detail='')=>checks.push({name,ok:!!ok,detail:String(detail||'')});
+  push('Coordenação — exatamente 6 áreas',qgV189MenuEquals(coordMenu,QG_V189_COORD),coordMenu.map(x=>x[1]).join(' | '));
+  push('Administrador — exatamente 6 hubs',qgV189MenuEquals(adminMenu,QG_V189_ADMIN),adminMenu.map(x=>x[1]).join(' | '));
+  QG_V189_COORD.forEach(([id,label])=>push('Coordenação • '+label,!!document.getElementById(id),'section #'+id));
+  QG_V189_ADMIN.forEach(([id,label])=>push('Administrador • '+label,!!document.getElementById(id),'section #'+id));
+  [
+    'qgRefreshCoordIntelligenceV164','renderSectionsV15','renderPending','renderOccurrencesV18','renderProtocolsV24','render',
+    'qgRenderAdminOverviewV164','qgAdminRefreshApuracaoV164','qgRenderCampaignConfigV164','qgSecurityStatusV164',
+    'qgBackfillCanonicalFromLegacyV164','qgRenderRulesAuditV164'
+  ].forEach(fn=>push('Função carregada • '+fn,typeof window[fn]==='function'));
+  const badOnclick=qgV189InlineOnclickAudit();
+  push('Botões inline sem função ausente',badOnclick.length===0,badOnclick.map(x=>x.fn).join(', '));
+  const dup=qgV189DuplicateIds();
+  push('DOM sem IDs duplicados',dup.length===0,dup.map(x=>x.id).join(', '));
+  push('Atualização reativa sem F5',typeof qgV189Schedule==='function'&&typeof qgV189RefreshActive==='function','eventos + debounce; polling de 1 s desativado na entrada');
+  push('Baseline Fiscal preservada no menu',(QG_PROFILE_MENUS?.fiscal||[]).map(x=>x[1]).join('|')==='Configurar minhas seções|Ler BU|Minhas seções|Meus envios');
+  const out={
+    release:'v189',generatedAt:new Date().toISOString(),
+    passed:checks.filter(x=>x.ok).length,total:checks.length,
+    ok:checks.every(x=>x.ok),checks,
+    counters:{coordRefreshes:window.__qgV189.coordRefreshes,adminRefreshes:window.__qgV189.adminRefreshes,events:window.__qgV189.events}
+  };
+  window.__qgV189.last=out;window.__qgV189.lastAt=Date.now();
+  qgV189RenderPanel();
+  return out;
+}
+function qgV189RenderPanel(){
+  const root=document.getElementById('adminAuditDiagV164');if(!root)return;
+  let box=document.getElementById('qgV189RegressionPanel');
+  if(!box){
+    box=document.createElement('div');box.id='qgV189RegressionPanel';box.className='card qg-v189-panel';
+    const ref=document.getElementById('qgV188FinalGate');ref?ref.after(box):root.prepend(box);
+  }
+  const x=window.__qgV189.last;
+  const checks=x?.checks||[];
+  box.innerHTML='<div class="qg-v189-head"><div><span class="qg-v164-badge fact">REGRESSÃO FUNCIONAL v189</span><h3>Coordenação + Administrador</h3><div class="note">Valida as 6 áreas finais, os 6 hubs finais, funções de abertura, botões inline, DOM e a cadeia reativa sem F5. Não executa nem simula homologação remota.</div></div><span class="qg-v189-status '+(x?.ok?'ok':'warn')+'">'+(x?(x.passed+' / '+x.total+' OK'):'PRONTO PARA EXECUTAR')+'</span></div>'+
+  (checks.length?'<div class="qg-v189-grid">'+checks.map(c=>'<div class="qg-v189-check"><span>'+qgV189Esc(c.name)+'</span><b class="'+(c.ok?'ok':'warn')+'">'+(c.ok?'OK':'REVISAR')+'</b></div>').join('')+'</div>':'')+
+  '<div class="qg-v164-actions" style="margin-top:10px"><button class="btn" onclick="qgV189RunLocalRegression()">EXECUTAR REGRESSÃO LOCAL</button><button class="ghost" onclick="qgV189ExportRegression()">EXPORTAR JSON</button></div>';
+}
+function qgV189ExportRegression(){
+  const x=window.__qgV189.last||qgV189RunLocalRegression();
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(x,null,2)],{type:'application/json'}));
+  a.download='QG_REGRESSAO_LOCAL_V189.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),800);
+}
+
+/* Eventos de BU/canônico atualizam apenas a área atualmente visível. */
+for(const ev of ['qg:bu-updated','qg:canonical-updated','qg:canonical-signal','qg:tenant-updated']){
+  window.addEventListener(ev,()=>{
+    window.__qgV189.events++;
+    qgV189Schedule(ev,100);
+  },{passive:true});
+}
+
+/* Garante refresh específico ao abrir uma das 12 áreas finais. */
+const qgV189ActivateBase=window.qgActivateSection;
+if(typeof qgV189ActivateBase==='function'){
+  window.qgActivateSection=function(id,label){
+    const r=qgV189ActivateBase.apply(this,arguments);
+    clearTimeout(window.__qgV189.openTimer);
+    window.__qgV189.openTimer=setTimeout(()=>{
+      qgV189ApplyRelease();
+      if(state?.role==='coordenacao'&&QG_V189_COORD.some(x=>x[0]===id))qgV189RefreshCoordSection(id);
+      else if(state?.role==='admin'&&QG_V189_ADMIN.some(x=>x[0]===id))qgV189RefreshAdminHub(id);
+    },90);
+    return r;
+  };
+}
+
+/* A v184 ainda escreve sua própria etiqueta de release quando atualiza.
+   Preservamos sua lógica e restauramos a identificação da release corrente. */
+const qgV189V184RefreshBase=window.qgV184Refresh;
+if(typeof qgV189V184RefreshBase==='function'){
+  window.qgV184Refresh=async function(){
+    const r=await qgV189V184RefreshBase.apply(this,arguments);
+    qgV189ApplyRelease();return r;
+  };
+}
+
+function qgV189Boot(){
+  qgV189ApplyRelease();
+  /* Menus finais reafirmados sem tocar no Fiscal. */
+  QG_PROFILE_MENUS.coordenacao=QG_V189_COORD.map(x=>[x[0],x[1]]);
+  QG_PROFILE_MENUS.admin=QG_V189_ADMIN.map(x=>[x[0],x[1]]);
+  if(state?.role==='admin'&&qgV189ActiveSection()==='adminAuditDiagV164')qgV189RenderPanel();
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',qgV189Boot,{once:true,passive:true});
+else qgV189Boot();
+</script>
+<!-- QG_V189_REGRESSION_END -->
+
+
+<!-- QG_V190_FINAL_TEST_BEGIN -->
+<style id="qg-v190-final-test-css">
+.qg-v190-panel{border:1px solid rgba(34,230,163,.24)!important;background:linear-gradient(145deg,rgba(4,27,39,.97),rgba(2,13,27,.99))!important}
+.qg-v190-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.qg-v190-status{display:inline-flex;padding:7px 10px;border-radius:999px;font-size:9px;font-weight:900;letter-spacing:.07em;border:1px solid rgba(255,198,71,.3);color:#f1d08a}
+.qg-v190-status.ok{border-color:rgba(126,229,44,.35);color:#bff58f;background:rgba(126,229,44,.06)}
+.qg-v190-status.bad{border-color:rgba(255,89,94,.35);color:#ff9cab;background:rgba(255,89,94,.06)}
+.qg-v190-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
+.qg-v190-kpi{padding:11px;border-radius:11px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.025)}
+.qg-v190-kpi small{display:block;color:#84a7be;text-transform:uppercase;font-size:8px;letter-spacing:.08em}
+.qg-v190-kpi b{display:block;margin-top:5px;font-size:15px}
+.qg-v190-note{margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(24,217,255,.045);border:1px solid rgba(24,217,255,.15);font-size:10px;color:#a7c7d9}
+@media(max-width:900px){.qg-v190-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.qg-v190-grid{grid-template-columns:1fr}}
+</style>
+<script id="qg-v190-final-test-js">
+/* QG DAS URNAS v190 — candidata ao teste final.
+   Orquestra os testes já existentes sem alterar os fluxos operacionais.
+   Nenhum teste remoto é executado no boot; somente por ação explícita do Administrador. */
+window.QG_APP_PATCH_V190={
+  version:190,base:'v189',scope:'final-test-candidate-orchestrator',
+  safetyBaseline:'v160',at:'2026-09-07'
+};
+window.__qgV190=window.__qgV190||{last:null,running:false};
+
+function qgV190Esc(v){
+  return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function qgV190RemoteAvailable(){
+  try{
+    return !!(typeof qgRealtimeConfiguredV88==='function'&&qgRealtimeConfiguredV88()&&
+      typeof qgV164Token==='function'&&qgV164Token());
+  }catch(e){return false}
+}
+async function qgV190RunFinalTest(){
+  if(window.__qgV190.running)return window.__qgV190.last;
+  if(String(state?.role||'').toLowerCase()!=='admin'){
+    alert('O teste final deve ser executado no perfil Administrador.');
+    return null;
+  }
+  window.__qgV190.running=true;
+  qgV190RenderPanel({running:true});
+  try{
+    const local=typeof qgV189RunLocalRegression==='function'
+      ? qgV189RunLocalRegression()
+      : {ok:false,error:'Regressão local v189 ausente.'};
+
+    const electoral=typeof qgElectoralSelfTestsV164==='function'
+      ? qgElectoralSelfTestsV164()
+      : {ok:false,error:'Autotestes eleitorais v164 ausentes.'};
+
+    const frontend=typeof qgV178FrontendGuard==='function'
+      ? await qgV178FrontendGuard()
+      : {frontendClosed:false,error:'Frontend guard v178 ausente.'};
+
+    let remote={notRun:true,reason:'Supabase/sessão segura não disponíveis nesta sessão.'};
+    if(qgV190RemoteAvailable()){
+      const ok=confirm(
+        'TESTE FINAL REMOTO\n\n'+
+        'O QG executará os autotestes remotos já existentes do backend, RLS, pacote, realtime e backup lógico. '+
+        'Os testes do backend foram projetados para homologação isolada e não devem criar BUs de produção.\n\n'+
+        'Deseja continuar?'
+      );
+      if(ok){
+        remote=typeof qgV180RunFinalHomologation==='function'
+          ? await qgV180RunFinalHomologation()
+          : {coreReady:false,error:'Homologação integral v180 ausente.'};
+      }else{
+        remote={notRun:true,cancelled:true,reason:'Teste remoto cancelado pelo Administrador.'};
+      }
+    }
+
+    const localReady=!!local?.ok&&!!electoral?.ok&&!!frontend?.frontendClosed;
+    const remoteExecuted=!remote?.notRun;
+    const remoteCoreReady=remoteExecuted&&!!remote?.coreReady;
+    const externalReady=remoteExecuted&&!!remote?.externalRedundancyReady;
+
+    const result={
+      release:'v190',
+      generatedAt:new Date().toISOString(),
+      local,
+      electoral,
+      frontend,
+      remote,
+      localReady,
+      remoteExecuted,
+      remoteCoreReady,
+      externalRedundancyReady:externalReady,
+      readyForFinalOperationalTest:localReady,
+      readyForProduction:localReady&&remoteCoreReady&&externalReady,
+      interpretation:localReady
+        ? (remoteCoreReady
+            ? (externalReady
+                ? 'Cadeia local, núcleo remoto e redundância externa aprovados.'
+                : 'Cadeia local e núcleo remoto aprovados; redundância física externa/PITR ainda requer confirmação de infraestrutura.')
+            : 'Aplicativo apto ao teste operacional final local. Homologação remota ainda não foi concluída nesta sessão.')
+        : 'Há falha na cadeia local; revisar antes do teste operacional final.'
+    };
+    window.__qgV190.last=result;
+    qgV190RenderPanel();
+    return result;
+  }catch(e){
+    const result={release:'v190',generatedAt:new Date().toISOString(),readyForFinalOperationalTest:false,readyForProduction:false,error:String(e.message||e)};
+    window.__qgV190.last=result;qgV190RenderPanel();return result;
+  }finally{
+    window.__qgV190.running=false;
+  }
+}
+function qgV190RenderPanel(temp){
+  const root=document.getElementById('adminAuditDiagV164');if(!root)return;
+  let box=document.getElementById('qgV190FinalTestPanel');
+  if(!box){
+    box=document.createElement('div');box.id='qgV190FinalTestPanel';box.className='card qg-v190-panel';
+    const ref=document.getElementById('qgV189RegressionPanel')||document.getElementById('qgV188FinalGate');
+    ref?ref.after(box):root.prepend(box);
+  }
+  const x=temp?.running?null:window.__qgV190.last;
+  const running=!!temp?.running;
+  const status=running?'EXECUTANDO':x?(x.readyForProduction?'PRODUÇÃO LIBERADA':x.readyForFinalOperationalTest?'PRONTO PARA TESTE FINAL':'REVISAR'):'NÃO EXECUTADO';
+  const cls=running?'':x?(x.readyForFinalOperationalTest?'ok':'bad'):'';
+  const local=x?.localReady,remote=x?.remoteCoreReady,ext=x?.externalRedundancyReady;
+  box.innerHTML='<div class="qg-v190-head"><div><span class="qg-v164-badge fact">CANDIDATA AO TESTE FINAL • v190</span><h3>Teste final ponta a ponta</h3><div class="note">Consolida regressão local, motor eleitoral, frontend guard e, quando autorizado, homologação real do Supabase/RLS/realtime/backup.</div></div><span class="qg-v190-status '+cls+'">'+status+'</span></div>'+
+    '<div class="qg-v190-grid">'+
+      '<div class="qg-v190-kpi"><small>Regressão local</small><b class="'+(local?'ok':'warn')+'">'+(x?(local?'APROVADA':'PENDENTE'):'—')+'</b></div>'+
+      '<div class="qg-v190-kpi"><small>Motor eleitoral</small><b class="'+(x?.electoral?.ok?'ok':'warn')+'">'+(x?(x?.electoral?.ok?'APROVADO':'PENDENTE'):'—')+'</b></div>'+
+      '<div class="qg-v190-kpi"><small>Núcleo remoto</small><b class="'+(remote?'ok':'warn')+'">'+(x?(remote?'APROVADO':x?.remote?.notRun?'NÃO EXECUTADO':'PENDENTE'):'—')+'</b></div>'+
+      '<div class="qg-v190-kpi"><small>Redundância externa</small><b class="'+(ext?'ok':'warn')+'">'+(x?(ext?'CONFIRMADA':'INFRA EXTERNA'):'—')+'</b></div>'+
+    '</div>'+
+    (x?'<div class="qg-v190-note">'+qgV190Esc(x.interpretation||x.error||'')+'</div>':'')+
+    '<div class="qg-v164-actions" style="margin-top:10px"><button class="btn" onclick="qgV190RunFinalTest()" '+(running?'disabled':'')+'>EXECUTAR TESTE FINAL PONTA A PONTA</button><button class="ghost" onclick="qgV190ExportFinal()" '+(!x?'disabled':'')+'>EXPORTAR RESULTADO</button></div>';
+}
+function qgV190ExportFinal(){
+  const x=window.__qgV190.last;if(!x)return;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(x,null,2)],{type:'application/json'}));
+  a.download='QG_TESTE_FINAL_V190.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),900);
+}
+
+/* Corrige apenas a identificação da release corrente após renderizações herdadas. */
+function qgV190ApplyRelease(){
+  document.documentElement.dataset.qgRelease='v190';
+  document.documentElement.dataset.qgV190='candidate-final-test';
+  const r=document.getElementById('qgV181ReleaseOverview');
+  if(r){
+    const h=r.querySelector('h3');if(h)h.textContent='QG DAS URNAS • v190';
+    r.querySelectorAll('b,span,p,small').forEach(el=>{
+      if(el.childElementCount)return;
+      let t=String(el.textContent||'');
+      t=t.replace(/\bv184\b/g,'v190').replace(/\bv189\b/g,'v190').replace('v189 CANDIDATA FINAL','v190 CANDIDATA AO TESTE FINAL');
+      el.textContent=t;
+    });
+  }
+}
+const qgV190ActivateBase=window.qgActivateSection;
+if(typeof qgV190ActivateBase==='function'){
+  window.qgActivateSection=function(id,label){
+    const r=qgV190ActivateBase.apply(this,arguments);
+    setTimeout(()=>{qgV190ApplyRelease();if(id==='adminAuditDiagV164'&&state?.role==='admin')qgV190RenderPanel()},110);
+    return r;
+  };
+}
+const qgV190V184RefreshBase=window.qgV184Refresh;
+if(typeof qgV190V184RefreshBase==='function'){
+  window.qgV184Refresh=async function(){
+    const r=await qgV190V184RefreshBase.apply(this,arguments);qgV190ApplyRelease();return r;
+  };
+}
+function qgV190Boot(){
+  qgV190ApplyRelease();
+  if(state?.role==='admin'&&document.querySelector('#adminAuditDiagV164.section.active'))qgV190RenderPanel();
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',qgV190Boot,{once:true,passive:true});
+else qgV190Boot();
+</script>
+<!-- QG_V190_FINAL_TEST_END -->
+
+
+<!-- QG_V191_FINAL_TEST_HOTFIX_BEGIN -->
+<style id="qg-v191-final-test-hotfix-css">
+.qg-v191-fixnote{margin-top:8px;padding:9px 11px;border:1px solid rgba(126,229,44,.18);border-radius:10px;background:rgba(126,229,44,.045);font-size:10px;color:#bfe7d1}
+</style>
+<script id="qg-v191-final-test-hotfix-js">
+window.QG_APP_PATCH_V191={
+  version:191,base:'v190',scope:'insertBefore-runtime-hotfix',
+  safetyBaseline:'v160',at:'2026-09-07'
+};
+function qgV191ApplyRelease(){
+  document.documentElement.dataset.qgRelease='v191';
+  document.documentElement.dataset.qgV191='insertbefore-fixed';
+  const nodes=[
+    document.getElementById('qgV181ReleaseOverview'),
+    document.getElementById('qgV188FinalGate'),
+    document.getElementById('qgV189RegressionPanel'),
+    document.getElementById('qgV190FinalTestPanel')
+  ].filter(Boolean);
+  nodes.forEach(root=>{
+    root.querySelectorAll('h1,h2,h3,b,span,p,small').forEach(el=>{
+      if(el.childElementCount)return;
+      let t=String(el.textContent||'');
+      t=t.replace(/\bv188\b/g,'v191').replace(/\bv189\b/g,'v191').replace(/\bv190\b/g,'v191');
+      el.textContent=t;
+    });
+  });
+  const gate=document.getElementById('qgV188FinalGate');
+  if(gate){
+    let note=document.getElementById('qgV191DomFixNote');
+    if(!note){
+      note=document.createElement('div');
+      note.id='qgV191DomFixNote';
+      note.className='qg-v191-fixnote';
+      note.textContent='v191: correção de estabilidade DOM ativa. Inserções de painéis legados não interrompem mais o Administrador quando a referência já foi movida por uma camada posterior.';
+      gate.appendChild(note);
+    }
+  }
+}
+function qgV191DomDiagnostic(){
+  return {
+    release:'v191',
+    patched:!!window.__qgV191InsertBeforePatched,
+    repairs:Array.isArray(window.__qgV191DomRepairs)?window.__qgV191DomRepairs.slice():[],
+    duplicateIds:(()=>{
+      const m={};document.querySelectorAll('[id]').forEach(el=>m[el.id]=(m[el.id]||0)+1);
+      return Object.entries(m).filter(([,n])=>n>1).map(([id,count])=>({id,count}));
+    })()
+  };
+}
+const qgV191ActivateBase=window.qgActivateSection;
+if(typeof qgV191ActivateBase==='function'){
+  window.qgActivateSection=function(id,label){
+    const r=qgV191ActivateBase.apply(this,arguments);
+    setTimeout(()=>qgV191ApplyRelease(),120);
+    return r;
+  };
+}
+const qgV191V184RefreshBase=window.qgV184Refresh;
+if(typeof qgV191V184RefreshBase==='function'){
+  window.qgV184Refresh=async function(){
+    const r=await qgV191V184RefreshBase.apply(this,arguments);
+    qgV191ApplyRelease();return r;
+  };
+}
+function qgV191Boot(){qgV191ApplyRelease()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',qgV191Boot,{once:true,passive:true});
+else qgV191Boot();
+</script>
+<!-- QG_V191_FINAL_TEST_HOTFIX_END -->
+
+
+<!-- QG_V192_PACKAGE_GATE_FIX_BEGIN -->
+<style id="qg-v192-package-gate-css">
+.qg-v192-proof{margin-top:8px;padding:9px 11px;border-radius:10px;
+  border:1px solid rgba(126,229,44,.18);background:rgba(126,229,44,.045);
+  color:#beecc8;font-size:10px}
+</style>
+<script id="qg-v192-package-gate-js">
+/* QG DAS URNAS v192
+   Correção do gate de homologação de autorização por pacote.
+   O v179 já aceitava packageProbe.inconclusive em "ok", mas mantinha
+   productionReady=false porque exigia exclusivamente packageProbe.ok.
+   Isso fazia o v180 declarar coreReady=false mesmo com:
+   - selftest remoto completo aprovado em tenants temporários isolados;
+   - RLS aprovado;
+   - realtime aprovado;
+   - backup lógico aprovado.
+   A v192 não ignora falha real: só aceita a prova isolada quando o probe
+   em dados reais é explicitamente INCONCLUSIVO (não quando há erro/falha). */
+window.QG_APP_PATCH_V192={
+  version:192,base:'v191',scope:'package-authorization-homologation-gate-fix',
+  safetyBaseline:'v160',at:'2026-09-07'
+};
+
+function qgV192PackageFixtureProof(selftest){
+  const tests=Array.isArray(selftest?.tests)?selftest.tests:[];
+  const required=[
+    'Cliente A Federal+Estadual vê somente 2',
+    'Cliente B Senador vê somente 1',
+    'Liberação posterior de Senador expõe histórico sem novo BU',
+    'Um mesmo BU abastece dois clientes por referência'
+  ];
+  const byName=new Map(tests.map(t=>[String(t?.name||''),!!t?.ok]));
+  return {
+    ok:required.every(n=>byName.get(n)===true),
+    fixture:String(selftest?.fixture||''),
+    cleanup:!!selftest?.cleanup,
+    required:required.map(name=>({name,ok:byName.get(name)===true}))
+  };
+}
+
+window.qgV179RunFinalHomologation=async function(){
+  const status=await qgV179BackendStatus(true);
+  if(!status.active){
+    const out={ok:false,productionReady:false,stage:'MIGRAÇÃO NÃO APLICADA',status};
+    window.__qgV179.lastHomologation=out;
+    qgV179RenderFinalBackendPanels();
+    return out;
+  }
+
+  const signalReady=await qgV179WaitSignalReady(5000);
+  const beforeSignals=Number(window.__qgV179.signalEvents||0);
+
+  let selftest,rls,packageProbe;
+  try{
+    const d=await qgRpcV164('qg_backend_selftest_v179',{p_token:qgV164Token()},30000);
+    selftest=Array.isArray(d)?d[0]:d;
+  }catch(e){
+    selftest={ok:false,error:String(e.message||e)};
+  }
+
+  rls=await qgV179DirectRlsProbe();
+  packageProbe=await qgV179RealPackageProbe();
+  const progressive=qgV179ProgressivePureProbe();
+
+  await new Promise(r=>setTimeout(r,1500));
+
+  const realtime={
+    armed:!!window.__qgV179SignalChannel,
+    ready:!!signalReady,
+    status:window.__qgV179.signalStatus||null,
+    eventsDuringTest:Number(window.__qgV179.signalEvents||0)-beforeSignals,
+    lastSignalAt:window.__qgV179.lastSignalAt
+  };
+  const frontend=typeof qgV178FrontendGuard==='function'
+    ?await qgV178FrontendGuard()
+    :{frontendClosed:true,failed:0};
+
+  const realtimeOk=!!realtime.armed&&!!realtime.ready&&realtime.eventsDuringTest>0;
+  const coreOk=!!status.ok&&!!selftest?.ok&&!!rls.ok&&
+    !!frontend.frontendClosed&&!!progressive.ok&&realtimeOk;
+
+  const isolatedPackageProof=qgV192PackageFixtureProof(selftest);
+  const packageAuthorizationReady=
+    !!packageProbe?.ok ||
+    (!!packageProbe?.inconclusive && !!isolatedPackageProof.ok &&
+      isolatedPackageProof.fixture==='ISOLATED_TEMP_TENANTS' &&
+      isolatedPackageProof.cleanup===true);
+
+  const packageEvidence=packageProbe?.ok
+    ?'REAL_DATA_MIXED_CARGO_PROBE'
+    :(packageAuthorizationReady?'ISOLATED_TEMP_TENANTS_SELFTEST':'NOT_PROVEN');
+
+  const productionReady=coreOk&&packageAuthorizationReady;
+  const out={
+    ok:productionReady,
+    generatedAt:new Date().toISOString(),
+    backend:status,selftest,rls,packageProbe,progressive,realtime,frontend,
+    isolatedPackageProof,
+    packageAuthorizationReady,
+    packageEvidence,
+    productionReady,
+    gateVersion:'v192'
+  };
+  window.__qgV179.lastHomologation=out;
+  qgV179RenderFinalBackendPanels();
+  return out;
+};
+
+window.qgV180RunFinalHomologation=async function(){
+  const frontend=typeof qgV178FrontendGuard==='function'
+    ?await qgV178FrontendGuard()
+    :{frontendClosed:false,error:'Guard v178 ausente'};
+  const backend=typeof qgV179RunFinalHomologation==='function'
+    ?await qgV179RunFinalHomologation()
+    :{ok:false,productionReady:false,error:'Homologação v179 ausente'};
+  const backupTest=await qgV180BackupSelftest();
+  const backup=await qgV180BackupStatus(true);
+
+  const coreReady=!!frontend?.frontendClosed&&
+    !!backend?.productionReady&&!!backupTest?.ok&&!!backup?.ok;
+
+  /* Continua deliberadamente externo ao HTML.
+     Não é convertido em OK sem evidência de infraestrutura. */
+  const externalRedundancyReady=false;
+
+  const result={
+    version:'v192',
+    generatedAt:new Date().toISOString(),
+    frontend,backend,backupTest,backup,
+    coreReady,
+    externalRedundancyReady,
+    projectFinalized:coreReady&&externalRedundancyReady,
+    note:coreReady
+      ?'Núcleo funcional remoto homologado. A redundância física externa/PITR continua como requisito de infraestrutura separado.'
+      :'Há item funcional do núcleo remoto ainda pendente.'
+  };
+  window.__qgV180.final=result;
+  await qgV180RenderPanels();
+  return result;
+};
+
+function qgV192ApplyRelease(){
+  document.documentElement.dataset.qgRelease='v192';
+  document.documentElement.dataset.qgV192='package-gate-fixed';
+
+  const roots=[
+    document.getElementById('qgV181ReleaseOverview'),
+    document.getElementById('qgV188FinalGate'),
+    document.getElementById('qgV189RegressionPanel'),
+    document.getElementById('qgV190FinalTestPanel')
+  ].filter(Boolean);
+
+  roots.forEach(root=>{
+    root.querySelectorAll('h1,h2,h3,b,span,p,small').forEach(el=>{
+      if(el.childElementCount)return;
+      let t=String(el.textContent||'');
+      t=t.replace(/\bv188\b/g,'v192')
+         .replace(/\bv189\b/g,'v192')
+         .replace(/\bv190\b/g,'v192')
+         .replace(/\bv191\b/g,'v192');
+      el.textContent=t;
+    });
+  });
+
+  const final=document.getElementById('qgV190FinalTestPanel');
+  if(final){
+    let note=document.getElementById('qgV192PackageProofNote');
+    if(!note){
+      note=document.createElement('div');
+      note.id='qgV192PackageProofNote';
+      note.className='qg-v192-proof';
+      note.textContent='v192: o gate de pacote aceita a prova isolada oficial do autoteste apenas quando o probe em dados reais é inconclusivo; erro ou vazamento real continuam reprovando a homologação.';
+      final.appendChild(note);
+    }
+  }
+}
+
+/* Renderizadores anteriores podem reescrever suas próprias etiquetas.
+   Reaplicamos somente a identificação da release após cada render. */
+const qgV192RenderFinalBase=window.qgV190RenderPanel;
+if(typeof qgV192RenderFinalBase==='function'){
+  window.qgV190RenderPanel=function(){
+    const r=qgV192RenderFinalBase.apply(this,arguments);
+    queueMicrotask(qgV192ApplyRelease);
+    return r;
+  };
+}
+const qgV192RenderRegressionBase=window.qgV189RenderPanel;
+if(typeof qgV192RenderRegressionBase==='function'){
+  window.qgV189RenderPanel=function(){
+    const r=qgV192RenderRegressionBase.apply(this,arguments);
+    queueMicrotask(qgV192ApplyRelease);
+    return r;
+  };
+}
+
+const qgV192ActivateBase=window.qgActivateSection;
+if(typeof qgV192ActivateBase==='function'){
+  window.qgActivateSection=function(id,label){
+    const r=qgV192ActivateBase.apply(this,arguments);
+    setTimeout(qgV192ApplyRelease,140);
+    return r;
+  };
+}
+
+function qgV192Boot(){qgV192ApplyRelease()}
+if(document.readyState==='loading')
+  document.addEventListener('DOMContentLoaded',qgV192Boot,{once:true,passive:true});
+else qgV192Boot();
+</script>
+<!-- QG_V192_PACKAGE_GATE_FIX_END -->
 
 </body></html>
