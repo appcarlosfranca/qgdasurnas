@@ -1,5 +1,31 @@
 <!doctype html><html lang="pt-BR"><head>
 
+<script id="qg-v194-early-storage-clean">
+/* v194 — limpeza de artefatos internos de migração.
+   Não remove BUs, carteira Fiscal, tenants, configuração nem dados remotos.
+   Remove apenas snapshots técnicos qg_pre_migration_* de versões antigas,
+   que podiam ocupar vários MB no localStorage depois de muitas migrações. */
+(function(){
+  try{
+    const remove=[];
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k && /^qg_pre_migration_\d+_\d+$/.test(k)) remove.push(k);
+    }
+    remove.forEach(k=>{try{localStorage.removeItem(k)}catch(_){}});
+    const latest=localStorage.getItem('qg_latest_backup');
+    if(latest && latest.length>50000){
+      try{localStorage.removeItem('qg_latest_backup')}catch(_){}
+    }
+    localStorage.setItem('qg_storage_clean_v194',String(Date.now()));
+  }catch(e){
+    console.warn('QG v194 • limpeza técnica de storage:',e);
+  }
+})();
+</script>
+
+
+
 <script id="qg-v193-early-storage-migration">
 /* v193 — migração precoce, executada ANTES do carregamento do estado do app.
    Remove a causa mais grave de quota/lentidão: snapshots completos repetidos
@@ -24680,5 +24706,1164 @@ if(document.readyState==='loading')
 else qgV193Boot();
 </script>
 <!-- QG_V193_PERFORMANCE_END -->
+
+
+<!-- QG_V194_PERFORMANCE_BEGIN -->
+<style id="qg-v194-performance-css">
+/* A tabela de seções passa a renderizar apenas a página visível. */
+#sectionPaginationV61{justify-content:flex-start!important}
+#sectionPageInfoV61{min-width:150px}
+#sections .table-wrap-v194{contain:layout paint style}
+@media(max-width:900px){
+  #sectionPaginationV61{display:grid!important;grid-template-columns:1fr 1fr!important;align-items:end!important}
+  #sectionPaginationV61 label,#sectionPageInfoV61{grid-column:1/-1!important}
+}
+@media(max-width:560px){
+  #sections .filter-bar{gap:6px!important}
+  #sections table{font-size:10px!important;min-width:520px!important}
+}
+.qg-v194-perf{
+  padding:8px 10px;margin-top:8px;border-radius:9px;
+  border:1px solid rgba(23,216,255,.14);background:rgba(23,216,255,.035);
+  color:#9ec8dc;font-size:9px
+}
+</style>
+
+<script id="qg-v194-performance-js">
+/* QG DAS URNAS v194 — celeridade global.
+   Corrige um defeito objetivo encontrado na v193:
+   a UI exibia paginação, mas renderSectionsV15 ignorava QG_SECTION_PAGE_V61
+   e montava até 6.052 <tr> de uma vez. */
+window.QG_APP_PATCH_V194={
+  version:194,base:'v193',scope:'true-pagination-section-virtualized-fast-path',
+  safetyBaseline:'v160',at:'2026-09-07'
+};
+window.__qgV194=window.__qgV194||{
+  searchTimer:null,lastSectionRenderMs:0,lastRowsRendered:0,
+  lastRowsMatched:0,baseStats:null,munOptionsStamp:'',zoneOptionsKey:''
+};
+
+function qgV194OfficialSections(){
+  if(Array.isArray(window.QG_SECTIONS_V27) && window.QG_SECTIONS_V27.length>=6000)
+    return window.QG_SECTIONS_V27;
+  return Array.isArray(sections)?sections:[];
+}
+function qgV194SectionBase(){
+  const isFiscal=(state.role==='fiscal'||document.body?.dataset?.role==='fiscal');
+  const mine=(isFiscal&&typeof fiscalPortfolioRowsV66==='function')?fiscalPortfolioRowsV66():[];
+  if(isFiscal&&mine.length)return mine;
+  if(state.sectionBaseMeta?.userOverride===true && Array.isArray(state.sectionBase) && state.sectionBase.length)
+    return state.sectionBase;
+  return qgV194OfficialSections();
+}
+function qgV194ReceivedSet(){
+  /* força atualização do cache v193 apenas uma vez e reutiliza o Set */
+  const sample=qgV194OfficialSections()[0];
+  try{ if(sample) isSectionReceivedV66(sample); }catch(_){}
+  return window.__qgV193?.receivedSet instanceof Set ? window.__qgV193.receivedSet : new Set();
+}
+const qgV194SearchCache=new WeakMap();
+function qgV194SearchText(row){
+  if(!row||typeof row!=='object')return '';
+  let t=qgV194SearchCache.get(row);
+  if(t!==undefined)return t;
+  t=normalizeText((row.municipio||'')+' '+(row.local||'')+' '+Number(row.zona||0)+' '+Number(row.secao||0));
+  qgV194SearchCache.set(row,t);
+  return t;
+}
+function qgV194FillMunicipios(base,sel){
+  if(!sel)return;
+  const stamp=(base===window.QG_SECTIONS_V27?'official:':'custom:')+base.length;
+  if(window.__qgV194.munOptionsStamp===stamp && sel.options.length>1)return;
+  const keep=sel.value||'';
+  const list=[...new Set(base.map(x=>x.municipio).filter(Boolean))]
+    .sort((a,b)=>String(a).localeCompare(String(b),'pt-BR'));
+  const frag=document.createDocumentFragment();
+  frag.appendChild(new Option('Todos',''));
+  list.forEach(x=>frag.appendChild(new Option(x,x)));
+  sel.replaceChildren(frag);
+  if(keep&&list.includes(keep))sel.value=keep;
+  window.__qgV194.munOptionsStamp=stamp;
+}
+function qgV194FillZones(base,munSel,zoneSel){
+  if(!zoneSel)return;
+  const mun=munSel?.value||'';
+  const key=(base===window.QG_SECTIONS_V27?'official:':'custom:')+base.length+'|'+mun;
+  if(window.__qgV194.zoneOptionsKey===key)return;
+  const keep=String(zoneSel.value||'');
+  let zones;
+  if(base===window.QG_SECTIONS_V27 && typeof qgSectionIndexV148==='function'){
+    const idx=qgSectionIndexV148();
+    zones=mun?[...(idx.municipalities.get(mun)||new Map()).keys()]:
+      [...new Set(base.map(x=>Number(x.zona||0)).filter(Boolean))];
+  }else{
+    zones=[...new Set(base.filter(x=>!mun||x.municipio===mun).map(x=>Number(x.zona||0)).filter(Boolean))];
+  }
+  zones.sort((a,b)=>a-b);
+  const frag=document.createDocumentFragment();
+  frag.appendChild(new Option('Todas',''));
+  zones.forEach(x=>frag.appendChild(new Option(String(x),String(x))));
+  zoneSel.replaceChildren(frag);
+  if(keep&&zones.some(x=>String(x)===keep))zoneSel.value=keep;
+  window.__qgV194.zoneOptionsKey=key;
+}
+
+/* Paginação REAL. Apenas pageRows vira DOM. */
+window.renderSectionsV15=function(){
+  const t0=performance.now();
+  const base=qgV194SectionBase();
+  const q=normalizeText(document.getElementById('sectionSearch')?.value||'');
+  const munSel=document.getElementById('sectionMunicipioFilter');
+  const zoneSel=document.getElementById('sectionZonaFilter');
+  const statusSel=document.getElementById('sectionStatusFilter');
+
+  qgV194FillMunicipios(base,munSel);
+  qgV194FillZones(base,munSel,zoneSel);
+
+  const mun=munSel?.value||'';
+  const zone=Number(zoneSel?.value||0);
+  const status=(statusSel?.value||'').toUpperCase();
+  const recSet=qgV194ReceivedSet();
+
+  const filterKey=[q,mun,zone,status,base.length].join('|');
+  if(!window.QG_SECTION_PAGE_V61)
+    window.QG_SECTION_PAGE_V61={page:1,pageSize:100,filterKey:''};
+  if(QG_SECTION_PAGE_V61.filterKey!==filterKey){
+    QG_SECTION_PAGE_V61.page=1;
+    QG_SECTION_PAGE_V61.filterKey=filterKey;
+  }
+
+  const rows=[];
+  for(let i=0;i<base.length;i++){
+    const s=base[i]; if(!s)continue;
+    if(mun && s.municipio!==mun)continue;
+    if(zone && Number(s.zona)!==zone)continue;
+    if(q && !qgV194SearchText(s).includes(q))continue;
+    if(status){
+      const rec=recSet.has(sectionIdV76(s));
+      const st=rec?'RECEBIDA':'PENDENTE';
+      if(status!==st)continue;
+    }
+    rows.push(s);
+  }
+
+  const sizeRaw=QG_SECTION_PAGE_V61.pageSize;
+  const pageSize=sizeRaw==='all'?500:Math.min(500,Math.max(25,Number(sizeRaw)||100));
+  const pages=Math.max(1,Math.ceil(rows.length/pageSize));
+  QG_SECTION_PAGE_V61.page=Math.min(pages,Math.max(1,Number(QG_SECTION_PAGE_V61.page)||1));
+  const start=(QG_SECTION_PAGE_V61.page-1)*pageSize;
+  const pageRows=rows.slice(start,start+pageSize);
+
+  const info=document.getElementById('sectionCountInfo');
+  if(info){
+    const a=rows.length?start+1:0,b=Math.min(start+pageRows.length,rows.length);
+    info.textContent='Exibindo '+a+'–'+b+' de '+rows.length+' filtrada(s) • base '+base.length.toLocaleString('pt-BR')+'.';
+  }
+  const pageInfo=document.getElementById('sectionPageInfoV61');
+  if(pageInfo)pageInfo.textContent='Página '+QG_SECTION_PAGE_V61.page+' de '+pages;
+  const pag=document.getElementById('sectionPaginationV61');
+  if(pag){
+    const btns=pag.querySelectorAll('button');
+    if(btns[0])btns[0].disabled=QG_SECTION_PAGE_V61.page<=1;
+    if(btns[1])btns[1].disabled=QG_SECTION_PAGE_V61.page>=pages;
+  }
+
+  const tbody=document.getElementById('tbody');
+  if(tbody){
+    const parts=new Array(pageRows.length);
+    for(let i=0;i<pageRows.length;i++){
+      const s=pageRows[i],rec=recSet.has(sectionIdV76(s));
+      parts[i]='<tr><td>'+escapeHtml(s.municipio||'')+'</td><td>'+Number(s.zona||0)+'</td><td>'+
+        Number(s.secao||0)+'</td><td>'+escapeHtml(s.local||'')+'</td><td>'+
+        Number(s.eleitores||0).toLocaleString('pt-BR')+'</td><td><span class="status '+(rec?'ok':'warn')+'">'+
+        (rec?'RECEBIDA':'PENDENTE')+'</span></td></tr>';
+    }
+    tbody.innerHTML=parts.join('')||'<tr><td colspan="6"><div class="empty-state">Nenhuma seção encontrada.</div></td></tr>';
+  }
+
+  window.__qgV194.lastRowsRendered=pageRows.length;
+  window.__qgV194.lastRowsMatched=rows.length;
+  window.__qgV194.lastSectionRenderMs=Math.round((performance.now()-t0)*10)/10;
+  return {matched:rows.length,rendered:pageRows.length,pages,ms:window.__qgV194.lastSectionRenderMs};
+};
+
+window.setSectionPageSizeV61=function(v){
+  if(!window.QG_SECTION_PAGE_V61)window.QG_SECTION_PAGE_V61={page:1,pageSize:100,filterKey:''};
+  QG_SECTION_PAGE_V61.pageSize=(v==='all'?500:Math.min(500,Math.max(25,Number(v)||100)));
+  QG_SECTION_PAGE_V61.page=1;
+  renderSectionsV15();
+};
+window.changeSectionPageV61=function(delta){
+  QG_SECTION_PAGE_V61.page=Math.max(1,Number(QG_SECTION_PAGE_V61.page||1)+Number(delta||0));
+  renderSectionsV15();
+};
+
+/* Estatística da base calculada uma vez, não a cada abertura. */
+window.renderCoordBaseStatusV61=function(){
+  const el=document.getElementById('coordBaseStatusTextV61');if(!el)return;
+  const arr=qgV194SectionBase();
+  const stamp=arr.length+'|'+(state.sectionBaseMeta?.updatedAt||state.sectionBaseMeta?.importedAt||'official');
+  if(!window.__qgV194.baseStats || window.__qgV194.baseStats.stamp!==stamp){
+    let ele=0;const m=new Set(),z=new Set();
+    for(const x of arr){m.add(x.municipio);z.add(Number(x.zona||0));ele+=Number(x.eleitores||0)}
+    window.__qgV194.baseStats={stamp,n:arr.length,m:m.size,z:z.size,ele};
+  }
+  const s=window.__qgV194.baseStats;
+  el.innerHTML='<b>'+s.n.toLocaleString('pt-BR')+' seções</b> • '+s.m+' municípios • '+s.z+' zonas • '+s.ele.toLocaleString('pt-BR')+' eleitores';
+};
+
+/* A base oficial passa a ser REFERENCIADA, não clonada, nos inicializadores legados. */
+window.ensureFullOperationalBaseV66=function(){
+  try{
+    const embedded=window.QG_SECTIONS_V27||[];
+    const deliberate=state.sectionBaseMeta?.userOverride===true &&
+      Number(state.sectionBaseMeta?.userOverrideVersion||0)>=61;
+    if(embedded.length>=6000&&!deliberate){
+      sections=embedded;
+      state.sectionBase=null;
+      state.sectionBaseMeta={
+        source:'EMBEDDED_2026_SE',count:embedded.length,
+        restoredBy:'V194_REFERENCE',updatedAt:new Date().toISOString(),
+        userOverride:false,notPersistedV193:true
+      };
+    }
+  }catch(e){console.warn('V194 base reference',e)}
+};
+window.loadRealEmbeddedBasesV27=function(){
+  try{
+    const explicit=state.sectionBaseMeta?.userOverride===true &&
+      Number(state.sectionBaseMeta?.userOverrideVersion||0)>=61;
+    if(!explicit && Array.isArray(window.QG_SECTIONS_V27) && window.QG_SECTIONS_V27.length===6052){
+      sections=window.QG_SECTIONS_V27;
+      state.sectionBase=null;
+      state.sectionBaseMeta={
+        source:'BASE REAL EMBUTIDA V27 — Sergipe 2026',
+        count:6052,loadedAt:new Date().toISOString(),userOverride:false,
+        referenceOnlyV194:true,notPersistedV193:true
+      };
+    }
+    const custom=Array.isArray(state.candidates)&&state.candidates.some(c=>c.__customImported===true);
+    if(!custom && Array.isArray(window.QG_CANDIDATES_V27) && window.QG_CANDIDATES_V27.length===389)
+      state.candidates=window.QG_CANDIDATES_V27;
+    qgPersistStateSafe();
+  }catch(e){console.warn('V194 bases',e)}
+};
+
+/* Corrige também os caminhos legados de backup que ainda tentavam escrever payload completo. */
+window.createManualBackup=function(){
+  const item=makeSnapshot('MANUAL');
+  try{auditEvent('BACKUP_MANUAL',item.count+' registros')}catch(_){}
+  qgPersistStateSafe();
+  try{renderBackups()}catch(_){}
+  alert('Checkpoint criado com '+item.count+' registro(s). O backup completo é gerado sob demanda no download.');
+};
+window.adminDeleteAll=function(){
+  if(state.role!=='admin'){alert('Apenas o Administrador pode apagar dados.');return}
+  const pass=(document.getElementById('deletePassword')||{value:''}).value;
+  if(pass!=='APAGAR'){alert('Para apagar definitivamente, digite APAGAR no campo de confirmação.');return}
+  if(!confirm('ATENÇÃO: esta ação apagará os dados locais. Deseja continuar?'))return;
+  if(!confirm('Confirma a exclusão? Um checkpoint será criado antes.'))return;
+  makeSnapshot('PRE-DELETE');
+  state.subs=[];
+  qgPersistStateSafe();
+  try{render()}catch(_){}
+  alert('Dados locais apagados após checkpoint pré-exclusão.');
+};
+
+/* Busca em Seções: debounce de 140 ms e sem render a cada tecla. */
+function qgV194WireSectionSearch(){
+  const search=document.getElementById('sectionSearch');
+  if(search && search.dataset.qgV194!=='1'){
+    search.dataset.qgV194='1';
+    search.removeAttribute('oninput');
+    search.addEventListener('input',()=>{
+      clearTimeout(window.__qgV194.searchTimer);
+      window.__qgV194.searchTimer=setTimeout(()=>renderSectionsV15(),140);
+    },{passive:true});
+  }
+  const size=document.getElementById('sectionPageSizeV61');
+  if(size && size.dataset.qgV194!=='1'){
+    size.dataset.qgV194='1';
+    const current=String(QG_SECTION_PAGE_V61?.pageSize||100);
+    size.innerHTML='<option value="50">50</option><option value="100">100</option><option value="250">250</option><option value="500">500</option>';
+    size.value=['50','100','250','500'].includes(current)?current:(window.innerWidth<=560?'50':'100');
+    if(!window.QG_SECTION_PAGE_V61)window.QG_SECTION_PAGE_V61={page:1,pageSize:Number(size.value),filterKey:''};
+    QG_SECTION_PAGE_V61.pageSize=Number(size.value);
+  }
+  const wrap=document.querySelector('#sections [style*="overflow:auto"]');
+  if(wrap)wrap.classList.add('table-wrap-v194');
+}
+function qgV194PerfNote(){
+  const root=document.getElementById('sections');if(!root)return;
+  let el=document.getElementById('qgV194PerfNote');
+  if(!el){
+    el=document.createElement('div');el.id='qgV194PerfNote';el.className='qg-v194-perf';
+    const pag=document.getElementById('sectionPaginationV61');
+    if(pag)pag.after(el);
+  }
+  if(el)el.textContent='Renderização otimizada: '+window.__qgV194.lastRowsRendered+
+    ' linhas no DOM • '+window.__qgV194.lastRowsMatched+' encontradas • '+
+    window.__qgV194.lastSectionRenderMs+' ms no último render.';
+}
+
+/* Instrumenta apenas a tela Seções para mostrar o ganho real. */
+const qgV194RenderSectionsBase=window.renderSectionsV15;
+window.renderSectionsV15=function(){
+  const r=qgV194RenderSectionsBase.apply(this,arguments);
+  qgV194PerfNote();
+  return r;
+};
+
+function qgV194ApplyRelease(){
+  document.documentElement.dataset.qgRelease='v194';
+  ['qgV181ReleaseOverview','qgV188FinalGate','qgV189RegressionPanel','qgV190FinalTestPanel']
+    .map(id=>document.getElementById(id)).filter(Boolean).forEach(root=>{
+      root.querySelectorAll('h1,h2,h3,b,span,p,small').forEach(el=>{
+        if(el.childElementCount)return;
+        let t=String(el.textContent||'');
+        t=t.replace(/\bv188\b/g,'v194').replace(/\bv189\b/g,'v194')
+          .replace(/\bv190\b/g,'v194').replace(/\bv191\b/g,'v194')
+          .replace(/\bv192\b/g,'v194').replace(/\bv193\b/g,'v194');
+        el.textContent=t;
+      });
+    });
+}
+function qgV194Boot(){
+  /* Remove artefatos técnicos de migração ainda restantes. */
+  try{
+    const rm=[];
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&/^qg_pre_migration_\d+_\d+$/.test(k))rm.push(k);
+    }
+    rm.forEach(k=>localStorage.removeItem(k));
+  }catch(_){}
+
+  qgV194WireSectionSearch();
+  qgV194ApplyRelease();
+  if(window.innerWidth<=560 && window.QG_SECTION_PAGE_V61)QG_SECTION_PAGE_V61.pageSize=50;
+  else if(window.QG_SECTION_PAGE_V61 && (QG_SECTION_PAGE_V61.pageSize==='all'||Number(QG_SECTION_PAGE_V61.pageSize)>500))
+    QG_SECTION_PAGE_V61.pageSize=100;
+}
+if(document.readyState==='loading')
+  document.addEventListener('DOMContentLoaded',qgV194Boot,{once:true,passive:true});
+else qgV194Boot();
+
+/* Se o usuário abrir a área depois do boot, garante a fiação leve. */
+const qgV194ActivateBase=window.qgActivateSection;
+if(typeof qgV194ActivateBase==='function'){
+  window.qgActivateSection=function(id,label){
+    const r=qgV194ActivateBase.apply(this,arguments);
+    if(id==='sections')setTimeout(()=>{qgV194WireSectionSearch();qgV194PerfNote()},40);
+    return r;
+  };
+}
+</script>
+<!-- QG_V194_PERFORMANCE_END -->
+
+
+<!-- QG_V195_RESPONSIVE_FINAL_BEGIN -->
+<style id="qg-v195-responsive-final-css">
+/* QG DAS URNAS v195
+   Responsividade pelo espaço REAL do conteúdo, não apenas pela largura da janela. */
+
+.main,.section{min-width:0!important;max-width:100%!important}
+.main{overflow-x:hidden!important}
+.card,.candidate-total-card,.metric-mini,.report-card,.security-card{min-width:0!important}
+
+/* Totais por candidato: deixa de depender do breakpoint global de 900 px.
+   A grade se adapta ao espaço restante depois da sidebar. */
+.candidate-total-grid{
+  grid-template-columns:repeat(auto-fit,minmax(min(270px,100%),1fr))!important;
+  width:100%!important;max-width:100%!important
+}
+.candidate-total-card{overflow:hidden!important}
+.candidate-total-card .name,.candidate-total-card .num,.candidate-total-card .sections{
+  overflow-wrap:anywhere!important;word-break:normal!important
+}
+.candidate-filter-grid{
+  grid-template-columns:repeat(auto-fit,minmax(min(250px,100%),1fr))!important;
+  width:100%!important
+}
+
+/* Grids gerais também passam a respeitar o contêiner disponível. */
+.grid4{
+  grid-template-columns:repeat(auto-fit,minmax(min(210px,100%),1fr))!important
+}
+.metrics-row{
+  grid-template-columns:repeat(auto-fit,minmax(min(170px,100%),1fr))!important
+}
+.report-grid,.security-grid,.quick-actions{
+  grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))!important
+}
+.two,.chart-grid,.chart-grid-2,.offline-panel{
+  grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr))!important
+}
+
+/* A própria seção vira contêiner de responsividade. */
+#dash,#sections,#pending,#occurrences,#protocols,#reports,
+#adminOverviewV164,#adminApuracaoV164,#adminCampaignsV164,
+#adminUsersAccessV164,#adminDataSystemV164,#adminAuditDiagV164{
+  container-type:inline-size
+}
+
+/* Sala de Guerra: a Coordenação exibe somente o cockpit final.
+   Os componentes legados permanecem no DOM/código para regressão, mas não competem
+   visualmente nem geram a longa "segunda dashboard" acima do cockpit final. */
+body.qg-v185-coord #dash > :not(#qgCoordIntelV164){
+  display:none!important
+}
+body.qg-v185-coord #qgCoordIntelV164{
+  display:block!important;width:100%!important;max-width:100%!important;min-width:0!important
+}
+body.qg-v185-coord #qgCoordIntelBodyV164{
+  width:100%!important;max-width:100%!important;min-width:0!important
+}
+
+/* Cockpit mestre por largura útil real. */
+@container (max-width:1100px){
+  .qg-v185-kpis{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .qg-v185-campaignbar{grid-template-columns:minmax(0,1fr) auto!important}
+  .qg-v185-live{display:none!important}
+  .qg-v186-dashboard{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+  .qg-v186-map,.qg-v186-trajectory,.qg-v186-scenario,.qg-v186-summary{grid-column:1/-1!important}
+  .qg-v186-goal,.qg-v186-coverage,.qg-v186-impact,.qg-v186-opponents,
+  .qg-v186-carriers,.qg-v186-change,.qg-v186-integrity{grid-column:span 3!important}
+}
+@container (max-width:820px){
+  .qg-v185-campaignbar{grid-template-columns:1fr!important;gap:8px!important}
+  .qg-v185-campaign-actions{justify-content:flex-start!important}
+  .qg-v185-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .qg-v185-hero-grid{grid-template-columns:1fr!important}
+  .qg-v185-thermo-body{grid-template-columns:150px minmax(0,1fr)!important}
+  .qg-v186-dashboard{grid-template-columns:1fr 1fr!important}
+  .qg-v186-dashboard>.qg-v186-card{grid-column:auto!important;grid-row:auto!important}
+  .qg-v186-map,.qg-v186-trajectory,.qg-v186-scenario,.qg-v186-summary{grid-column:1/-1!important}
+  .qg-v186-map-shell{grid-template-columns:minmax(0,1fr) 105px!important}
+}
+@container (max-width:600px){
+  .qg-v185-campaign-actions{display:grid!important;grid-template-columns:1fr!important}
+  .qg-v185-campaign-actions select,.qg-v185-campaign-actions button{
+    width:100%!important;min-width:0!important
+  }
+  .qg-v185-kpis{grid-template-columns:1fr 1fr!important}
+  .qg-v185-thermo-body{grid-template-columns:1fr!important}
+  .qg-v185-seat-summary{grid-template-columns:1fr 1fr!important}
+  .qg-v185-seat-summary .margin{grid-column:1/-1!important}
+  .qg-v186-dashboard{display:block!important}
+  .qg-v186-card{margin-bottom:8px!important}
+  .qg-v186-map-shell{grid-template-columns:1fr!important}
+  .qg-v186-map-side{display:grid!important;grid-template-columns:1fr 1fr!important}
+  .qg-v186-map-side .legend{grid-column:1/-1!important}
+  .qg-v186-map-svg{height:270px!important}
+  .qg-v186-cover-wrap{grid-template-columns:74px minmax(0,1fr)!important}
+}
+@container (max-width:430px){
+  .qg-v185-kpis{grid-template-columns:1fr!important}
+  .qg-v185-kpi{min-height:78px!important;padding:10px 9px 9px 48px!important}
+  .qg-v185-kpi .ico{width:30px!important;height:30px!important;left:9px!important;top:12px!important}
+  .qg-v185-kpi .val{font-size:20px!important}
+  .qg-v185-seat-summary{grid-template-columns:1fr!important}
+  .qg-v185-seat-summary .margin{grid-column:auto!important}
+  .qg-v186-map-svg{height:235px!important}
+}
+
+/* Breakpoint de navegação: em tablets, sidebar vira faixa horizontal.
+   Foi mantido acima da largura de telefone para evitar conteúdo espremido. */
+@media(max-width:960px){
+  .app{display:block!important;grid-template-columns:none!important}
+  .side{
+    position:sticky!important;top:0!important;z-index:1000!important;
+    width:100%!important;height:auto!important;min-height:0!important;
+    padding:8px 10px!important;border-right:0!important;
+    border-bottom:1px solid rgba(23,216,255,.18)!important
+  }
+  .side>.brand,.qg-v185-side-brand,.qg-v185-side-footer{display:none!important}
+  .side>select{display:none!important}
+  #nav{
+    display:flex!important;flex-direction:row!important;gap:6px!important;
+    overflow-x:auto!important;overflow-y:hidden!important;width:100%!important;
+    scrollbar-width:none!important
+  }
+  #nav::-webkit-scrollbar{display:none!important}
+  #nav button{
+    flex:0 0 auto!important;width:auto!important;min-width:max-content!important;
+    margin:0!important;min-height:40px!important;padding:9px 12px!important
+  }
+  .main{padding:9px!important;width:100%!important}
+  body.qg-v185-coord .main{padding:0 9px 9px!important}
+}
+@media(max-width:560px){
+  .main,body.qg-v185-coord .main{padding:6px!important}
+  .candidate-total-grid,.candidate-filter-grid{grid-template-columns:1fr!important}
+  table{min-width:520px!important}
+}
+</style>
+
+<script id="qg-v195-responsive-final-js">
+window.QG_APP_PATCH_V195={
+  version:195,base:'v194',scope:'responsive-final-coord-cockpit',
+  safetyBaseline:'v160',at:'2026-09-07'
+};
+window.__qgV195=window.__qgV195||{promotions:0};
+
+function qgV195PromoteSala(){
+  if(String(state?.role||'').toLowerCase()!=='coordenacao')return false;
+  const dash=document.getElementById('dash');if(!dash)return false;
+  let host=document.getElementById('qgCoordIntelV164');
+  if(!host && typeof qgEnsureCoordIntelligenceV164==='function')
+    host=qgEnsureCoordIntelligenceV164();
+  if(!host)return false;
+  if(dash.firstElementChild!==host){
+    dash.prepend(host);
+    window.__qgV195.promotions++;
+  }
+  document.body.classList.add('qg-v195-coord-final');
+  return true;
+}
+
+function qgV195ApplyRelease(){
+  document.documentElement.dataset.qgRelease='v195';
+  document.documentElement.dataset.qgV195='responsive-final';
+  ['qgV181ReleaseOverview','qgV188FinalGate','qgV189RegressionPanel','qgV190FinalTestPanel']
+    .map(id=>document.getElementById(id)).filter(Boolean).forEach(root=>{
+      root.querySelectorAll('h1,h2,h3,b,span,p,small').forEach(el=>{
+        if(el.childElementCount)return;
+        let t=String(el.textContent||'');
+        t=t.replace(/\bv188\b/g,'v195').replace(/\bv189\b/g,'v195')
+          .replace(/\bv190\b/g,'v195').replace(/\bv191\b/g,'v195')
+          .replace(/\bv192\b/g,'v195').replace(/\bv193\b/g,'v195')
+          .replace(/\bv194\b/g,'v195');
+        el.textContent=t;
+      });
+    });
+}
+
+/* Depois de cada refresh da inteligência, mantém o cockpit no topo. */
+const qgV195CoordRefreshBase=window.qgRefreshCoordIntelligenceV164;
+if(typeof qgV195CoordRefreshBase==='function'){
+  window.qgRefreshCoordIntelligenceV164=async function(){
+    const r=await qgV195CoordRefreshBase.apply(this,arguments);
+    qgV195PromoteSala();
+    qgV195ApplyRelease();
+    return r;
+  };
+}
+
+/* Ao entrar em Sala de Guerra, evita o flash dos painéis legados. */
+const qgV195ActivateBase=window.qgActivateSection;
+if(typeof qgV195ActivateBase==='function'){
+  window.qgActivateSection=function(id,label){
+    const r=qgV195ActivateBase.apply(this,arguments);
+    if(id==='dash'&&state?.role==='coordenacao'){
+      qgV195PromoteSala();
+      requestAnimationFrame(()=>qgV195PromoteSala());
+    }
+    qgV195ApplyRelease();
+    return r;
+  };
+}
+
+/* Renderização do card de candidatos não precisa mais ocorrer em cada tecla. */
+function qgV195WireCandidateSearch(){
+  const el=document.getElementById('dashboardCandidateSearchV20');
+  if(!el||el.dataset.qgV195==='1')return;
+  el.dataset.qgV195='1';
+  el.removeAttribute('oninput');
+  let timer=null;
+  el.addEventListener('input',()=>{
+    clearTimeout(timer);
+    timer=setTimeout(()=>{try{renderCandidateTotalsV20()}catch(_){}},120);
+  },{passive:true});
+}
+
+function qgV195Boot(){
+  qgV195ApplyRelease();
+  qgV195WireCandidateSearch();
+  if(state?.role==='coordenacao'){
+    qgV195PromoteSala();
+    if(document.getElementById('dash')?.classList.contains('active')){
+      Promise.resolve().then(()=>{
+        try{qgRefreshCoordIntelligenceV164(false)}catch(_){}
+      });
+    }
+  }
+}
+if(document.readyState==='loading')
+  document.addEventListener('DOMContentLoaded',qgV195Boot,{once:true,passive:true});
+else qgV195Boot();
+
+window.addEventListener('resize',()=>{
+  /* CSS/container queries fazem o trabalho; apenas reforça o cockpit correto. */
+  if(state?.role==='coordenacao')qgV195PromoteSala();
+},{passive:true});
+</script>
+<!-- QG_V195_RESPONSIVE_FINAL_END -->
+
+
+<!-- QG_V196_FINAL_SIMULATOR_BEGIN -->
+<style id="qg-v196-final-simulator-css">
+.qg-v196-lab{
+  border:1px solid rgba(23,216,255,.23)!important;
+  background:linear-gradient(145deg,rgba(5,24,43,.97),rgba(2,12,25,.99))!important
+}
+.qg-v196-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.qg-v196-chip{display:inline-flex;align-items:center;padding:6px 9px;border-radius:999px;
+  font-size:9px;font-weight:900;letter-spacing:.08em;border:1px solid rgba(227,189,105,.28);
+  color:#e9cd92;background:rgba(227,189,105,.055)}
+.qg-v196-chip.on{border-color:rgba(126,229,44,.32);color:#bff58f;background:rgba(126,229,44,.06)}
+.qg-v196-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
+.qg-v196-kpi{padding:10px;border-radius:11px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.025)}
+.qg-v196-kpi small{display:block;color:#7f9db2;font-size:8px;text-transform:uppercase;letter-spacing:.08em}
+.qg-v196-kpi b{display:block;margin-top:4px;font-size:17px}
+.qg-v196-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.qg-v196-actions button{min-height:42px}
+.qg-v196-progress{height:8px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden;margin-top:10px}
+.qg-v196-progress i{display:block;width:0;height:100%;background:linear-gradient(90deg,#17d8ff,#7ee52c);transition:width .08s linear}
+.qg-v196-note{margin-top:9px;padding:9px 11px;border-radius:10px;
+  background:rgba(23,216,255,.045);border:1px solid rgba(23,216,255,.14);
+  color:#a7c5d7;font-size:10px;line-height:1.5}
+.qg-v196-note strong{color:#fff}
+.qg-v196-warn{color:#f0cf8c!important;border-color:rgba(227,189,105,.2)!important;background:rgba(227,189,105,.045)!important}
+@media(max-width:900px){.qg-v196-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.qg-v196-grid{grid-template-columns:1fr}.qg-v196-actions{display:grid;grid-template-columns:1fr}.qg-v196-actions button{width:100%}}
+</style>
+
+<script id="qg-v196-final-simulator-js">
+/* QG DAS URNAS v196 — Simulador de Apuração Final ultrarrápido.
+   - Gera 100% das 6.052 seções em memória.
+   - Gera todos os 5 cargos e representa os 389 candidatos.
+   - NÃO publica nada no Supabase.
+   - NÃO persiste 30 mil linhas sintéticas no localStorage/IndexedDB.
+   - Preserva os dados reais em memória e os restaura com um clique.
+   - Usa caches específicos para que a Sala de Guerra continue célere. */
+window.QG_APP_PATCH_V196={
+  version:196,base:'v195',scope:'final-count-ultrafast-local-simulator',
+  safetyBaseline:'v160',at:'2026-09-07'
+};
+
+window.__qgV196=window.__qgV196||{
+  active:false,generating:false,realSubs:null,simRows:[],canonicalRows:[],
+  byCargo:new Map(),totalsByCargo:new Map(),candidateSectionCounts:new Map(),
+  receivedSet:new Set(),munStats:new Map(),metricsCache:new Map(),
+  trajectoryCache:new Map(),last:null,realtimeWasActive:false
+};
+
+function qgV196Esc(v){
+  return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function qgV196Cargos(){
+  return ['Deputado Estadual','Deputado Federal','Senador','Governador','Presidente'];
+}
+function qgV196CandidatesByCargo(){
+  const out=new Map();
+  for(const cargo of qgV196Cargos()){
+    const rows=(window.QG_CANDIDATES_V27||[]).filter(c=>String(c.cargo)===cargo&&c.active!==false);
+    out.set(cargo,rows);
+  }
+  return out;
+}
+function qgV196CandidateId(c){
+  try{return c.id||candidateIdV20(c)}catch(_){return String(c.cargo||'')+'|'+String(c.numero||'')}
+}
+function qgV196TrackedForCargo(cargo,pool){
+  const tenant=typeof qgCurrentTenantV97==='function'?qgCurrentTenantV97():null;
+  const configured=String(
+    (state.campaignV63?.cargo===cargo?state.campaignV63?.candidateNumber:'') ||
+    tenant?.numero || ''
+  );
+  return pool.find(c=>String(c.numero)===configured)||null;
+}
+function qgV196Hash(s){
+  let h=2166136261>>>0;
+  const t=String(s||'');
+  for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619)}
+  return h>>>0;
+}
+function qgV196SectionKey(s){
+  return [normalizeText(s.municipio||''),Number(s.zona||0),Number(s.secao||0)].join('|');
+}
+function qgV196ChooseCandidate(pool,tracked,sectionIndex,cargoIndex,mun){
+  if(!pool.length)return null;
+  /* Candidato acompanhado aparece com maior frequência, mas todos os candidatos
+     continuam representados graças ao round-robin determinístico. */
+  if(tracked && ((sectionIndex + cargoIndex*3)%7===0))return tracked;
+  const offset=(qgV196Hash(mun)+cargoIndex*37)%pool.length;
+  return pool[(sectionIndex+offset)%pool.length];
+}
+function qgV196Time(sectionIndex,total){
+  const end=Date.now()-15000;
+  const start=end-(3*60*60*1000);
+  const ratio=total<=1?1:sectionIndex/(total-1);
+  return new Date(Math.round(start+(end-start)*ratio)).toISOString();
+}
+function qgV196RenderLab(){
+  const root=document.getElementById('adminAuditDiagV164');if(!root)return;
+  let box=document.getElementById('qgV196FinalSimulator');
+  if(!box){
+    box=document.createElement('div');
+    box.id='qgV196FinalSimulator';
+    box.className='card qg-v196-lab';
+    const ref=document.getElementById('qgV190FinalTestPanel')||
+      document.getElementById('qgV189RegressionPanel')||
+      document.getElementById('qgV188FinalGate');
+    ref?ref.after(box):root.prepend(box);
+  }
+  const x=window.__qgV196.last;
+  const active=window.__qgV196.active;
+  box.innerHTML=
+    '<div class="qg-v196-head"><div><span class="qg-v164-badge intel">LABORATÓRIO DE SIMULAÇÃO • v196</span>'+
+    '<h3>Apuração Final 100% — modo ultrarrápido</h3>'+
+    '<div class="note">Preenche virtualmente todas as seções de Sergipe, todos os cargos e toda a base de candidatos para testar o aplicativo como no encerramento da apuração.</div></div>'+
+    '<span class="qg-v196-chip '+(active?'on':'')+'">'+(window.__qgV196.generating?'GERANDO...':active?'SIMULAÇÃO ATIVA':'DADOS REAIS')+'</span></div>'+
+    '<div class="qg-v196-grid">'+
+      '<div class="qg-v196-kpi"><small>BUs / seções</small><b>'+(x?Number(x.bus||0).toLocaleString('pt-BR'):'6.052')+'</b></div>'+
+      '<div class="qg-v196-kpi"><small>Linhas analíticas</small><b>'+(x?Number(x.rows||0).toLocaleString('pt-BR'):'30.260')+'</b></div>'+
+      '<div class="qg-v196-kpi"><small>Candidatos</small><b>'+(x?Number(x.candidatesRepresented||0).toLocaleString('pt-BR'):'389')+'</b></div>'+
+      '<div class="qg-v196-kpi"><small>Tempo de geração</small><b>'+(x?(Number(x.ms||0).toLocaleString('pt-BR')+' ms'):'—')+'</b></div>'+
+    '</div>'+
+    '<div class="qg-v196-progress"><i id="qgV196Progress" style="width:'+(active?'100':'0')+'%"></i></div>'+
+    '<div class="qg-v196-actions">'+
+      '<button class="btn" onclick="qgV196GenerateFull()" '+(window.__qgV196.generating?'disabled':'')+'>GERAR APURAÇÃO FINAL 100%</button>'+
+      '<button class="ghost" onclick="qgV196GeneratePartial(100)" '+(window.__qgV196.generating?'disabled':'')+'>GERAR 100 BUs</button>'+
+      '<button class="ghost" onclick="qgV196GeneratePartial(25)" '+(window.__qgV196.generating?'disabled':'')+'>GERAR 25 BUs</button>'+
+      '<button class="ghost" onclick="qgV196RestoreReal()" '+(!active?'disabled':'')+'>RESTAURAR DADOS REAIS</button>'+
+    '</div>'+
+    '<div class="qg-v196-note"><strong>Isolamento:</strong> a simulação é local e temporária. Não envia BUs sintéticos ao Supabase, não altera a base canônica real e não grava as 30 mil linhas no armazenamento permanente.</div>'+
+    (active?'<div class="qg-v196-note qg-v196-warn"><strong>Modo simulação ativo.</strong> Coordenação, Sala de Guerra, Seções, Protocolos e Apuração do Administrador passam a ler a massa sintética até você clicar em “Restaurar dados reais”.</div>':'');
+}
+function qgV196SetProgress(pct){
+  const el=document.getElementById('qgV196Progress');
+  if(el)el.style.width=Math.max(0,Math.min(100,Number(pct)||0))+'%';
+}
+
+async function qgV196Generate(count=6052){
+  if(window.__qgV196.generating)return false;
+  window.__qgV196.generating=true;
+  qgV196RenderLab();
+  qgV196SetProgress(2);
+
+  const t0=performance.now();
+  try{
+    const base=(window.QG_SECTIONS_V27||[]).slice(0,Math.min(Math.max(1,Number(count)||6052),(window.QG_SECTIONS_V27||[]).length));
+    if(!base.length)throw new Error('Base oficial de seções indisponível.');
+
+    if(!window.__qgV196.active){
+      window.__qgV196.realSubs=Array.isArray(state.subs)?state.subs.slice():[];
+    }
+
+    /* Pausa a sincronização durante a simulação para não misturar dados reais e sintéticos. */
+    try{
+      window.__qgV196.realtimeWasActive=!!window.__qgSbChannelV88||!!window.__qgSbPollV88;
+      qgStopRealtimeV88?.();
+    }catch(_){}
+
+    const candidatesByCargo=qgV196CandidatesByCargo();
+    const cargos=qgV196Cargos();
+    const simRows=[];
+    const canonicalRows=[];
+    const byCargo=new Map(cargos.map(c=>[c,[]]));
+    const totalsByCargo=new Map(cargos.map(c=>[c,new Map()]));
+    const sectionCounts=new Map();
+    const receivedSet=new Set();
+    const munStats=new Map();
+    const candidateSeen=new Set();
+    const tenantId=typeof qgCurrentTenantIdV97==='function'?qgCurrentTenantIdV97():'default';
+
+    const trackedByCargo=new Map(cargos.map(c=>[c,qgV196TrackedForCargo(c,candidatesByCargo.get(c)||[])]));
+    const total=base.length;
+    const chunk=750;
+
+    for(let start=0;start<total;start+=chunk){
+      const end=Math.min(total,start+chunk);
+      for(let i=start;i<end;i++){
+        const s=base[i];
+        const sk=qgV196SectionKey(s);
+        receivedSet.add(sk);
+
+        const aptos=Math.max(1,Number(s.eleitores||300));
+        const turnoutRate=0.72+((qgV196Hash(sk)%1700)/10000); // 72%–88,99%
+        const presentes=Math.min(aptos,Math.max(1,Math.round(aptos*turnoutRate)));
+        const faltosos=Math.max(0,aptos-presentes);
+        const at=qgV196Time(i,total);
+        const protocol='QG-SIMFINAL-'+String(i+1).padStart(4,'0');
+        const results=[];
+
+        let mun=munStats.get(s.municipio);
+        if(!mun){
+          mun={municipio:s.municipio,sections:0,electorate:0};
+          munStats.set(s.municipio,mun);
+        }
+        mun.sections++;mun.electorate+=aptos;
+
+        for(let ci=0;ci<cargos.length;ci++){
+          const cargo=cargos[ci],pool=candidatesByCargo.get(cargo)||[];
+          const tracked=trackedByCargo.get(cargo);
+          const cand=qgV196ChooseCandidate(pool,tracked,i,ci,s.municipio);
+          if(!cand)continue;
+
+          const slots=cargo==='Senador'?presentes*2:presentes;
+          const brancos=Math.max(0,Math.round(slots*(0.010+((i+ci)%7)*0.001)));
+          const nulos=Math.max(0,Math.round(slots*(0.018+((i+ci)%9)*0.001)));
+          const nominal=Math.max(0,slots-brancos-nulos);
+
+          const candidateId=qgV196CandidateId(cand);
+          const candidateNumber=String(cand.numero);
+          candidateSeen.add(candidateId);
+
+          const rec={
+            id:'SIM196-'+i+'-'+ci,
+            eventId:'SIM196-'+i+'-'+ci,
+            key:sk+'|'+cargo+'|'+candidateNumber,
+            logicalKey:'SIM196|'+sk+'|'+cargo+'|'+candidateNumber,
+            sectionKey:sk,
+            municipio:s.municipio,
+            zona:Number(s.zona||0),
+            secao:Number(s.secao||0),
+            local:s.local||'',
+            localNumero:s.localNumero||'',
+            eleitores:aptos,
+            votos:nominal,
+            fiscal:'Fiscal Simulado '+String((i%36)+1).padStart(2,'0'),
+            fiscalId:'SIM-F'+String((i%36)+1).padStart(2,'0'),
+            time:at,createdAt:at,capturedAt:at,
+            status:'PROCESSADO',
+            metodo:'SIMULACAO_FINAL',
+            candidateId,
+            candidateNumber,
+            candidateName:cand.nome||'',
+            partido:cand.partido||'',
+            federacao:cand.federacao||cand.siglaFederacao||'',
+            cargo,
+            protocolo:protocol,
+            protocol,
+            buProtocol:protocol,
+            processed:true,
+            synthetic:true,
+            homologation:true,
+            simulationFinalV196:true,
+            tenantId,
+            buMeta:{
+              aptos,presentes,comparecimento:presentes,faltosos,
+              cargoBrancos:brancos,cargoNulos:nulos,cargoTotal:slots
+            }
+          };
+          simRows.push(rec);
+          byCargo.get(cargo).push(rec);
+
+          const totals=totalsByCargo.get(cargo);
+          totals.set(candidateNumber,(totals.get(candidateNumber)||0)+nominal);
+
+          const ckey=cargo+'|'+candidateNumber;
+          sectionCounts.set(ckey,(sectionCounts.get(ckey)||0)+1);
+
+          results.push({
+            cargo,
+            nominais:nominal,
+            legenda:0,
+            brancos,nulos,total:slots,
+            candidatos:[{
+              numero:candidateNumber,
+              nome:cand.nome||'',
+              partido:cand.partido||'',
+              federacao:cand.federacao||cand.siglaFederacao||'',
+              votos:nominal
+            }]
+          });
+        }
+
+        canonicalRows.push({
+          id:i+1,
+          municipio:s.municipio,zona:Number(s.zona||0),secao:Number(s.secao||0),
+          local:s.local||'',local_numero:s.localNumero||'',
+          first_protocol:protocol,
+          first_method:'SIMULACAO_FINAL',
+          first_received_at:at,
+          created_at:at,
+          validation:{ok:true,synthetic:true,mode:'FINAL_100_V196'},
+          meta:{aptos,comparecimento:presentes,faltosos},
+          results,
+          synthetic:true,
+          simulationFinalV196:true
+        });
+      }
+      qgV196SetProgress(5+Math.round(end/total*82));
+      /* Yield curto: mantém botões/navegador responsivos sem transformar a geração
+         em um loop de milhares de awaits. */
+      if(end<total)await new Promise(r=>requestAnimationFrame(r));
+    }
+
+    state.subs=simRows;
+    window.__qgV196.simRows=simRows;
+    window.__qgV196.canonicalRows=canonicalRows;
+    window.__qgV196.byCargo=byCargo;
+    window.__qgV196.totalsByCargo=totalsByCargo;
+    window.__qgV196.candidateSectionCounts=sectionCounts;
+    window.__qgV196.receivedSet=receivedSet;
+    window.__qgV196.munStats=munStats;
+    window.__qgV196.metricsCache=new Map();
+    window.__qgV196.trajectoryCache=new Map();
+    window.__qgV196.active=true;
+
+    /* Auditoria compacta: 1 evento, não 6.052/30.260 eventos. */
+    try{
+      if(!Array.isArray(state.auditEvents))state.auditEvents=[];
+      state.auditEvents.push({
+        type:'SIMULACAO_FINAL_V196',
+        time:new Date().toISOString(),
+        detail:total+' BUs sintéticos • '+simRows.length+' linhas • '+candidateSeen.size+' candidatos',
+        synthetic:true
+      });
+    }catch(_){}
+
+    const ms=Math.round((performance.now()-t0)*10)/10;
+    window.__qgV196.last={
+      bus:total,rows:simRows.length,candidatesRepresented:candidateSeen.size,
+      cargos:cargos.length,municipios:munStats.size,coverage:100,ms,
+      generatedAt:new Date().toISOString()
+    };
+
+    qgV196SetProgress(100);
+    qgV196RenderLab();
+
+    /* Atualiza somente o painel atualmente visível. Não dispara render global. */
+    try{
+      const id=document.querySelector('.section.active')?.id;
+      if(id==='adminApuracaoV164')await qgAdminRefreshApuracaoV164?.();
+      else if(id==='sections')renderSectionsV15?.();
+      else if(id==='adminAuditDiagV164')qgV196RenderLab();
+    }catch(_){}
+
+    toastV21?.('Apuração final simulada: '+total.toLocaleString('pt-BR')+' BUs em '+ms.toLocaleString('pt-BR')+' ms.');
+    return true;
+  }catch(e){
+    console.error('QG v196 • simulador final:',e);
+    alert('Falha ao gerar a simulação final: '+(e.message||e));
+    return false;
+  }finally{
+    window.__qgV196.generating=false;
+    qgV196RenderLab();
+  }
+}
+window.qgV196GenerateFull=function(){return qgV196Generate(6052)}
+window.qgV196GeneratePartial=function(n){return qgV196Generate(Number(n)||100)}
+
+window.qgV196RestoreReal=async function(){
+  if(!window.__qgV196.active)return true;
+  state.subs=Array.isArray(window.__qgV196.realSubs)?window.__qgV196.realSubs:[];
+  window.__qgV196.active=false;
+  window.__qgV196.simRows=[];
+  window.__qgV196.canonicalRows=[];
+  window.__qgV196.byCargo=new Map();
+  window.__qgV196.totalsByCargo=new Map();
+  window.__qgV196.candidateSectionCounts=new Map();
+  window.__qgV196.receivedSet=new Set();
+  window.__qgV196.metricsCache=new Map();
+  window.__qgV196.trajectoryCache=new Map();
+  window.__qgV196.last=null;
+
+  try{
+    if(window.__qgV196.realtimeWasActive&&qgRealtimeConfiguredV88?.())
+      await qgStartRealtimeV88?.(true);
+  }catch(_){}
+
+  qgV196RenderLab();
+  try{renderSectionsV15?.()}catch(_){}
+  toastV21?.('Dados reais restaurados. Simulação final encerrada.');
+  return true;
+};
+
+/* ---------- FAST PATHS DURANTE A SIMULAÇÃO ---------- */
+const qgV196CanonicalBase=window.qgCanonicalSubsV90;
+window.qgCanonicalSubsV90=function(){
+  if(!window.__qgV196.active)return qgV196CanonicalBase.apply(this,arguments);
+  const allowed=new Set(typeof enabledCargosV71==='function'?enabledCargosV71():qgV196Cargos());
+  const key=[...allowed].sort().join('|');
+  window.__qgV196.allowedCache=window.__qgV196.allowedCache||new Map();
+  if(window.__qgV196.allowedCache.has(key))return window.__qgV196.allowedCache.get(key);
+  const rows=[];
+  for(const cargo of qgV196Cargos()){
+    if(allowed.has(cargo))rows.push(...(window.__qgV196.byCargo.get(cargo)||[]));
+  }
+  window.__qgV196.allowedCache.set(key,rows);
+  return rows;
+};
+
+const qgV196MetricsBase=window.qgBuMetricsV90;
+window.qgBuMetricsV90=function(){
+  if(!window.__qgV196.active)return qgV196MetricsBase.apply(this,arguments);
+  const allowed=[...(typeof enabledCargosV71==='function'?enabledCargosV71():qgV196Cargos())].sort();
+  const sig=allowed.join('|');
+  if(window.__qgV196.metricsCache.has(sig))return window.__qgV196.metricsCache.get(sig);
+
+  const subs=qgCanonicalSubsV90();
+  const groups=new Map();
+  let nominais=0,brancos=0,nulos=0,totalCargos=0;
+  for(const r of subs){
+    const k=qgV196SectionKey(r);
+    if(!groups.has(k))groups.set(k,[]);
+    groups.get(k).push(r);
+    nominais+=Number(r.votos||0);
+    brancos+=Number(r.buMeta?.cargoBrancos||0);
+    nulos+=Number(r.buMeta?.cargoNulos||0);
+    totalCargos+=Number(r.buMeta?.cargoTotal||0);
+  }
+  let aptos=0,presentes=0,ausentes=0;
+  const sectionRows=[];
+  for(const s of (window.QG_SECTIONS_V27||[])){
+    const k=qgV196SectionKey(s);
+    if(!window.__qgV196.receivedSet.has(k))continue;
+    const rows=groups.get(k)||[];
+    const first=rows[0]||{};
+    const a=Number(first.buMeta?.aptos||s.eleitores||0);
+    const p=Number(first.buMeta?.comparecimento||0);
+    const f=Number(first.buMeta?.faltosos||Math.max(0,a-p));
+    aptos+=a;presentes+=p;ausentes+=f;
+    let wb=0,wn=0,wt=0;
+    rows.forEach(r=>{wb+=Number(r.buMeta?.cargoBrancos||0);wn+=Number(r.buMeta?.cargoNulos||0);wt+=Number(r.buMeta?.cargoTotal||0)});
+    sectionRows.push({key:k,municipio:s.municipio,zona:s.zona,secao:s.secao,aptos:a,presentes:p,ausentes:f,brancos:wb,nulos:wn,total:wt,time:first.time||''});
+  }
+  const out={subs,groups,sectionRows,aptos,presentes,ausentes,brancos,nulos,totalCargos,nominais,reconciled:nominais+brancos+nulos===totalCargos};
+  window.__qgV196.metricsCache.set(sig,out);
+  return out;
+};
+
+const qgV196ReceivedBase=window.qgReceivedSectionKeysV164;
+window.qgReceivedSectionKeysV164=function(){
+  if(window.__qgV196.active)return window.__qgV196.receivedSet;
+  return qgV196ReceivedBase.apply(this,arguments);
+};
+
+const qgV196RankBase=window.qgRankCandidateV164;
+window.qgRankCandidateV164=function(cargo,number,rows=null){
+  if(!window.__qgV196.active||rows)return qgV196RankBase.apply(this,arguments);
+  const totals=window.__qgV196.totalsByCargo.get(cargo)||new Map();
+  const ranked=[...totals].sort((a,b)=>b[1]-a[1]||String(a[0]).localeCompare(String(b[0]),undefined,{numeric:true}));
+  return {rank:ranked.findIndex(x=>String(x[0])===String(number))+1,total:totals.get(String(number))||0,ranked};
+};
+
+const qgV196TerrBase=window.qgTerritorialDataV164;
+window.qgTerritorialDataV164=function(cargo,candidateNumber){
+  if(!window.__qgV196.active)return qgV196TerrBase.apply(this,arguments);
+  const voteMap=new Map();
+  for(const r of (window.__qgV196.byCargo.get(cargo)||[])){
+    if(String(r.candidateNumber)!==String(candidateNumber))continue;
+    voteMap.set(r.municipio,(voteMap.get(r.municipio)||0)+Number(r.votos||0));
+  }
+  const out=[];
+  for(const [municipio,st] of window.__qgV196.munStats){
+    out.push({
+      key:normalizeText(municipio),municipio,
+      votes:voteMap.get(municipio)||0,
+      receivedElectorate:st.electorate,totalElectorate:st.electorate,
+      receivedSections:st.sections,totalSections:st.sections
+    });
+  }
+  return out;
+};
+
+const qgV196IsReceivedBase=window.isSectionReceivedV66;
+window.isSectionReceivedV66=function(s){
+  if(window.__qgV196.active)return window.__qgV196.receivedSet.has(qgV196SectionKey(s));
+  return qgV196IsReceivedBase.apply(this,arguments);
+};
+
+const qgV196FetchCanonicalBase=window.qgFetchCanonicalAllV165;
+window.qgFetchCanonicalAllV165=async function(){
+  if(window.__qgV196.active)return window.__qgV196.canonicalRows;
+  return qgV196FetchCanonicalBase.apply(this,arguments);
+};
+
+/* Candidate totals em O(389) durante a simulação, em vez de revarrer 30 mil linhas. */
+const qgV196RenderCandidateTotalsBase=window.renderCandidateTotalsV20;
+window.renderCandidateTotalsV20=function(){
+  if(!window.__qgV196.active)return qgV196RenderCandidateTotalsBase.apply(this,arguments);
+  initCandidatesV20?.();
+  restrictCoordCargoFiltersV71?.();
+  const cargo=document.getElementById('dashboardCargoV20')?.value||'';
+  const allowed=new Set(enabledCargosV71?.()||qgV196Cargos());
+  const q=(document.getElementById('dashboardCandidateSearchV20')?.value||'').toLowerCase().trim();
+  const candidates=(state.candidates||[]).filter(c=>allowed.has(c.cargo)&&(!cargo||c.cargo===cargo)&&(!q||(String(c.nome)+' '+String(c.numero)+' '+String(c.partido)).toLowerCase().includes(q)));
+  candidates.sort((a,b)=>{
+    const av=window.__qgV196.totalsByCargo.get(a.cargo)?.get(String(a.numero))||0;
+    const bv=window.__qgV196.totalsByCargo.get(b.cargo)?.get(String(b.numero))||0;
+    return bv-av;
+  });
+  const box=document.getElementById('candidateTotalsV20');if(!box)return;
+  box.innerHTML=candidates.length?candidates.map(c=>{
+    const votes=window.__qgV196.totalsByCargo.get(c.cargo)?.get(String(c.numero))||0;
+    const secs=window.__qgV196.candidateSectionCounts.get(c.cargo+'|'+String(c.numero))||0;
+    return '<div class="candidate-total-card"><div class="cargo">'+qgV196Esc(c.cargo)+'</div><div class="name">'+qgV196Esc(c.nome)+'</div><div class="num">'+qgV196Esc(c.numero)+(c.partido?' • '+qgV196Esc(c.partido):'')+'</div><div class="votes">'+votes.toLocaleString('pt-BR')+'</div><div class="sections">'+secs+' seção(ões) simulada(s)</div></div>';
+  }).join(''):'<div class="empty-state" style="grid-column:1/-1">Nenhum candidato cadastrado para este filtro.</div>';
+};
+
+/* Persistência: enquanto simulação está ativa, grava somente os dados reais preservados. */
+const qgV196PersistBase=window.qgPersistStateSafe;
+window.qgPersistStateSafe=function(){
+  if(!window.__qgV196.active)return qgV196PersistBase.apply(this,arguments);
+  const sim=state.subs;
+  try{
+    state.subs=Array.isArray(window.__qgV196.realSubs)?window.__qgV196.realSubs:[];
+    return qgV196PersistBase.apply(this,arguments);
+  }finally{
+    state.subs=sim;
+  }
+};
+
+const qgV196SnapshotBase=window.snapshotPayload;
+window.snapshotPayload=function(){
+  if(!window.__qgV196.active)return qgV196SnapshotBase.apply(this,arguments);
+  const sim=state.subs;
+  try{
+    state.subs=Array.isArray(window.__qgV196.realSubs)?window.__qgV196.realSubs:[];
+    return qgV196SnapshotBase.apply(this,arguments);
+  }finally{state.subs=sim}
+};
+
+/* Não reabre realtime enquanto a massa sintética local estiver ativa. */
+const qgV196RealtimeBase=window.qgStartRealtimeV88;
+window.qgStartRealtimeV88=async function(){
+  if(window.__qgV196.active){
+    try{renderRealtimeStatusV88?.('SIMULAÇÃO LOCAL • realtime remoto pausado')}catch(_){}
+    return true;
+  }
+  return qgV196RealtimeBase.apply(this,arguments);
+};
+
+function qgV196ApplyRelease(){
+  document.documentElement.dataset.qgRelease='v196';
+  ['qgV181ReleaseOverview','qgV188FinalGate','qgV189RegressionPanel','qgV190FinalTestPanel']
+    .map(id=>document.getElementById(id)).filter(Boolean).forEach(root=>{
+      root.querySelectorAll('h1,h2,h3,b,span,p,small').forEach(el=>{
+        if(el.childElementCount)return;
+        let t=String(el.textContent||'');
+        t=t.replace(/\bv188\b/g,'v196').replace(/\bv189\b/g,'v196')
+          .replace(/\bv190\b/g,'v196').replace(/\bv191\b/g,'v196')
+          .replace(/\bv192\b/g,'v196').replace(/\bv193\b/g,'v196')
+          .replace(/\bv194\b/g,'v196').replace(/\bv195\b/g,'v196');
+        el.textContent=t;
+      });
+    });
+}
+
+const qgV196ActivateBase=window.qgActivateSection;
+if(typeof qgV196ActivateBase==='function'){
+  window.qgActivateSection=function(id,label){
+    const r=qgV196ActivateBase.apply(this,arguments);
+    if(id==='adminAuditDiagV164'&&state?.role==='admin')setTimeout(qgV196RenderLab,60);
+    qgV196ApplyRelease();
+    return r;
+  };
+}
+function qgV196Boot(){
+  qgV196ApplyRelease();
+  if(state?.role==='admin'&&document.getElementById('adminAuditDiagV164')?.classList.contains('active'))
+    qgV196RenderLab();
+}
+if(document.readyState==='loading')
+  document.addEventListener('DOMContentLoaded',qgV196Boot,{once:true,passive:true});
+else qgV196Boot();
+</script>
+<!-- QG_V196_FINAL_SIMULATOR_END -->
 
 </body></html>
