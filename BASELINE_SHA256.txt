@@ -1,0 +1,4 @@
+QG DAS URNAS v213 baseline congelada
+SHA-256 original: 3efbb75d4dc0c0f5605ffdf33dd3ea89a7d579698ac851a8da7b4f7963c5f183
+SHA-256 index.html: 3efbb75d4dc0c0f5605ffdf33dd3ea89a7d579698ac851a8da7b4f7963c5f183
+Byte a byte idêntico: SIM
