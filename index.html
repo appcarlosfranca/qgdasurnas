@@ -32503,4 +32503,141 @@ function qgV228PreloadIntroAudio(){
 window.addEventListener('DOMContentLoaded',()=>setTimeout(qgV228PreloadIntroAudio,120));
 window.qgV228StartIntroAudio=qgV228StartIntroAudio;
 </script>
+
+<!-- QG_V229_CROSS_DEVICE_LOGIN_FIX_START -->
+<style id="qg-v229-sync-status-css">
+#syncBadge.qg-v229-ok{border-color:rgba(54,255,147,.45)!important;background:rgba(25,112,72,.22)!important}
+#syncBadge.qg-v229-ok .dot{background:#39ff91!important;box-shadow:0 0 8px #39ff91!important}
+#syncBadge.qg-v229-warn{border-color:rgba(255,205,73,.45)!important;background:rgba(113,83,15,.22)!important}
+#syncBadge.qg-v229-bad{border-color:rgba(255,89,107,.45)!important;background:rgba(118,31,46,.24)!important}
+</style>
+<script id="qg-v229-cross-device-login-fix">
+(function(){
+'use strict';
+window.QG_APP_PATCH_V229=Object.freeze({release:'v229',base:'v228',scope:'cross-device-login-server-authoritative',backend:'existing-v214-rpcs',realtime:'unchanged-v216'});
+
+function qgV229Out(data){return Array.isArray(data)?data[0]:data}
+function qgV229Online(){return navigator.onLine!==false}
+function qgV229Configured(){try{return typeof qgRealtimeConfiguredV88==='function'&&qgRealtimeConfiguredV88()}catch(_){return false}}
+function qgV229AuthKey(login,role){return String(role||'').toLowerCase()+'|'+String(login||'').trim().toLowerCase()}
+
+/* Fonte autoritativa de login entre dispositivos: Supabase quando online/configurado. */
+const qgV229ResolveFallback=window.qgResolveTenantLoginV102;
+window.qgResolveTenantLoginV102=async function(login,password,role){
+  const normalized=String(login||'').trim().toLowerCase();
+  const normalizedRole=role==='fiscal'?'fiscal':'coordenacao';
+  window.__qgV229LastAuthError='';
+  if(qgV229Online()&&qgV229Configured()){
+    try{
+      const data=await qgRpcV164('qg_open_tenant_session_v214',{
+        p_login:normalized,p_password:String(password||''),p_role:normalizedRole
+      },12000);
+      const row=qgV229Out(data);
+      if(!row?.token){
+        window.__qgV229LastAuthError='Login ou senha inválidos no servidor.';
+        return null;
+      }
+      if(typeof qgV164SetSecureSession==='function'){
+        qgV164SetSecureSession({token:row.token,role:row.role,tenantId:row.tenant_id,expiresAt:row.expires_at,cargos:row.cargos||[]});
+      }
+      const key=qgV229AuthKey(normalized,normalizedRole);
+      window.__qgV214AuthRows=window.__qgV214AuthRows||Object.create(null);
+      window.__qgV214AuthRows[key]={...row,at:Date.now()};
+      return {
+        account:{tenantId:row.tenant_id,role:row.role,login:normalized,active:true},
+        tenant:{id:row.tenant_id,nome:row.nome||row.tenant_id,numero:row.numero||'',partido:row.partido||'',logoData:row.logo_data||'',cargos:Array.isArray(row.cargos)?row.cargos:[],active:row.active!==false}
+      };
+    }catch(e){
+      console.warn('QG v229 • login remoto:',e);
+      window.__qgV229LastAuthError='Não foi possível consultar o Supabase. Verifique a conexão e tente novamente.';
+      return null;
+    }
+  }
+  /* Offline: mantém compatibilidade local somente quando realmente não há internet. */
+  if(typeof qgV229ResolveFallback==='function')return qgV229ResolveFallback.apply(this,arguments);
+  return null;
+};
+
+const qgV229RoleLoginBase=window.qgTenantRoleLoginV102;
+if(typeof qgV229RoleLoginBase==='function'){
+  window.qgTenantRoleLoginV102=async function(role){
+    const ok=await qgV229RoleLoginBase.apply(this,arguments);
+    if(!ok&&window.__qgV229LastAuthError){
+      const err=document.getElementById(role==='fiscal'?'fiscalError':'coordError');
+      if(err)err.textContent=window.__qgV229LastAuthError;
+    }
+    return ok;
+  };
+}
+
+/* Salva senhas novas em bcrypt pelo servidor. Nunca persiste senha em texto no navegador. */
+const qgV229SaveBase=window.qgSaveTenantV97;
+if(typeof qgV229SaveBase==='function'){
+  window.qgSaveTenantV97=async function(){
+    const plain={
+      coordenacao:String(document.getElementById('tenantCoordPass97')?.value||''),
+      fiscal:String(document.getElementById('tenantFiscalPass97')?.value||'')
+    };
+    const remoteBefore=window.qgRemoteSaveTenantV97;
+    window.qgRemoteSaveTenantV97=async function(t,accounts){
+      const token=typeof qgV164Token==='function'?qgV164Token():'';
+      if(!token)return {ok:false,error:'Sessão segura do Administrador indisponível.'};
+      try{
+        const payload=(accounts||[]).filter(a=>a?.login&&['fiscal','coordenacao'].includes(String(a.role||''))).map(a=>{
+          const role=String(a.role||'').toLowerCase();
+          const obj={tenant_id:String(t?.id||a?.tenantId||''),role,login:String(a.login||'').trim().toLowerCase(),active:a.active!==false,is_primary:a.isPrimary!==false};
+          if(plain[role])obj.password=plain[role];
+          else if(/^[0-9a-f]{64}$/i.test(String(a.passHash||'')))obj.legacy_pass_hash=String(a.passHash).toLowerCase();
+          return obj;
+        });
+        const data=await qgRpcV164('qg_admin_save_tenant_v214',{
+          p_token:token,
+          p_profile:{tenant_id:String(t?.id||''),nome:String(t?.nome||t?.id||''),numero:String(t?.numero||''),partido:String(t?.partido||''),logo_data:String(t?.logoData||''),cargos:Array.isArray(t?.cargos)?t.cargos:[],active:t?.active!==false},
+          p_accounts:payload
+        },15000);
+        const out=qgV229Out(data);
+        if(!out?.ok)return {ok:false,error:out?.error||'Supabase recusou o cadastro.'};
+        return {ok:true,transport:'RPC_SECURE_V229',tenantId:String(t?.id||'')};
+      }catch(e){
+        return {ok:false,error:String(e?.message||e),secure:true};
+      }
+    };
+    try{return await qgV229SaveBase.apply(this,arguments)}
+    finally{window.qgRemoteSaveTenantV97=remoteBefore}
+  };
+}
+
+/* Badge coerente: fila 0 + realtime ativo = SINCRONIZADO. */
+function qgV229Pending(){
+  try{
+    const a=Array.isArray(state?.offlineQueue)?state.offlineQueue.length:0;
+    const b=Array.isArray(state?.syncQueueV34)?state.syncQueueV34.filter(x=>x&&x.acked!==true).length:0;
+    const c=Array.isArray(state?.canonicalQueueV164)?state.canonicalQueueV164.length:0;
+    return Math.max(0,a+b+c);
+  }catch(_){return 0}
+}
+function qgV229PaintSync(){
+  const badge=document.getElementById('syncBadge'),txt=document.getElementById('syncText');
+  if(!badge||!txt)return false;
+  const q=qgV229Pending();
+  const rt=String(window.__qgV216?.channelStatus||'OFF');
+  badge.classList.remove('pending','qg-v229-ok','qg-v229-warn','qg-v229-bad');
+  if(navigator.onLine===false){txt.textContent='SEM CONEXÃO';badge.classList.add('pending','qg-v229-bad');return true}
+  if(q>0){txt.textContent=q+' AGUARDANDO SINCRONIZAÇÃO';badge.classList.add('pending','qg-v229-warn');return true}
+  if(rt==='SUBSCRIBED'){txt.textContent='SINCRONIZADO';badge.classList.add('qg-v229-ok');return true}
+  txt.textContent='SINCRONIZANDO';badge.classList.add('pending','qg-v229-warn');return true;
+}
+window.qgV229PaintSync=qgV229PaintSync;
+['online','offline','qg:bu-updated','qg:canonical-updated','qg:canonical-signal'].forEach(ev=>window.addEventListener(ev,()=>queueMicrotask(qgV229PaintSync)));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)queueMicrotask(qgV229PaintSync)});
+const qgV229Obs=new MutationObserver(()=>queueMicrotask(qgV229PaintSync));
+function qgV229Boot(){
+  qgV229PaintSync();
+  const rt=document.getElementById('qgV216RealtimeState');
+  if(rt)try{qgV229Obs.observe(rt,{subtree:true,childList:true,characterData:true,attributes:true})}catch(_){}
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',qgV229Boot,{once:true,passive:true});else qgV229Boot();
+})();
+</script>
+<!-- QG_V229_CROSS_DEVICE_LOGIN_FIX_END -->
 </body></html>

@@ -1,0 +1,31 @@
+{
+  "release": "v229",
+  "base": "v228",
+  "scope": [
+    "cross-device tenant login server-authoritative",
+    "new passwords stored by server bcrypt",
+    "sync badge semantics"
+  ],
+  "static_regression": {
+    "javascript_scripts_checked": 169,
+    "syntax_errors": 0
+  },
+  "backend": {
+    "tenant_profiles_current": 1,
+    "tenant_accounts_current": 2,
+    "existing_accounts_hash_format": "qgsha256$ legacy-compatible",
+    "password_matcher_legacy_test": true,
+    "password_matcher_bcrypt_test": true,
+    "admin_bcrypt_2y_normalization_applied": true
+  },
+  "behavior": {
+    "online_tenant_login": "Supabase RPC only; no silent local fallback",
+    "offline_tenant_login": "local compatibility only when genuinely offline",
+    "new_password_transport": "plaintext only in TLS RPC request, server stores bcrypt",
+    "sync_badge": "SINCRONIZADO when queue=0 and realtime SUBSCRIBED"
+  },
+  "notes": [
+    "Existing legacy-hash accounts remain supported and are automatically upgraded to bcrypt by backend after successful remote login.",
+    "No electoral calculations, QR, BU, apuration, realtime engine, or profile menus changed."
+  ]
+}
