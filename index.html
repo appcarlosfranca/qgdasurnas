@@ -33339,4 +33339,291 @@ function boot(){qgV236Clean();setTimeout(qgV236Clean,100);setTimeout(qgV236Clean
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
 </script>
+
+<!-- QG_V237_ADMIN_MOBILE_PARITY_START -->
+<style id="qg-v237-admin-mobile-parity-css">
+/* v237 — somente paridade funcional/visual do Administrador em viewport reduzido. */
+@media (max-width:1024px){
+  body[data-qg-role="admin"] #adminDataSystemV164.section.active,
+  body[data-qg-role="admin"] #adminDataSystemV164.section.active .qg-v181-group,
+  body[data-qg-role="admin"] #adminDataSystemV164.section.active .qg-v181-group-body,
+  body[data-qg-role="admin"] #adminDataSystemV164.section.active #qgV166DataSummary,
+  body[data-qg-role="admin"] #adminDataSystemV164.section.active #qgV168HistoryManager,
+  body[data-qg-role="admin"] #adminDataSystemV164.section.active #qgV179HistorySync,
+  body[data-qg-role="admin"] #adminDataSystemV164.section.active #qgV220Sim100Inline{
+    visibility:visible!important;
+    opacity:1!important;
+    max-height:none!important;
+    height:auto!important;
+    overflow:visible!important;
+  }
+  body[data-qg-role="admin"] #adminDataSystemV164.section.active{
+    display:block!important;
+    contain:none!important;
+    content-visibility:visible!important;
+    min-height:0!important;
+  }
+  body[data-qg-role="admin"] #adminDataSystemV164.section.active .qg-v181-group-body{
+    display:grid!important;
+    width:100%!important;
+    min-width:0!important;
+  }
+  body[data-qg-role="admin"] #adminDataSystemV164.section.active #qgV166DataSummary{
+    display:block!important;
+    width:100%!important;
+  }
+  body[data-qg-role="admin"] #adminDataSystemV164.section.active #qgV220Sim100Inline{
+    display:block!important;
+    width:100%!important;
+  }
+  body[data-qg-role="admin"] #adminDataSystemV164.section.active #qgV220Sim100Inline .qg-v220-row{
+    display:flex!important;
+    flex-wrap:wrap!important;
+    width:100%!important;
+  }
+  body[data-qg-role="admin"] #adminDataSystemV164.section.active #qgV220Sim100Inline .qg-v220-copy{
+    flex:1 1 100%!important;
+    min-width:0!important;
+  }
+  body[data-qg-role="admin"] #adminDataSystemV164.section.active #qgV220Sim100Inline .qg-v220-actions{
+    display:flex!important;
+    width:100%!important;
+    flex-wrap:wrap!important;
+  }
+}
+@media (max-width:640px){
+  body[data-qg-role="admin"] #adminDataSystemV164.section.active #qgV220Sim100Inline .qg-v220-actions button{
+    width:100%!important;
+    flex:1 1 100%!important;
+  }
+  body[data-qg-role="admin"] #adminDataSystemV164.section.active .qg-v181-group{
+    padding:8px!important;
+  }
+}
+</style>
+<script id="qg-v237-admin-mobile-parity-js">
+(function(){
+'use strict';
+window.QG_APP_PATCH_V237=Object.freeze({release:'v237',base:'v236',scope:'admin-mobile-functional-parity'});
+let busy=false,queued=false,lastW=innerWidth;
+function isAdminData(){try{return String(state?.role||'')==='admin'&&document.getElementById('adminDataSystemV164')?.classList.contains('active')}catch(_){return false}}
+async function ensure(){
+  if(busy||!isAdminData())return false;busy=true;
+  try{
+    /* Reexecuta apenas renderizadores já existentes; não cria função nova de negócio. */
+    try{if(typeof qgV166DataSystemSummary==='function')qgV166DataSystemSummary()}catch(_){ }
+    try{if(typeof qgV168HistoryManager==='function')qgV168HistoryManager()}catch(_){ }
+    try{if(typeof qgV179HistorySyncPanel==='function')qgV179HistorySyncPanel()}catch(_){ }
+    try{if(typeof qgV220EnsureSimulation100==='function')qgV220EnsureSimulation100()}catch(_){ }
+    try{if(typeof qgV181OrganizeAll==='function')await qgV181OrganizeAll(false)}catch(_){ }
+    /* A organização pode mover os cartões; garante a Simulação novamente no host definitivo. */
+    try{if(typeof qgV220EnsureSimulation100==='function')qgV220EnsureSimulation100()}catch(_){ }
+    const sim=document.getElementById('qgV220Sim100Inline');
+    const summary=document.getElementById('qgV166DataSummary');
+    if(summary&&sim&&sim.parentElement!==summary)summary.appendChild(sim);
+    return !!document.getElementById('qgV220Generate100');
+  }finally{busy=false}
+}
+function queue(delay=40){if(queued)return;queued=true;setTimeout(async()=>{queued=false;await ensure()},delay)}
+const initBase=window.qgInitSectionV164;
+if(typeof initBase==='function'&&!initBase.__qgV237){const w=function(id){const r=initBase.apply(this,arguments);if(id==='adminDataSystemV164')queue(70);return r};w.__qgV237=true;window.qgInitSectionV164=w}
+const actBase=window.qgActivateSection;
+if(typeof actBase==='function'&&!actBase.__qgV237){const w=function(id){const r=actBase.apply(this,arguments);if(id==='adminDataSystemV164')queue(80);return r};w.__qgV237=true;window.qgActivateSection=w}
+window.addEventListener('resize',()=>{const nw=innerWidth;if(Math.abs(nw-lastW)>20){lastW=nw;if(isAdminData())queue(90)}},{passive:true});
+window.addEventListener('orientationchange',()=>{if(isAdminData())queue(150)},{passive:true});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&isAdminData())queue(60)},{passive:true});
+function boot(){if(isAdminData())queue(120)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+window.qgV237Audit=function(){return {release:'v237',adminDataActive:isAdminData(),simulationPanel:!!document.getElementById('qgV220Sim100Inline'),simulationButton:!!document.getElementById('qgV220Generate100'),width:innerWidth};};
+})();
+</script>
+<!-- QG_V237_ADMIN_MOBILE_PARITY_END -->
+
+
+<!-- QG_V238_FISCAL_COORD_PADRAO_BEGIN -->
+<style id="qg-v238-fiscal-coord-padrao-css">
+/* v238 — somente padronização visual/identidade entre Fiscal e Coordenação. */
+body[data-qg-role="fiscal"] .app,
+body[data-qg-role="coordenacao"] .app{
+  grid-template-columns:250px minmax(0,1fr)!important;
+}
+body[data-qg-role="fiscal"] .side,
+body[data-qg-role="coordenacao"] .side{
+  width:auto!important;min-width:0!important;
+  display:flex!important;flex-direction:column!important;
+  padding:16px 15px 18px!important;gap:10px!important;
+  overflow-y:auto!important;overflow-x:hidden!important;
+  background:linear-gradient(180deg,#020d1b 0%,#020916 100%)!important;
+  border-right:1px solid rgba(24,217,255,.16)!important;
+}
+body[data-qg-role="fiscal"] .side::before,
+body[data-qg-role="coordenacao"] .side::before{
+  display:block!important;width:100%!important;box-sizing:border-box!important;
+  padding:11px 12px!important;margin:0 0 3px!important;
+  border:1px solid rgba(46,205,255,.44)!important;border-radius:11px!important;
+  background:rgba(4,27,43,.86)!important;color:#f3fbff!important;
+  font-weight:850!important;font-size:15px!important;line-height:1.2!important;
+}
+body[data-qg-role="fiscal"] .side #nav,
+body[data-qg-role="coordenacao"] .side #nav{
+  display:flex!important;flex-direction:column!important;gap:7px!important;
+  width:100%!important;margin:0!important;padding:0!important;overflow:visible!important;
+}
+body[data-qg-role="fiscal"] .side #nav>button,
+body[data-qg-role="coordenacao"] .side #nav>button{
+  width:100%!important;min-width:0!important;min-height:42px!important;
+  margin:0!important;padding:10px 12px!important;border-radius:10px!important;
+  text-align:left!important;font-size:12px!important;font-weight:800!important;
+}
+/* Coordenação usa exatamente o mesmo cabeçalho-base do Fiscal. */
+body[data-qg-role="coordenacao"] .main>.top.qg-top-v115,
+body.qg-v185-coord[data-qg-role="coordenacao"] .main>.top.qg-top-v115{
+  display:flex!important;visibility:visible!important;opacity:1!important;
+}
+body[data-qg-role="coordenacao"] .qg-top-v115 .qg-status-stack-v115,
+body.qg-v218-coord-active[data-qg-role="coordenacao"] .qg-top-v115 .qg-status-stack-v115{
+  display:flex!important;
+}
+/* Oculta somente os cabeçalhos paralelos antigos da Coordenação para não duplicar identidade/status. */
+body[data-qg-role="coordenacao"] #qgV181CoordStrip,
+body[data-qg-role="coordenacao"] #qgV233CoordHero,
+body[data-qg-role="coordenacao"] #qgV234RoleHero{
+  display:none!important;
+}
+body[data-qg-role="fiscal"] .qg-top-v115,
+body[data-qg-role="coordenacao"] .qg-top-v115{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  gap:18px!important;min-height:96px!important;padding:14px 20px!important;
+  border-bottom:1px solid rgba(24,217,255,.16)!important;
+  background:linear-gradient(90deg,rgba(3,20,39,.98),rgba(4,26,49,.96) 58%,rgba(2,11,25,.98))!important;
+}
+body[data-qg-role="fiscal"] .qg-tenant-main-v115,
+body[data-qg-role="coordenacao"] .qg-tenant-main-v115{
+  display:flex!important;align-items:center!important;gap:14px!important;
+  min-width:0!important;flex:1 1 auto!important;
+}
+body[data-qg-role="fiscal"] #tenantBrandFrameV125,
+body[data-qg-role="coordenacao"] #tenantBrandFrameV125{
+  width:80px!important;height:80px!important;min-width:80px!important;min-height:80px!important;
+  border-radius:16px!important;overflow:hidden!important;
+}
+body[data-qg-role="fiscal"] #tenantBrandImg97,
+body[data-qg-role="coordenacao"] #tenantBrandImg97{
+  width:100%!important;height:100%!important;object-fit:cover!important;
+}
+body[data-qg-role="fiscal"] .qg-tenant-brand-text97,
+body[data-qg-role="coordenacao"] .qg-tenant-brand-text97{
+  min-width:0!important;
+}
+body[data-qg-role="fiscal"] #tenantBrandName97,
+body[data-qg-role="coordenacao"] #tenantBrandName97{
+  display:block!important;font-size:23px!important;line-height:1.1!important;
+  color:#fff!important;font-weight:950!important;white-space:nowrap!important;
+  overflow:hidden!important;text-overflow:ellipsis!important;
+}
+body[data-qg-role="fiscal"] #tenantBrandNumber97,
+body[data-qg-role="coordenacao"] #tenantBrandNumber97{
+  display:block!important;margin-top:3px!important;font-size:11px!important;color:#b8d2e6!important;
+}
+body[data-qg-role="fiscal"] #tenantBrandPackage97,
+body[data-qg-role="coordenacao"] #tenantBrandPackage97{
+  display:flex!important;flex-wrap:wrap!important;gap:5px!important;margin-top:6px!important;
+}
+body[data-qg-role="fiscal"] .qg-status-stack-v115,
+body[data-qg-role="coordenacao"] .qg-status-stack-v115{
+  display:flex!important;flex-direction:row!important;align-items:center!important;
+  justify-content:flex-end!important;gap:8px!important;flex-wrap:wrap!important;
+  max-width:min(58vw,620px)!important;padding:8px 9px!important;
+  border:1px solid rgba(120,190,255,.13)!important;border-radius:13px!important;
+  background:rgba(3,16,31,.34)!important;
+}
+/* Mantém ocultos os controles já substituídos pelo topo final aprovado. */
+body[data-qg-role="fiscal"] .qg-profile-switch-v115,
+body[data-qg-role="coordenacao"] .qg-profile-switch-v115,
+body[data-qg-role="fiscal"] .qg-status-stack-v115>.status,
+body[data-qg-role="coordenacao"] .qg-status-stack-v115>.status,
+body[data-qg-role="fiscal"] .qg-live-v115,
+body[data-qg-role="coordenacao"] .qg-live-v115{
+  display:none!important;
+}
+@media(max-width:900px){
+  body[data-qg-role="fiscal"] .app,
+  body[data-qg-role="coordenacao"] .app{grid-template-columns:minmax(0,1fr)!important}
+  body[data-qg-role="fiscal"] .side,
+  body[data-qg-role="coordenacao"] .side{
+    position:sticky!important;top:0!important;z-index:40!important;height:auto!important;min-height:0!important;
+    padding:8px 10px!important;border-right:0!important;border-bottom:1px solid rgba(24,217,255,.16)!important;
+    overflow:hidden!important;
+  }
+  body[data-qg-role="fiscal"] .side::before,
+  body[data-qg-role="coordenacao"] .side::before{display:none!important}
+  body[data-qg-role="fiscal"] .side #nav,
+  body[data-qg-role="coordenacao"] .side #nav{
+    flex-direction:row!important;gap:7px!important;overflow-x:auto!important;overflow-y:hidden!important;
+    white-space:nowrap!important;scrollbar-width:none!important;
+  }
+  body[data-qg-role="fiscal"] .side #nav::-webkit-scrollbar,
+  body[data-qg-role="coordenacao"] .side #nav::-webkit-scrollbar{display:none!important}
+  body[data-qg-role="fiscal"] .side #nav>button,
+  body[data-qg-role="coordenacao"] .side #nav>button{
+    width:auto!important;min-width:max-content!important;flex:0 0 auto!important;
+    min-height:38px!important;padding:8px 12px!important;text-align:center!important;
+  }
+  body[data-qg-role="fiscal"] .main,
+  body[data-qg-role="coordenacao"] .main{padding:0 10px 24px!important;width:100%!important;min-width:0!important}
+  body[data-qg-role="fiscal"] .qg-top-v115,
+  body[data-qg-role="coordenacao"] .qg-top-v115{
+    flex-direction:column!important;align-items:stretch!important;gap:10px!important;
+    min-height:auto!important;padding:12px!important;margin:0 0 10px!important;
+  }
+  body[data-qg-role="fiscal"] .qg-status-stack-v115,
+  body[data-qg-role="coordenacao"] .qg-status-stack-v115{
+    width:100%!important;max-width:none!important;justify-content:flex-start!important;
+  }
+}
+@media(max-width:560px){
+  body[data-qg-role="fiscal"] #tenantBrandFrameV125,
+  body[data-qg-role="coordenacao"] #tenantBrandFrameV125{
+    width:60px!important;height:60px!important;min-width:60px!important;min-height:60px!important;
+  }
+  body[data-qg-role="fiscal"] #tenantBrandName97,
+  body[data-qg-role="coordenacao"] #tenantBrandName97{font-size:18px!important}
+  body[data-qg-role="fiscal"] .qg-status-stack-v115,
+  body[data-qg-role="coordenacao"] .qg-status-stack-v115{gap:6px!important;padding:7px!important}
+}
+</style>
+<script id="qg-v238-fiscal-coord-padrao-js">
+(function(){
+'use strict';
+window.QG_APP_PATCH_V238=Object.freeze({release:'v238',base:'v237',scope:'fiscal-coord-identity-menu-standardization',backend:'UNCHANGED',businessRules:'UNCHANGED'});
+function role(){try{return String(state?.role||document.body?.dataset?.qgRole||'').toLowerCase()}catch(_){return ''}}
+function refresh(){
+  const r=role();
+  if(!['fiscal','coordenacao'].includes(r))return false;
+  try{document.body.dataset.qgRole=r}catch(_){ }
+  try{qgLockRoleUiV149?.(r)}catch(_){ }
+  try{qgApplyTenantBrandV97?.()}catch(_){ }
+  try{qgV216EnsureTopActions?.()}catch(_){ }
+  const badge=document.getElementById('currentRoleBadge');
+  if(badge)badge.textContent=r==='fiscal'?'FISCAL':'COORDENAÇÃO';
+  if(r==='coordenacao'){
+    document.getElementById('qgV233CoordHero')?.remove();
+    document.getElementById('qgV234RoleHero')?.remove();
+  }
+  return true;
+}
+let queued=false;
+function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;refresh()})}
+window.qgV238RefreshChrome=refresh;
+['qg:tenant-updated','qg:canonical-updated','qg:canonical-signal','qg:bu-updated','online','offline'].forEach(ev=>window.addEventListener(ev,schedule,{passive:true}));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule()});
+const baseOpen=window.qgOpenProfile;
+if(typeof baseOpen==='function'&&!baseOpen.__qgV238){const w=function(){const x=baseOpen.apply(this,arguments);setTimeout(schedule,0);setTimeout(schedule,120);return x};w.__qgV238=true;window.qgOpenProfile=w}
+const baseDirect=window.qgDirectEnterV80;
+if(typeof baseDirect==='function'&&!baseDirect.__qgV238){const w=function(){const x=baseDirect.apply(this,arguments);setTimeout(schedule,0);setTimeout(schedule,120);return x};w.__qgV238=true;window.qgDirectEnterV80=w}
+function boot(){refresh();const app=document.querySelector('.app');if(app&&!app.__qgV238Obs){app.__qgV238Obs=new MutationObserver(()=>schedule());app.__qgV238Obs.observe(app,{childList:true,subtree:true})}setTimeout(refresh,180);setTimeout(refresh,700)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true,passive:true});else boot();
+})();
+</script>
+<!-- QG_V238_FISCAL_COORD_PADRAO_END -->
 </body></html>

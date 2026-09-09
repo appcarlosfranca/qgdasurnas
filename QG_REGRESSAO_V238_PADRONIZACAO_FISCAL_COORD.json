@@ -1,0 +1,22 @@
+{
+  "release": "v238",
+  "base": "v237",
+  "scope": "Fiscal/Coordenação identity + menu chrome only",
+  "changes": [
+    "Coordenação reuses same tenantBrand97 header as Fiscal",
+    "Candidate/client identity derives from authenticated tenant",
+    "Legacy parallel Coordenação header hidden",
+    "Fiscal and Coordenação side/top layout standardized across desktop/tablet/mobile"
+  ],
+  "unchanged": [
+    "Supabase",
+    "Realtime engine",
+    "QR/Multi-QR",
+    "BU flows",
+    "Admin",
+    "electoral engines",
+    "simulation",
+    "audio"
+  ],
+  "notes": "No backend migration required."
+}

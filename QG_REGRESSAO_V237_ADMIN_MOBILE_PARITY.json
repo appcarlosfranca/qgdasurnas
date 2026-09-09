@@ -1,0 +1,18 @@
+{
+  "release": "v237",
+  "base": "v236",
+  "scope": "admin-mobile-functional-parity",
+  "changes": [
+    "Admin Dados e sistema mantém os mesmos módulos em <=1024px",
+    "Simulação 100% é remontada após ativação, resize/orientation/visibility",
+    "Nenhuma regra de negócio, Supabase, QR, apuração ou autenticação alterada"
+  ],
+  "criticalMarkers": {
+    "qgV220EnsureSimulation100": true,
+    "qgV220Generate100": true,
+    "qgV166DataSummary": true,
+    "qgV168HistoryManager": true,
+    "qgV181OrganizeAll": true,
+    "QG_APP_PATCH_V236": true
+  }
+}
