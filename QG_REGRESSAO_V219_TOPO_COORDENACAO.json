@@ -1,0 +1,26 @@
+{
+  "release": "v219",
+  "base": "v218",
+  "scope": "Coordenação: cabeçalho operacional definitivo",
+  "changes": [
+    "Substituição resiliente do qgV181CoordStrip por COORDENAÇÃO | sincronização | Realtime/latência | SAIR",
+    "Remoção visual dos badges antigos Backend/Backup apenas nessa faixa",
+    "MutationObserver restrito ao qgV181CoordStrip para impedir reconstrução legada"
+  ],
+  "unchanged": [
+    "Fiscal",
+    "Administrador",
+    "Supabase",
+    "Realtime engine",
+    "sessão/F5",
+    "QR/Multi-QR",
+    "Sala de Guerra",
+    "menus",
+    "PWA/Service Worker"
+  ],
+  "static_js": {
+    "checked": 158,
+    "errors": 0
+  },
+  "sha256_html": "a539a866405e786956d92fea82477d1dd60eb4282ad017054a92f5740f4b825a"
+}

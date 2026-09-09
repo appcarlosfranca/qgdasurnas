@@ -1,13 +1,13 @@
-QG DAS URNAS v218 — PACOTE COMPLETO PARA GITHUB PAGES
+QG DAS URNAS v219 — PACOTE COMPLETO PARA GITHUB PAGES
 
 VERSÃO
-- Aplicativo: v218 — Topo da Coordenação padronizado.
+- Aplicativo: v219 — Topo da Coordenação padronizado.
 - Base funcional preservada: v217.
-- Alteração v218: apenas o topo superior da área Coordenação.
+- Alteração v219: apenas o topo superior da área Coordenação.
 
 COMO PUBLICAR
 1. Extraia este ZIP no computador.
-2. Abra a pasta extraída QG_DAS_URNAS_v218_GITHUB_PAGES.
+2. Abra a pasta extraída QG_DAS_URNAS_v219_GITHUB_PAGES.
 3. Envie o CONTEÚDO da pasta para a raiz do repositório GitHub.
 4. O arquivo index.html deve ficar diretamente na raiz do repositório.
 5. Mantenha a pasta icons/ com os três arquivos de ícone.
@@ -25,7 +25,7 @@ icons/
   qg-icon-512.png
   apple-touch-icon.png
 baseline/
-  QG_DAS_URNAS_v218_TOPO_COORDENACAO_PADRONIZADO.html
+  QG_DAS_URNAS_v219_TOPO_COORDENACAO_PADRONIZADO.html
 
 OBSERVAÇÃO
-O Service Worker, manifest e ícones foram reaproveitados da v217 sem alteração funcional. A navegação usa estratégia network-first para o index.html, portanto a v218 publicada é carregada da rede e armazenada para uso offline.
+O Service Worker, manifest e ícones foram reaproveitados da v217 sem alteração funcional. A navegação usa estratégia network-first para o index.html, portanto a v219 publicada é carregada da rede e armazenada para uso offline.
