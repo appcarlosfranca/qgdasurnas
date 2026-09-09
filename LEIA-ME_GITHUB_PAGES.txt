@@ -1,4 +1,4 @@
-QG DAS URNAS v216 — PACOTE FINAL PARA GITHUB PAGES
+QG DAS URNAS v217 — PACOTE FINAL PARA GITHUB PAGES
 
 Publicação:
 1. Extraia este ZIP.
@@ -7,9 +7,9 @@ Publicação:
 4. Preserve a pasta icons/ e os arquivos manifest.webmanifest, sw.js, favicon.ico e .nojekyll.
 5. Faça Commit das alterações.
 6. Em Settings > Pages mantenha: Deploy from a branch > main > /(root).
-7. Depois do deploy, abra o site e pressione Ctrl+F5 uma vez. O Service Worker v216 usa cache novo e navegação network-first.
+7. Depois do deploy, abra o site e pressione Ctrl+F5 uma vez. O Service Worker v217 usa cache novo e navegação network-first.
 
-ALTERAÇÕES v216:
+ALTERAÇÕES v217:
 - sessão após F5: preservada exatamente pelo mecanismo v209 já aprovado;
 - SAIR no topo de Fiscal, Coordenação e Administrador;
 - Realtime sem debounce artificial no frontend;
@@ -17,3 +17,6 @@ ALTERAÇÕES v216:
 - otimização de pintura/renderização para notebook, tablet e celular;
 - watchdog leve para reconexão Realtime;
 - todo o restante da v215 preservado.
+
+
+ALTERAÇÃO v217: somente padronização visual do topo/lateral e remoção de controles duplicados. Motor realtime v216 e sessão F5 preservados.

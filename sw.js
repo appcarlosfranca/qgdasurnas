@@ -1,5 +1,5 @@
-/* QG DAS URNAS v216 — Service Worker para GitHub Pages */
-const CACHE = 'qg-das-urnas-v216-static-1';
+/* QG DAS URNAS v217 — Service Worker para GitHub Pages */
+const CACHE = 'qg-das-urnas-v217-static-1';
 const CORE = [
   './',
   './index.html',
