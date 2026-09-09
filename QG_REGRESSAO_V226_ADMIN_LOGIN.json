@@ -1,0 +1,24 @@
+{
+  "version": "v226",
+  "base": "v225",
+  "scope": "admin-login-credential-fix",
+  "changes": [
+    "Hash SHA-256 local do Administrador atualizado para a senha definida pelo proprietário.",
+    "Hash bcrypt do Administrador no Supabase atualizado.",
+    "qg_open_admin_session_v164 voltou a validar pela tabela segura qg_admin_secret_v164.",
+    "Service Worker cache incrementado para v226."
+  ],
+  "tests": {
+    "javascript_scripts_checked": 166,
+    "javascript_syntax_errors": 0,
+    "old_local_hash_present": false,
+    "new_local_hash_present": true,
+    "bcrypt_verified_locally": true,
+    "supabase_admin_rows": 1,
+    "supabase_admin_active": true,
+    "supabase_hash_updated": true,
+    "backend_function_uses_admin_secret_table": true,
+    "supabase_login_rate_rows_after_reset": 0
+  },
+  "note": "Nenhuma função eleitoral, Fiscal, Coordenação, Sala de Guerra, Realtime ou limpeza foi alterada."
+}

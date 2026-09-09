@@ -1,5 +1,5 @@
-/* QG DAS URNAS v217 — Service Worker para GitHub Pages */
-const CACHE = 'qg-das-urnas-v217-static-1';
+/* QG DAS URNAS v226 — Service Worker para GitHub Pages */
+const CACHE = 'qg-das-urnas-v226-static-1';
 const CORE = [
   './',
   './index.html',
@@ -18,8 +18,6 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const req=event.request;if(req.method!=='GET')return;
   const url=new URL(req.url);
-  /* Navegação sempre tenta a rede primeiro e ignora cache HTTP antigo.
-     Offline, cai no último index válido. */
   if(req.mode==='navigate'){
     event.respondWith(fetch(req,{cache:'no-store'}).then(res=>{
       const copy=res.clone();caches.open(CACHE).then(c=>c.put('./index.html',copy)).catch(()=>{});return res;

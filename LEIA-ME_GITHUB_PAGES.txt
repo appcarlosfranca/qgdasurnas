@@ -1,31 +1,18 @@
-QG DAS URNAS v219 — PACOTE COMPLETO PARA GITHUB PAGES
+QG DAS URNAS v226 — PACOTE FINAL LIMPO PARA GITHUB PAGES
 
-VERSÃO
-- Aplicativo: v219 — Topo da Coordenação padronizado.
-- Base funcional preservada: v217.
-- Alteração v219: apenas o topo superior da área Coordenação.
+1. Extraia o ZIP.
+2. Envie o conteúdo desta pasta para a raiz do repositório GitHub.
+3. Confirme que index.html está na raiz.
+4. GitHub: Settings > Pages > Deploy from a branch > main > /(root).
+5. Após publicar, faça Ctrl+F5 uma vez no seu computador de teste.
 
-COMO PUBLICAR
-1. Extraia este ZIP no computador.
-2. Abra a pasta extraída QG_DAS_URNAS_v219_GITHUB_PAGES.
-3. Envie o CONTEÚDO da pasta para a raiz do repositório GitHub.
-4. O arquivo index.html deve ficar diretamente na raiz do repositório.
-5. Mantenha a pasta icons/ com os três arquivos de ícone.
-6. GitHub: Settings > Pages > Deploy from a branch > main > /(root) > Save.
-7. Após o deploy, faça Ctrl+F5 uma vez para garantir que a versão publicada seja carregada.
+ESTADO DE ENTREGA
+- Supabase sem clientes Fiscal/Coordenação cadastrados.
+- Sem campanhas, BUs, simulações, sessões ou tentativas de login ativas.
+- Um único Administrador configurado.
+- O primeiro carregamento v226 limpa uma vez memórias locais legadas do navegador/origem.
+- A partir do segundo carregamento, a persistência normal volta a funcionar (inclusive F5 após login).
+- Otimização de resposta a toque/clique aplicada sem alterar os fluxos eleitorais.
 
-ESTRUTURA PRINCIPAL
-index.html
-manifest.webmanifest
-sw.js
-favicon.ico
-.nojekyll
-icons/
-  qg-icon-192.png
-  qg-icon-512.png
-  apple-touch-icon.png
-baseline/
-  QG_DAS_URNAS_v219_TOPO_COORDENACAO_PADRONIZADO.html
 
-OBSERVAÇÃO
-O Service Worker, manifest e ícones foram reaproveitados da v217 sem alteração funcional. A navegação usa estratégia network-first para o index.html, portanto a v219 publicada é carregada da rede e armazenada para uso offline.
+Correção v226: credencial administrativa local e backend alinhados.
