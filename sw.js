@@ -1,5 +1,5 @@
-/* QG DAS URNAS v215 — Service Worker para GitHub Pages */
-const CACHE = 'qg-das-urnas-v215-static-1';
+/* QG DAS URNAS v216 — Service Worker para GitHub Pages */
+const CACHE = 'qg-das-urnas-v216-static-1';
 const CORE = [
   './',
   './index.html',
@@ -18,13 +18,19 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const req=event.request;if(req.method!=='GET')return;
   const url=new URL(req.url);
+  /* Navegação sempre tenta a rede primeiro e ignora cache HTTP antigo.
+     Offline, cai no último index válido. */
   if(req.mode==='navigate'){
-    event.respondWith(fetch(req).then(res=>{const copy=res.clone();caches.open(CACHE).then(c=>c.put('./index.html',copy));return res;}).catch(()=>caches.match('./index.html')));
+    event.respondWith(fetch(req,{cache:'no-store'}).then(res=>{
+      const copy=res.clone();caches.open(CACHE).then(c=>c.put('./index.html',copy)).catch(()=>{});return res;
+    }).catch(()=>caches.match('./index.html')));
     return;
   }
   if(url.origin===self.location.origin){
-    event.respondWith(caches.match(req).then(hit=>hit||fetch(req).then(res=>{if(res&&res.ok){const copy=res.clone();caches.open(CACHE).then(c=>c.put(req,copy));}return res;})));
+    event.respondWith(caches.match(req).then(hit=>hit||fetch(req).then(res=>{
+      if(res&&res.ok){const copy=res.clone();caches.open(CACHE).then(c=>c.put(req,copy)).catch(()=>{});}return res;
+    })));
     return;
   }
-  event.respondWith(fetch(req).then(res=>{const copy=res.clone();caches.open(CACHE).then(c=>c.put(req,copy)).catch(()=>{});return res;}).catch(()=>caches.match(req)));
+  event.respondWith(fetch(req).catch(()=>caches.match(req)));
 });

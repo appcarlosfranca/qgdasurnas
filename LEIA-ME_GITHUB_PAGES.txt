@@ -1,13 +1,19 @@
-QG DAS URNAS v215 — PACOTE COMPLETO PARA GITHUB PAGES
+QG DAS URNAS v216 — PACOTE FINAL PARA GITHUB PAGES
 
-1. Extraia este ZIP no computador.
-2. Abra o repositório no GitHub.
-3. Na raiz do repositório, substitua os arquivos pelo conteúdo deste pacote.
-4. O arquivo index.html precisa ficar diretamente na raiz.
-5. Preserve a pasta icons/ com seus três arquivos.
-6. Em Settings > Pages, use Deploy from a branch > main > /(root).
-7. Após o deploy, faça Ctrl+F5 uma vez para garantir que o novo Service Worker v215 assumiu o cache.
+Publicação:
+1. Extraia este ZIP.
+2. No repositório GitHub já usado pelo QG DAS URNAS, substitua o conteúdo da raiz pelos arquivos deste pacote.
+3. O arquivo principal deve aparecer na raiz exatamente como: index.html
+4. Preserve a pasta icons/ e os arquivos manifest.webmanifest, sw.js, favicon.ico e .nojekyll.
+5. Faça Commit das alterações.
+6. Em Settings > Pages mantenha: Deploy from a branch > main > /(root).
+7. Depois do deploy, abra o site e pressione Ctrl+F5 uma vez. O Service Worker v216 usa cache novo e navegação network-first.
 
-ALTERAÇÃO v215 SOBRE v214:
-- Apenas recolocado o acesso visual à função já existente "GERAR APURAÇÃO FINAL 100%" em Administrador > Dados e sistema.
-- Motor de simulação, Supabase, Fiscal, Coordenação, autenticação e demais funções não foram alterados.
+ALTERAÇÕES v216:
+- sessão após F5: preservada exatamente pelo mecanismo v209 já aprovado;
+- SAIR no topo de Fiscal, Coordenação e Administrador;
+- Realtime sem debounce artificial no frontend;
+- Supabase com um único sinal Realtime por alteração relevante de BU;
+- otimização de pintura/renderização para notebook, tablet e celular;
+- watchdog leve para reconexão Realtime;
+- todo o restante da v215 preservado.
