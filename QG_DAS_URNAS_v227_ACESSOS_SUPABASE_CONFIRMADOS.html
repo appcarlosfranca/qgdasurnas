@@ -19437,7 +19437,6 @@ async function qgDeleteTenantV127(id){
 
 <script id="qg-intro-v129-script">
 function qgEnterAccessV129(){
-  try{qgV228StartIntroAudio()}catch(e){}
   const intro=document.getElementById('qgIntroV129');
   if(!intro)return false;
   intro.classList.add('qg-intro-hide-v129');
@@ -32464,43 +32463,5 @@ window.QG_APP_PATCH_V227={version:227,base:'v226',scope:'tenant-access-server-ac
     };
   }
 })();
-</script>
-
-<script id="qg-audio-access-v228">
-/* V228 — música de abertura acionada exclusivamente pelo clique em ACESSE AQUI. */
-window.QG_APP_PATCH_V228={release:'v228',scope:'audio-access',base:'v227'};
-function qgV228StartIntroAudio(){
-  try{
-    let a=document.getElementById('qgIntroAudioV228');
-    if(!a){
-      a=document.createElement('audio');
-      a.id='qgIntroAudioV228';
-      a.src='qg_intro_audio.mpeg';
-      a.preload='auto';
-      a.playsInline=true;
-      a.volume=0.82;
-      document.body.appendChild(a);
-    }
-    if(a.ended || !Number.isFinite(a.currentTime))a.currentTime=0;
-    const p=a.play();
-    if(p&&typeof p.catch==='function')p.catch(err=>console.warn('Áudio de abertura bloqueado pelo navegador:',err));
-    return true;
-  }catch(e){console.warn('Falha ao iniciar áudio de abertura V228:',e);return false;}
-}
-function qgV228PreloadIntroAudio(){
-  try{
-    if(document.getElementById('qgIntroAudioV228'))return;
-    const a=document.createElement('audio');
-    a.id='qgIntroAudioV228';
-    a.src='qg_intro_audio.mpeg';
-    a.preload='auto';
-    a.playsInline=true;
-    a.volume=0.82;
-    document.body.appendChild(a);
-    try{a.load()}catch(_){}
-  }catch(_){ }
-}
-window.addEventListener('DOMContentLoaded',()=>setTimeout(qgV228PreloadIntroAudio,120));
-window.qgV228StartIntroAudio=qgV228StartIntroAudio;
 </script>
 </body></html>

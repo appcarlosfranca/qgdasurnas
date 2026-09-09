@@ -1,0 +1,32 @@
+{
+  "release": "v228",
+  "base": "v227",
+  "scope": [
+    "audio de abertura no clique ACESSE AQUI",
+    "pacote GitHub/PWA com áudio"
+  ],
+  "audio": {
+    "file": "qg_intro_audio.mpeg",
+    "format": "MP3/MPEG",
+    "duration_seconds": 202.95325,
+    "preload": "auto",
+    "trigger": "qgEnterAccessV129 user click",
+    "loop": false
+  },
+  "preserved": [
+    "Supabase",
+    "autenticação",
+    "realtime",
+    "Fiscal",
+    "Coordenação",
+    "Administrador",
+    "QR/Multi-QR",
+    "Sala de Guerra",
+    "Simulação 100%",
+    "layout e regras existentes"
+  ],
+  "notes": [
+    "A reprodução é iniciada dentro do gesto do usuário para maximizar compatibilidade com políticas de autoplay.",
+    "O Service Worker v228 pré-cacheia o áudio para PWA/offline."
+  ]
+}

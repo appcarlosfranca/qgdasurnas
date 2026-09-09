@@ -1,3 +1,5 @@
+QG DAS URNAS v228 — ÁUDIO DE ABERTURA
+
 QG DAS URNAS v227 — ACESSOS SUPABASE CONFIRMADOS
 
 Envie todo o conteúdo desta pasta para a raiz do repositório GitHub Pages.
@@ -11,3 +13,6 @@ Teste recomendado:
 4. Em outro aparelho, abra o mesmo link e autentique a Coordenação.
 
 A v227 não aceita mais cadastro somente local como sucesso.
+
+
+IMPORTANTE: mantenha qg_intro_audio.mpeg na raiz junto ao index.html. O áudio é iniciado pelo clique em ACESSE AQUI.

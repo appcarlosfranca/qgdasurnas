@@ -1,5 +1,5 @@
-/* QG DAS URNAS v227 — Service Worker para GitHub Pages */
-const CACHE = 'qg-das-urnas-v227-static-1';
+/* QG DAS URNAS v228 — Service Worker para GitHub Pages */
+const CACHE = 'qg-das-urnas-v228-static-1';
 const CORE = [
   './',
   './index.html',
@@ -7,7 +7,8 @@ const CORE = [
   './favicon.ico',
   './icons/qg-icon-192.png',
   './icons/qg-icon-512.png',
-  './icons/apple-touch-icon.png'
+  './icons/apple-touch-icon.png',
+  './qg_intro_audio.mpeg'
 ];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(CORE)).then(() => self.skipWaiting()));
