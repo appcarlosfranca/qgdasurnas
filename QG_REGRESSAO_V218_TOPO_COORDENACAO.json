@@ -1,0 +1,57 @@
+{
+  "release": "v218",
+  "base": "v217",
+  "scope": "Coordenação top header only",
+  "base_reconstructed_byte_for_byte_after_removing_v218_patch": true,
+  "changes": [
+    "Coordenação top strip now shows only COORDENAÇÃO | synchronization state | Realtime/latency | SAIR.",
+    "Old BACKEND/BACKUP badges are replaced only in the Coordenação strip.",
+    "Global top status stack is hidden only while role=coordenacao, preventing duplicate status/logout.",
+    "Fiscal and Administrador are untouched."
+  ],
+  "explicitly_unchanged": [
+    "Supabase",
+    "RPCs",
+    "RLS",
+    "Realtime engine v216",
+    "session after F5",
+    "menus",
+    "Sala de Guerra",
+    "Modelo Atual",
+    "Modelo Clássico",
+    "Simulação 100%",
+    "Pulso 30s",
+    "themes",
+    "candidates",
+    "users",
+    "campaigns",
+    "protocols",
+    "apuração",
+    "Limpar Tudo",
+    "PWA",
+    "Service Worker"
+  ],
+  "javascript_static_check": {
+    "scripts_checked": 157,
+    "syntax_errors": 0
+  },
+  "critical_markers_preserved": {
+    "QG_APP_PATCH_V217": true,
+    "QG_APP_PATCH_V216": true,
+    "QG_APP_PATCH_V215": true,
+    "QG_APP_PATCH_V214": true,
+    "qgFindExistingBuV151": true,
+    "qgAcceptDecodedPartV92": true,
+    "submitAutoQrBundleV71": true,
+    "qgV212FixPulse30s": true,
+    "qgV212EnsureCoordModelBar": true,
+    "qgV196GenerateFull": true,
+    "qg_open_tenant_session_v214": true,
+    "qg_admin_save_tenant_v214": true
+  },
+  "sha256": "4e78be3f005eb5f2c606e7917eb766d4658ee85de2e66d07fb309d513d1e0a5d",
+  "bytes": 2655086,
+  "notes": [
+    "Static regression completed. No browser/device interaction test was executed in this runtime."
+  ]
+}

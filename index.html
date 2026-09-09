@@ -31596,4 +31596,123 @@ if(typeof navBase==='function')window.qgBuildProfileNav=function(){const r=navBa
 })();
 </script>
 <!-- QG_V217_CHROME_UNIFICADO_END -->
+
+<style id="qg-v218-coord-top-only-css">
+/* v218 — alteração exclusivamente no topo operacional da Coordenação. */
+body.qg-v218-coord-active .qg-top-v115 .qg-status-stack-v115{display:none!important}
+#qgV181CoordStrip.qg-v218-coord-top{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  gap:10px!important;flex-wrap:wrap!important;padding:10px 12px!important;
+  min-height:52px!important;border:1px solid rgba(28,211,255,.24)!important;
+  border-radius:14px!important;background:linear-gradient(90deg,rgba(4,36,54,.94),rgba(22,35,86,.92))!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.12)!important
+}
+#qgV181CoordStrip .qg-v218-coord-left,
+#qgV181CoordStrip .qg-v218-coord-right{display:flex!important;align-items:center!important;gap:8px!important;flex-wrap:wrap!important}
+#qgV181CoordStrip .qg-v218-chip,
+#qgV181CoordStrip .qg-v218-exit{
+  min-height:30px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  gap:6px!important;padding:6px 10px!important;border-radius:9px!important;white-space:nowrap!important;
+  font-size:9px!important;font-weight:900!important;letter-spacing:.04em!important;line-height:1!important
+}
+#qgV181CoordStrip .qg-v218-role{color:#c9f6ff!important;border:1px solid rgba(70,220,255,.34)!important;background:rgba(13,85,112,.28)!important}
+#qgV181CoordStrip .qg-v218-sync,
+#qgV181CoordStrip .qg-v218-rt{color:#8effc8!important;border:1px solid rgba(66,255,169,.28)!important;background:rgba(21,100,78,.23)!important}
+#qgV181CoordStrip .qg-v218-sync.warn,
+#qgV181CoordStrip .qg-v218-rt.warn{color:#ffd977!important;border-color:rgba(255,208,79,.32)!important;background:rgba(128,91,16,.22)!important}
+#qgV181CoordStrip .qg-v218-sync.bad,
+#qgV181CoordStrip .qg-v218-rt.bad{color:#ff9ba7!important;border-color:rgba(255,91,112,.35)!important;background:rgba(116,28,45,.24)!important}
+#qgV181CoordStrip .qg-v218-dot{width:7px!important;height:7px!important;border-radius:50%!important;background:currentColor!important;box-shadow:0 0 8px currentColor!important;flex:0 0 auto!important}
+#qgV181CoordStrip .qg-v218-exit{cursor:pointer!important;color:#ffd7dc!important;border:1px solid rgba(255,110,128,.4)!important;background:rgba(119,32,49,.28)!important}
+#qgV181CoordStrip .qg-v218-exit:hover{background:rgba(153,41,61,.38)!important;transform:translateY(-1px)!important}
+@media(max-width:760px){
+  #qgV181CoordStrip.qg-v218-coord-top{align-items:flex-start!important;flex-direction:column!important;padding:9px!important}
+  #qgV181CoordStrip .qg-v218-coord-left,#qgV181CoordStrip .qg-v218-coord-right{width:100%!important}
+  #qgV181CoordStrip .qg-v218-coord-right{justify-content:flex-start!important}
+}
+@media(max-width:480px){
+  #qgV181CoordStrip .qg-v218-chip,#qgV181CoordStrip .qg-v218-exit{font-size:8px!important;padding:6px 8px!important;min-height:28px!important}
+}
+</style>
+<script id="qg-v218-coord-top-only-js">
+(function(){
+'use strict';
+window.QG_APP_PATCH_V218=Object.freeze({
+  release:'v218',base:'v217',safetyBaseline:'v160',
+  scope:'coordination-top-only',fiscal:'UNCHANGED',admin:'UNCHANGED',backend:'UNCHANGED',
+  realtimeEngine:'UNCHANGED_V216',sessionF5:'UNCHANGED_V209',frozenEverythingElse:true
+});
+
+function qgV218Role(){try{return String(state?.role||document.body?.dataset?.qgRole||'').toLowerCase()}catch(_){return ''}}
+function qgV218Pending(){
+  try{
+    const off=Array.isArray(state?.offlineQueue)?state.offlineQueue.length:0;
+    const sync=Array.isArray(state?.syncQueueV34)?state.syncQueueV34.filter(x=>x&&x.acked!==true).length:0;
+    const canon=Array.isArray(state?.canonicalQueueV164)?state.canonicalQueueV164.length:0;
+    return Math.max(0,off+sync+canon);
+  }catch(_){return 0}
+}
+function qgV218RtState(){
+  const status=String(window.__qgV216?.channelStatus||'OFF');
+  const ms=Number(window.__qgV216?.lastResponseMs);
+  if(status==='SUBSCRIBED')return {cls:'ok',txt:'REALTIME'+(Number.isFinite(ms)?' • '+Math.max(0,Math.round(ms))+' ms':' • ATIVO')};
+  if(['CHANNEL_ERROR','TIMED_OUT','CLOSED'].includes(status))return {cls:'bad',txt:'REALTIME • RECONECTANDO'};
+  return {cls:'warn',txt:'REALTIME • CONECTANDO'};
+}
+function qgV218SyncState(){
+  const pending=qgV218Pending();
+  const rt=String(window.__qgV216?.channelStatus||'OFF');
+  if(navigator.onLine===false||['CHANNEL_ERROR','TIMED_OUT','CLOSED'].includes(rt))return {cls:'bad',txt:'SEM CONEXÃO'};
+  if(pending>0)return {cls:'warn',txt:pending+' AGUARDANDO SINCRONIZAÇÃO'};
+  if(rt==='SUBSCRIBED')return {cls:'ok',txt:'SINCRONIZADO'};
+  return {cls:'warn',txt:'SINCRONIZANDO'};
+}
+function qgV218Logout(){
+  try{return window.qgLogoutV209?.()}catch(_){try{return window.logoutV36?.()}catch(__){location.reload();return false}}
+}
+function qgV218EnsureStrip(){
+  if(qgV218Role()!=='coordenacao')return null;
+  const host=document.getElementById('qgCoordIntelV164');if(!host)return null;
+  let strip=document.getElementById('qgV181CoordStrip');
+  if(!strip){strip=document.createElement('div');strip.id='qgV181CoordStrip';host.prepend(strip)}
+  strip.className='qg-v181-release-strip qg-v218-coord-top';
+  if(strip.dataset.qgV218Built!=='1'){
+    strip.dataset.qgV218Built='1';
+    strip.innerHTML='<div class="qg-v218-coord-left"><span class="qg-v218-chip qg-v218-role">COORDENAÇÃO</span></div><div class="qg-v218-coord-right"><span id="qgV218CoordSync" class="qg-v218-chip qg-v218-sync warn"><i class="qg-v218-dot"></i><span class="txt">SINCRONIZANDO</span></span><span id="qgV218CoordRt" class="qg-v218-chip qg-v218-rt warn"><i class="qg-v218-dot"></i><span class="txt">REALTIME • CONECTANDO</span></span><button type="button" id="qgV218CoordLogout" class="qg-v218-exit" aria-label="Sair da conta">↪ SAIR</button></div>';
+    strip.querySelector('#qgV218CoordLogout')?.addEventListener('click',qgV218Logout);
+  }
+  return strip;
+}
+function qgV218Update(){
+  const isCoord=qgV218Role()==='coordenacao';
+  document.body?.classList.toggle('qg-v218-coord-active',isCoord);
+  if(!isCoord)return false;
+  const strip=qgV218EnsureStrip();if(!strip)return false;
+  const sy=qgV218SyncState(),rt=qgV218RtState();
+  const se=strip.querySelector('#qgV218CoordSync'),re=strip.querySelector('#qgV218CoordRt');
+  if(se){se.classList.remove('warn','bad');if(sy.cls!=='ok')se.classList.add(sy.cls);const t=se.querySelector('.txt');if(t&&t.textContent!==sy.txt)t.textContent=sy.txt}
+  if(re){re.classList.remove('warn','bad');if(rt.cls!=='ok')re.classList.add(rt.cls);const t=re.querySelector('.txt');if(t&&t.textContent!==rt.txt)t.textContent=rt.txt}
+  return true;
+}
+window.qgV218UpdateCoordHeader=qgV218Update;
+
+/* A v181 pode reconstruir apenas a faixa de release; interceptamos somente o ID da Coordenação. */
+const ensureBase=window.qgV181EnsureStrip;
+if(typeof ensureBase==='function')window.qgV181EnsureStrip=function(){
+  const r=ensureBase.apply(this,arguments);
+  if(arguments[1]==='qgV181CoordStrip')queueMicrotask(qgV218Update);
+  return r;
+};
+
+['qg:bu-updated','qg:canonical-updated','qg:canonical-signal','qg:tenant-updated','online','offline'].forEach(ev=>window.addEventListener(ev,()=>queueMicrotask(qgV218Update)));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)queueMicrotask(qgV218Update)});
+const srcObs=new MutationObserver(()=>queueMicrotask(qgV218Update));
+function qgV218Boot(){
+  qgV218Update();
+  const source=document.querySelector('.qg-status-stack-v115');if(source)try{srcObs.observe(source,{subtree:true,childList:true,characterData:true,attributes:true})}catch(_){ }
+  setInterval(qgV218Update,1000);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',qgV218Boot,{once:true});else qgV218Boot();
+})();
+</script>
 </body></html>

@@ -1,22 +1,31 @@
-QG DAS URNAS v217 — PACOTE FINAL PARA GITHUB PAGES
+QG DAS URNAS v218 — PACOTE COMPLETO PARA GITHUB PAGES
 
-Publicação:
-1. Extraia este ZIP.
-2. No repositório GitHub já usado pelo QG DAS URNAS, substitua o conteúdo da raiz pelos arquivos deste pacote.
-3. O arquivo principal deve aparecer na raiz exatamente como: index.html
-4. Preserve a pasta icons/ e os arquivos manifest.webmanifest, sw.js, favicon.ico e .nojekyll.
-5. Faça Commit das alterações.
-6. Em Settings > Pages mantenha: Deploy from a branch > main > /(root).
-7. Depois do deploy, abra o site e pressione Ctrl+F5 uma vez. O Service Worker v217 usa cache novo e navegação network-first.
+VERSÃO
+- Aplicativo: v218 — Topo da Coordenação padronizado.
+- Base funcional preservada: v217.
+- Alteração v218: apenas o topo superior da área Coordenação.
 
-ALTERAÇÕES v217:
-- sessão após F5: preservada exatamente pelo mecanismo v209 já aprovado;
-- SAIR no topo de Fiscal, Coordenação e Administrador;
-- Realtime sem debounce artificial no frontend;
-- Supabase com um único sinal Realtime por alteração relevante de BU;
-- otimização de pintura/renderização para notebook, tablet e celular;
-- watchdog leve para reconexão Realtime;
-- todo o restante da v215 preservado.
+COMO PUBLICAR
+1. Extraia este ZIP no computador.
+2. Abra a pasta extraída QG_DAS_URNAS_v218_GITHUB_PAGES.
+3. Envie o CONTEÚDO da pasta para a raiz do repositório GitHub.
+4. O arquivo index.html deve ficar diretamente na raiz do repositório.
+5. Mantenha a pasta icons/ com os três arquivos de ícone.
+6. GitHub: Settings > Pages > Deploy from a branch > main > /(root) > Save.
+7. Após o deploy, faça Ctrl+F5 uma vez para garantir que a versão publicada seja carregada.
 
+ESTRUTURA PRINCIPAL
+index.html
+manifest.webmanifest
+sw.js
+favicon.ico
+.nojekyll
+icons/
+  qg-icon-192.png
+  qg-icon-512.png
+  apple-touch-icon.png
+baseline/
+  QG_DAS_URNAS_v218_TOPO_COORDENACAO_PADRONIZADO.html
 
-ALTERAÇÃO v217: somente padronização visual do topo/lateral e remoção de controles duplicados. Motor realtime v216 e sessão F5 preservados.
+OBSERVAÇÃO
+O Service Worker, manifest e ícones foram reaproveitados da v217 sem alteração funcional. A navegação usa estratégia network-first para o index.html, portanto a v218 publicada é carregada da rede e armazenada para uso offline.
