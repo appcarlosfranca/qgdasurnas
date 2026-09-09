@@ -32397,4 +32397,71 @@ window.QG_APP_PATCH_V225={
 <script id="qg-v226-admin-login-fix">
 window.QG_APP_PATCH_V226={version:226,base:'v225',scope:'admin-login-credential-fix',localHashAligned:true,backendCredentialTable:true};
 </script>
+
+<script id="qg-v227-access-sync-hardening">
+window.QG_APP_PATCH_V227={version:227,base:'v226',scope:'tenant-access-server-ack',adminSecureRequired:true,tenantSaveServerConfirmed:true};
+(function(){
+  const adminBase=window.qgAdminLoginV140;
+  if(typeof adminBase==='function'){
+    window.qgAdminLoginV140=async function(){
+      const login=String(document.getElementById('adminUser140')?.value||'').trim();
+      const pass=String(document.getElementById('adminPass140')?.value||'');
+      const ok=await adminBase.apply(this,arguments);
+      if(!ok)return false;
+      let secure=!!(typeof qgV164Token==='function'&&qgV164Token());
+      if(!secure&&typeof qgOpenAdminSecureSessionV164==='function'){
+        try{secure=await qgOpenAdminSecureSessionV164(login,pass)}catch(_){secure=false}
+      }
+      if(!secure){
+        try{if(typeof qgShowAccess==='function')qgShowAccess()}catch(_){}
+        const err=document.getElementById('adminError');
+        if(err)err.textContent='Não foi possível abrir a sessão segura no Supabase. Verifique a conexão e tente novamente.';
+        return false;
+      }
+      try{await qgRefreshSecureSessionV164(true)}catch(_){}
+      try{await qgLoadRemoteTenantsV97()}catch(_){}
+      return true;
+    };
+  }
+
+  const saveBase=window.qgSaveTenantV97;
+  if(typeof saveBase==='function'){
+    window.qgSaveTenantV97=async function(){
+      const before={
+        tenants:JSON.parse(JSON.stringify(state.tenantsV97||[])),
+        accounts:JSON.parse(JSON.stringify(state.tenantAccountsV97||[])),
+        fiscal:JSON.parse(JSON.stringify(state.tenantFiscalV97||{}))
+      };
+      let result;
+      try{result=await saveBase.apply(this,arguments)}catch(e){result=false}
+      if(!result||result===false)return result;
+      if(result?.remote?.ok!==true){
+        state.tenantsV97=before.tenants;
+        state.tenantAccountsV97=before.accounts;
+        state.tenantFiscalV97=before.fiscal;
+        try{qgPersistStateSafe()}catch(_){}
+        try{qgRenderTenantListV97()}catch(_){}
+        const msg=document.getElementById('tenantSaveMsg97');
+        if(msg)msg.textContent='NÃO SALVO: o Supabase não confirmou o cadastro. Entre novamente como Administrador e tente salvar.';
+        return false;
+      }
+      try{
+        if(typeof qgV214AdminSnapshot==='function'){
+          const snap=await qgV214AdminSnapshot();
+          const id=String(result?.remote?.tenantId||'');
+          if(id&&!(snap?.profiles||[]).some(x=>String(x?.tenant_id||'')===id))throw new Error('Cliente não confirmado pelo servidor.');
+        }
+        if(typeof qgLoadRemoteTenantsV97==='function')await qgLoadRemoteTenantsV97();
+      }catch(e){
+        const msg=document.getElementById('tenantSaveMsg97');
+        if(msg)msg.textContent='Cadastro enviado, mas a confirmação do servidor falhou. Reabra Clientes e acessos antes de usar o login.';
+        return false;
+      }
+      const msg=document.getElementById('tenantSaveMsg97');
+      if(msg)msg.textContent='Cliente e acessos SALVOS NO SUPABASE e disponíveis em outros dispositivos.';
+      return result;
+    };
+  }
+})();
+</script>
 </body></html>

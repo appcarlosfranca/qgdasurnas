@@ -1,0 +1,20 @@
+{
+  "release": "v227",
+  "base": "v226",
+  "scope": "cadastro e login multi-dispositivo confirmados pelo Supabase",
+  "findings": {
+    "root_cause": "o login ADM local podia abrir sem sessão segura; o hash bcrypt do backend usava prefixo $2y$ incompatível com o matcher PostgreSQL, impedindo sessão segura e fazendo cadastros permanecerem apenas locais",
+    "backend_fix": "qg_v207_password_matches passou a normalizar $2y$ para $2a$",
+    "frontend_fix": "login ADM exige sessão segura e cadastro de cliente só é considerado salvo após confirmação do Supabase"
+  },
+  "checks": {
+    "javascript_scripts_checked": 167,
+    "javascript_syntax_errors": 0,
+    "admin_password_backend_match": true,
+    "save_rpc_exists": true,
+    "tenant_login_rpc_exists": true,
+    "admin_session_rpc_exists": true,
+    "profiles_before_retest": 0
+  },
+  "expected_behavior": "Após login ADM seguro, salvar um cliente grava no Supabase. O login Fiscal/Coordenação fica imediatamente disponível em qualquer outro dispositivo sem depender do cache do navegador de origem."
+}

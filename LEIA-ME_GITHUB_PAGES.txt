@@ -1,18 +1,13 @@
-QG DAS URNAS v226 — PACOTE FINAL LIMPO PARA GITHUB PAGES
+QG DAS URNAS v227 — ACESSOS SUPABASE CONFIRMADOS
 
-1. Extraia o ZIP.
-2. Envie o conteúdo desta pasta para a raiz do repositório GitHub.
-3. Confirme que index.html está na raiz.
-4. GitHub: Settings > Pages > Deploy from a branch > main > /(root).
-5. Após publicar, faça Ctrl+F5 uma vez no seu computador de teste.
+Envie todo o conteúdo desta pasta para a raiz do repositório GitHub Pages.
+O index.html precisa ficar na raiz.
+Após o commit/deploy, faça Ctrl+F5 uma vez.
 
-ESTADO DE ENTREGA
-- Supabase sem clientes Fiscal/Coordenação cadastrados.
-- Sem campanhas, BUs, simulações, sessões ou tentativas de login ativas.
-- Um único Administrador configurado.
-- O primeiro carregamento v226 limpa uma vez memórias locais legadas do navegador/origem.
-- A partir do segundo carregamento, a persistência normal volta a funcionar (inclusive F5 após login).
-- Otimização de resposta a toque/clique aplicada sem alterar os fluxos eleitorais.
+Teste recomendado:
+1. Entre como Administrador.
+2. Cadastre um cliente com login de Coordenação.
+3. Confirme a mensagem: "SALVOS NO SUPABASE".
+4. Em outro aparelho, abra o mesmo link e autentique a Coordenação.
 
-
-Correção v226: credencial administrativa local e backend alinhados.
+A v227 não aceita mais cadastro somente local como sucesso.
