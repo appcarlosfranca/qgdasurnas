@@ -1,0 +1,29 @@
+{
+  "release": "v236",
+  "base": "v235",
+  "scope": "correcao estrutural de texto/codigo bruto no fim das abas",
+  "changes": [
+    "removidas tags script embutidas nas strings de 5 rotinas de impressão",
+    "impressão preservada via setTimeout após document.close",
+    "defesa DOM remove apenas texto que corresponda inequivocamente a código-fonte legado",
+    "service worker cache v236"
+  ],
+  "preserved": [
+    "responsividade v235",
+    "Supabase",
+    "Realtime",
+    "login",
+    "Fiscal",
+    "Coordenação",
+    "Administrador",
+    "QR/Multi-QR",
+    "apuração",
+    "áudio",
+    "menus",
+    "Sala de Guerra"
+  ],
+  "source_invariants": {
+    "embedded_print_script_tags": 0,
+    "qgV168PureTests_definition_count": 1
+  }
+}

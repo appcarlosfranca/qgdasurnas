@@ -1,0 +1,24 @@
+{
+  "release": "v235",
+  "base": "v234",
+  "scope": "responsividade/autodimensionamento somente",
+  "logic_changed": false,
+  "supabase_changed": false,
+  "authentication_changed": false,
+  "qr_bu_changed": false,
+  "audio_changed": false,
+  "responsive_breakpoints_px": [
+    1280,
+    960,
+    640,
+    420
+  ],
+  "features": [
+    "layout fluido em redimensionamento de janela",
+    "menu horizontal em tablet/janela reduzida",
+    "grids responsivas",
+    "tabelas com rolagem interna",
+    "mídia limitada ao viewport",
+    "sem overflow horizontal global"
+  ]
+}

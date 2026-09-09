@@ -21340,44 +21340,7 @@ function qgV168ScenarioTimeline(){const body=document.getElementById('qgCoordInt
 
 function qgV168EnhanceReports(){const p=document.getElementById('qgV166Reports');if(!p||document.getElementById('qgV168ReportButtons'))return;const bar=p.querySelector('.qg-v166-toolbar');if(!bar)return;const s=document.createElement('span');s.id='qgV168ReportButtons';s.className='qg-v168-inline-actions';s.innerHTML='<button class="ghost" onclick="qgV168ExportReportJson()">JSON</button><button class="ghost" onclick="qgV168PrintReport()">IMPRIMIR / PDF</button>';bar.appendChild(s)}
 function qgV168ExportReportJson(){let rows=window.__qgV166?.reportRows||[];if(!rows.length){qgV166BuildReport?.();rows=window.__qgV166?.reportRows||[]}if(!rows.length)return;const payload={generatedAt:new Date().toISOString(),role:state.role,tenant:qgV167CurrentTenantId(),filters:{cargo:document.getElementById('qgV166RepCargo')?.value||'',municipio:document.getElementById('qgV166RepMun')?.value||'',zona:document.getElementById('qgV166RepZona')?.value||'',secao:document.getElementById('qgV166RepSec')?.value||''},records:rows};qgV166Download('qg_relatorio_analitico_'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(payload,null,2),'application/json;charset=utf-8')}
-function qgV168PrintReport(){const body=document.getElementById('qgV166ReportBody');if(!body)return;const w=window.open('','_blank','noopener,noreferrer');if(!w){alert('O navegador bloqueou a janela de impressão.');return}w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>QG DAS URNAS — Relatório</title><style>body{font-family:Arial,sans-serif;color:#111;padding:24px}h1{font-size:20px}.qg-v166-mini-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.qg-v166-mini{border:1px solid #ccc;padding:8px}.qg-v164-table{width:100%;border-collapse:collapse;font-size:11px}.qg-v164-table th,.qg-v164-table td{border:1px solid #ccc;padding:5px;text-align:left}.qg-v164-card-head,.qg-v166-source-banner,.qg-v166-note{margin:8px 0}button{display:none}@media print{body{padding:0}}</style></head><body><h1>QG DAS URNAS — Relatório analítico</h1><p>Gerado em '+qgV164Esc(new Date().toLocaleString('pt-BR'))+'</p>'+body.innerHTML+'<script>setTimeout(()=>window.print(),250)<\/script>
-<!-- QG_V230_SUPABASE_PUBLISHABLE_RPC_FIX_START -->
-<script id="qg-v230-supabase-publishable-rpc-fix">
-window.QG_APP_PATCH_V230=Object.freeze({release:'v230',base:'v229',scope:'supabase-publishable-rpc-transport',publishableKeyHeader:'apikey-only',legacyJwtAuthorization:'preserved',syncBadgeStable:true});
-(function(){
-  function paint(){
-    try{
-      const badge=document.getElementById('syncBadge'),txt=document.getElementById('syncText');
-      if(!badge||!txt)return;
-      const q=typeof qgV229Pending==='function'?qgV229Pending():0;
-      const rt=String(window.__qgV216?.channelStatus||'OFF');
-      let desired,cls;
-      if(navigator.onLine===false){desired='SEM CONEXÃO';cls='bad'}
-      else if(q>0){desired=q+' AGUARDANDO SINCRONIZAÇÃO';cls='warn'}
-      else if(rt==='SUBSCRIBED'){desired='SINCRONIZADO';cls='ok'}
-      else {desired='SINCRONIZANDO';cls='warn'}
-      if(txt.textContent!==desired)txt.textContent=desired;
-      badge.classList.toggle('pending',cls!=='ok');
-      badge.classList.toggle('qg-v229-ok',cls==='ok');
-      badge.classList.toggle('qg-v229-warn',cls==='warn');
-      badge.classList.toggle('qg-v229-bad',cls==='bad');
-    }catch(_){ }
-  }
-  function boot(){
-    paint();
-    const txt=document.getElementById('syncText');
-    if(txt&&!txt.__qgV230Observed){
-      txt.__qgV230Observed=true;
-      new MutationObserver(()=>queueMicrotask(paint)).observe(txt,{childList:true,characterData:true,subtree:true});
-    }
-    ['online','offline','qg:bu-updated','qg:canonical-updated','qg:canonical-signal'].forEach(ev=>window.addEventListener(ev,paint,{passive:true}));
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
-})();
-</script>
-<!-- QG_V230_SUPABASE_PUBLISHABLE_RPC_FIX_END -->
-
-</body></html>');w.document.close()}
+function qgV168PrintReport(){const body=document.getElementById('qgV166ReportBody');if(!body)return;const w=window.open('','_blank','noopener,noreferrer');if(!w){alert('O navegador bloqueou a janela de impressão.');return}w.document.open();w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>QG DAS URNAS — Relatório</title><style>body{font-family:Arial,sans-serif;color:#111;padding:24px}h1{font-size:20px}.qg-v166-mini-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.qg-v166-mini{border:1px solid #ccc;padding:8px}.qg-v164-table{width:100%;border-collapse:collapse;font-size:11px}.qg-v164-table th,.qg-v164-table td{border:1px solid #ccc;padding:5px;text-align:left}.qg-v164-card-head,.qg-v166-source-banner,.qg-v166-note{margin:8px 0}button{display:none}@media print{body{padding:0}}</style></head><body><h1>QG DAS URNAS — Relatório analítico</h1><p>Gerado em '+qgV164Esc(new Date().toLocaleString('pt-BR'))+'</p>'+body.innerHTML+'</body></html>');w.document.close();setTimeout(()=>{try{w.focus();w.print()}catch(e){}},250)}
 
 function qgV168PureTests(){const fixture='ANO_ELEICAO;DS_CARGO;NR_CANDIDATO;NM_MUNICIPIO;NR_ZONA;NR_LOCAL_VOTACAO;NR_SECAO;QT_VOTOS_NOMINAIS\n2022;Deputado Federal;5555;LAGARTO;12;10;1;100\n2022;Deputado Federal;5555;LAGARTO;12;10;1;20\n2022;Deputado Federal;5555;ARACAJU;1;20;2;50';let hist=false;try{const d=qgV168ParseHistoryText(fixture,'fixture.csv',2022);hist=d.aggregatedRows===2&&d.rows.reduce((a,r)=>a+r.votos,0)===170}catch(e){}const menus=(QG_PROFILE_MENUS.fiscal||[]).length===4&&(QG_PROFILE_MENUS.coordenacao||[]).length===6&&(QG_PROFILE_MENUS.admin||[]).length===6;const prod=qgV166ProductionRows().every(r=>!qgV166IsSynthetic(r));return {ok:hist&&menus&&prod,tests:[{name:'Parser histórico agrega linhas sem duplicar território/candidato',ok:hist},{name:'Menus congelados/definidos preservados',ok:menus},{name:'Filtro produção exclui sintéticos',ok:prod},{name:'Nenhuma dependência Supabase introduzida pela v168',ok:true}]}}
 function qgV168AuditPanel(){const host=document.getElementById('adminAuditDiagV164');if(!host||document.getElementById('qgV168Audit'))return;const x=document.createElement('div');x.id='qgV168Audit';x.className='card qg-v168-panel';const legacy=host.querySelector('.qg-v164-legacy');host.insertBefore(x,legacy);const t=qgV168PureTests();window.__qgV168.tests=t;x.innerHTML='<div class="qg-v164-card-head"><div><span class="qg-v164-badge fact">PRÉ-HOMOLOGAÇÃO</span><h3>Testes frontend v168</h3></div><b class="'+(t.ok?'qg-v168-ok-text':'qg-v168-warn-text')+'">'+(t.ok?'OK':'ATENÇÃO')+'</b></div>'+t.tests.map(a=>'<div class="qg-v166-preflight"><span>'+qgV164Esc(a.name)+'</span><b class="qg-v166-status '+(a.ok?'ok':'warn')+'">'+(a.ok?'OK':'FALHA')+'</b></div>').join('')+'<div class="qg-v166-note">RLS/backend continua deliberadamente fora desta etapa. Estes testes não substituem a homologação final do Supabase.</div>'}
@@ -21552,7 +21515,7 @@ function qgV170AdminExecutivePanel(){
   box.innerHTML='<div class="qg-v170-head"><div><span class="qg-v164-badge fact">APURADO</span><h3>Painel executivo da apuração</h3><div class="note">'+(preview?'Prévia da autorização de '+qgV164Esc(preview.nome||preview.id):'Visão integral local do Administrador')+' • produção apenas • sem Supabase nesta etapa.</div></div><button class="ghost" onclick="qgV170PrintAdminExecutive()">RELATÓRIO EXECUTIVO</button></div><div class="qg-v170-kpis"><div><small>BUs no recorte</small><b>'+qgV164Fmt(bus)+'</b></div><div><small>Seções</small><b>'+qgV164Pct(cov.sectionPct)+'</b><span>'+qgV164Fmt(cov.receivedSections)+' / '+qgV164Fmt(cov.totalSections)+'</span></div><div><small>Eleitorado coberto</small><b>'+qgV164Pct(cov.electoratePct)+'</b><span>'+qgV164Fmt(cov.gotElect)+' / '+qgV164Fmt(cov.totalElect)+'</span></div><div><small>Votos nominais</small><b>'+qgV164Fmt(totalVotes)+'</b></div><div><small>Cargos no recorte</small><b>'+qgV164Fmt(boards.length)+'</b></div><div><small>Comparecimento conhecido</small><b>'+(cov.knownTurnout?qgV164Fmt(cov.present):'—')+'</b><span>'+(cov.knownTurnout?qgV164Fmt(cov.absent)+' ausentes':'Metadado ainda indisponível')+'</span></div></div><div class="qg-v170-cargo-grid">'+(boards.length?boards.map(qgV170CargoBoard).join(''):'<div class="qg-v164-empty">Nenhum dado local de produção no recorte atual.</div>')+'</div>';
   window.__qgV170.lastExecutive={at:new Date().toISOString(),rows:rows.length,bus,cov,cargos:boards.map(x=>({cargo:x.cargo,total:x.total,top:x.rows.slice(0,10)})),preview:preview?.id||null};
 }
-function qgV170PrintAdminExecutive(){const x=document.getElementById('qgV170AdminExecutive');if(!x)return;const w=window.open('','_blank','noopener,noreferrer');if(!w){alert('O navegador bloqueou a janela de impressão.');return}w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>QG DAS URNAS — Apuração Executiva</title><style>body{font-family:Arial,sans-serif;color:#111;padding:24px}h1{font-size:22px}.qg-v170-kpis,.qg-v170-cargo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.qg-v170-kpis>div,.qg-v170-cargo{border:1px solid #bbb;border-radius:8px;padding:10px}.qg-v170-rank{padding:6px 0;border-bottom:1px solid #ddd}.qg-v170-rank span,.qg-v170-rank strong,.qg-v170-rank small{display:block}.qg-v170-rank i,.qg-v164-badge,button{display:none}.note,small,span{color:#444;font-size:11px}@media print{body{padding:0}}</style></head><body><h1>QG DAS URNAS — Apuração executiva</h1><p>Gerado em '+qgV164Esc(new Date().toLocaleString('pt-BR'))+'</p>'+x.innerHTML+'<script>setTimeout(()=>window.print(),250)<\/script></body></html>');w.document.close()}
+function qgV170PrintAdminExecutive(){const x=document.getElementById('qgV170AdminExecutive');if(!x)return;const w=window.open('','_blank','noopener,noreferrer');if(!w){alert('O navegador bloqueou a janela de impressão.');return}w.document.open();w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>QG DAS URNAS — Apuração Executiva</title><style>body{font-family:Arial,sans-serif;color:#111;padding:24px}h1{font-size:22px}.qg-v170-kpis,.qg-v170-cargo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.qg-v170-kpis>div,.qg-v170-cargo{border:1px solid #bbb;border-radius:8px;padding:10px}.qg-v170-rank{padding:6px 0;border-bottom:1px solid #ddd}.qg-v170-rank span,.qg-v170-rank strong,.qg-v170-rank small{display:block}.qg-v170-rank i,.qg-v164-badge,button{display:none}.note,small,span{color:#444;font-size:11px}@media print{body{padding:0}}</style></head><body><h1>QG DAS URNAS — Apuração executiva</h1><p>Gerado em '+qgV164Esc(new Date().toLocaleString('pt-BR'))+'</p>'+x.innerHTML+'</body></html>');w.document.close();setTimeout(()=>{try{w.focus();w.print()}catch(e){}},250)}
 
 function qgV170CoordDecisionData(){
   const sel=qgV169Selection?.()||{},cargo=sel.cargo,target=sel.target,numero=sel.numero;if(!cargo||!target)return null;const rank=qgRankCandidateV164(cargo,numero),ec=qgElectorateCoverageV164(),sectionPct=qgAllSectionsV164().length?qgReceivedSectionKeysV164().size/qgAllSectionsV164().length*100:0,proj=qgProjectionV164(cargo,numero),sc=qgElectoralScenarioV164(cargo),status=sc.result?.get(String(numero))?.label||'Cenário indefinido',terr=qgTerritorialDataV164(cargo,numero).filter(x=>x.votes>0).sort((a,b)=>b.votes-a.votes),pending=qgV169PendingMunicipalMatrix?.(cargo,numero)||[],integrity=qgIntegritySummaryV164();
@@ -21563,7 +21526,7 @@ function qgV170CoordDecisionRoom(){
   const top=d.terr[0],pend=d.pending[0],alerts=Number(d.integrity.duplicates||0)+Number(d.integrity.divergences||0)+Number(d.integrity.invalid||0)+Number(d.integrity.canonicalConflicts||0),confidence=d.proj?.ok?d.proj.confidence:'Sem projeção';
   box.innerHTML='<div class="qg-v170-head"><div><span class="qg-v164-badge intel">INTELIGÊNCIA</span><h3>Resumo decisório da Sala de Guerra</h3><div class="note">Quatro perguntas essenciais da apuração, com fato, cálculo e projeção explicitamente separados.</div></div><button class="ghost" onclick="qgV170PrintCoordBrief()">IMPRIMIR BRIEF</button></div><div class="qg-v170-question-grid"><div><small>1. O que está acontecendo agora?</small><b>'+qgV164Fmt(d.rank.total)+' votos • '+(d.rank.rank||'—')+'º</b><span>'+qgV164Pct(d.sectionPct)+' das seções • '+qgV164Pct(d.ec.pct)+' do eleitorado monitorado</span><em class="fact">APURADO</em></div><div><small>2. Por que o cenário está assim?</small><b>'+(top?qgV164Esc(top.municipio)+' lidera a contribuição':'Territórios ainda insuficientes')+'</b><span>'+(top?qgV164Fmt(top.votes)+' votos recebidos nesse município':'Aguardando distribuição territorial')+'</span><em class="intel">INTELIGÊNCIA</em></div><div><small>3. O que ainda pode mudar?</small><b>'+(pend?qgV164Esc(pend.municipio):'Sem território crítico identificado')+'</b><span>'+(pend?qgV164Fmt(pend.pending)+' eleitores ainda não cobertos':'Pendências sem impacto territorial calculável')+'</span><em class="intel">INTELIGÊNCIA</em></div><div><small>4. Posso confiar nesses números?</small><b>'+qgV164Esc(confidence)+'</b><span>'+qgV164Esc(d.proj?.ok?('Projeção '+qgV164Fmt(d.proj.lower)+'–'+qgV164Fmt(d.proj.upper)):d.proj?.reason||'Dados insuficientes para projeção')+' • '+alerts+' alerta(s) de integridade</span><em class="proj">PROJEÇÃO QG</em></div></div><div class="qg-v170-current-status"><span>Situação pelo Motor Eleitoral</span><b>'+qgV164Esc(d.status)+'</b><small>Cálculo sobre os BUs atualmente recebidos. Não constitui resultado oficial da Justiça Eleitoral.</small></div>';
 }
-function qgV170PrintCoordBrief(){const x=document.getElementById('qgV170DecisionRoom');if(!x)return;const w=window.open('','_blank','noopener,noreferrer');if(!w){alert('O navegador bloqueou a janela de impressão.');return}w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>QG DAS URNAS — Brief Executivo</title><style>body{font-family:Arial,sans-serif;color:#111;padding:28px}h1{font-size:22px}.qg-v170-question-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.qg-v170-question-grid>div,.qg-v170-current-status{border:1px solid #bbb;border-radius:8px;padding:12px}.qg-v170-question-grid small,.qg-v170-question-grid b,.qg-v170-question-grid span,.qg-v170-current-status span,.qg-v170-current-status b,.qg-v170-current-status small{display:block;margin:3px 0}.qg-v164-badge,button,em{display:none}.note,small,span{color:#444}@media print{body{padding:0}}</style></head><body><h1>QG DAS URNAS — Brief executivo</h1><p>Gerado em '+qgV164Esc(new Date().toLocaleString('pt-BR'))+'</p>'+x.innerHTML+'<script>setTimeout(()=>window.print(),250)<\/script></body></html>');w.document.close()}
+function qgV170PrintCoordBrief(){const x=document.getElementById('qgV170DecisionRoom');if(!x)return;const w=window.open('','_blank','noopener,noreferrer');if(!w){alert('O navegador bloqueou a janela de impressão.');return}w.document.open();w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>QG DAS URNAS — Brief Executivo</title><style>body{font-family:Arial,sans-serif;color:#111;padding:28px}h1{font-size:22px}.qg-v170-question-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.qg-v170-question-grid>div,.qg-v170-current-status{border:1px solid #bbb;border-radius:8px;padding:12px}.qg-v170-question-grid small,.qg-v170-question-grid b,.qg-v170-question-grid span,.qg-v170-current-status span,.qg-v170-current-status b,.qg-v170-current-status small{display:block;margin:3px 0}.qg-v164-badge,button,em{display:none}.note,small,span{color:#444}@media print{body{padding:0}}</style></head><body><h1>QG DAS URNAS — Brief executivo</h1><p>Gerado em '+qgV164Esc(new Date().toLocaleString('pt-BR'))+'</p>'+x.innerHTML+'</body></html>');w.document.close();setTimeout(()=>{try{w.focus();w.print()}catch(e){}},250)}
 
 function qgV170ConsistencyAudit(){
   const rows=qgV170ProductionRows(),synthetic=(state.subs||[]).filter(r=>typeof qgV165SyntheticRecord==='function'&&qgV165SyntheticRecord(r)),neg=rows.filter(r=>Number(r.votos||0)<0),missingLoc=rows.filter(r=>!r.municipio||!Number(r.zona||0)||!Number(r.secao||0)),missingProt=rows.filter(r=>!String(r.buProtocol||r.protocolo||'').trim());
@@ -21788,7 +21751,7 @@ function qgV173ReportSummary(){const rows=qgV173ReportRows(),bus=qgV173Unique(ro
 function qgV173ReportsPanel(){const sec=document.getElementById('reports');if(!sec)return;let box=document.getElementById('qgV173ExecutiveReport');if(!box){box=document.createElement('div');box.id='qgV173ExecutiveReport';box.className='card qg-v173-panel';const ref=document.getElementById('qgV166Reports');ref?ref.after(box):sec.appendChild(box)}const x=qgV173ReportSummary(),alerts=['duplicates','divergences','invalid','canonicalConflicts'].reduce((a,k)=>a+Number(x.integrity?.[k]||0),0),top=x.territories.slice(0,6);box.innerHTML='<div class="qg-v173-head"><div><span class="qg-v164-badge intel">RELATÓRIO EXECUTIVO</span><h3>Dossiê consolidado da apuração</h3><div class="note">Resume o recorte definido nos filtros acima sem substituir os relatórios e exportações já existentes.</div></div></div><div class="qg-v173-actions"><button class="btn" onclick="qgV173RefreshReport()">ATUALIZAR DOS FILTROS</button><button class="ghost" onclick="qgV173PrintReport()">IMPRIMIR / PDF</button><button class="ghost" onclick="qgV173ExportReportJson()">EXPORTAR JSON</button></div><div class="qg-v173-kpis"><div><small>BUs</small><b>'+qgV164Fmt(x.bus)+'</b></div><div><small>Seções</small><b>'+qgV164Fmt(x.sections)+'</b></div><div><small>Registros</small><b>'+qgV164Fmt(x.rows)+'</b></div><div><small>Votos nominais</small><b>'+qgV164Fmt(x.votes)+'</b></div><div><small>Alertas de integridade</small><b>'+qgV164Fmt(alerts)+'</b></div></div><div class="qg-v173-report-grid"><div class="qg-v173-report-box"><h4>Principais territórios do recorte</h4>'+(top.length?top.map((t,i)=>'<div class="qg-v164-row"><span>'+(i+1)+'. '+qgV164Esc(t.municipio)+'<small>'+qgV164Fmt(t.bus)+' BUs • '+qgV164Fmt(t.sections)+' seções</small></span><b>'+qgV164Fmt(t.votes)+'</b></div>').join(''):'<div class="qg-v164-empty">Sem territórios no recorte.</div>')+'</div><div class="qg-v173-report-box"><h4>Leitura analítica</h4><div class="qg-v164-row"><span>Projeção</span><b>'+(x.projection?qgV164Fmt(x.projection.central)+' ('+qgV164Fmt(x.projection.lower)+'–'+qgV164Fmt(x.projection.upper)+')':'Dados insuficientes')+'</b></div><div class="qg-v164-row"><span>Confiança</span><b>'+(x.projection?qgV164Esc(x.projection.confidence):'—')+'</b></div><div class="qg-v164-row"><span>Áreas pendentes relevantes</span><b>'+qgV164Fmt(x.pending.length)+'</b></div><div class="qg-v164-row"><span>Camadas</span><b>Apurado • Cálculo • Projeção • Inteligência</b></div></div></div><div class="qg-v173-note">Projeções, quando exibidas, são independentes e baseadas nos BUs disponíveis no QG DAS URNAS; não constituem resultado oficial da Justiça Eleitoral.</div>'}
 function qgV173RefreshReport(){try{qgV166BuildReport?.()}catch(e){}qgV173ReportsPanel()}
 function qgV173ExportReportJson(){const x=qgV173ReportSummary();qgV173Download('QG_DOSSIE_EXECUTIVO_V173_'+new Date().toISOString().slice(0,10)+'.json','application/json;charset=utf-8',JSON.stringify(x,null,2))}
-function qgV173PrintReport(){const box=document.getElementById('qgV173ExecutiveReport');if(!box)return;const w=window.open('','_blank','noopener,noreferrer');if(!w){alert('O navegador bloqueou a janela de impressão.');return}w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>QG DAS URNAS — Dossiê Executivo</title><style>body{font-family:Arial,sans-serif;color:#111;padding:24px}button{display:none}.qg-v173-kpis,.qg-v173-report-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.qg-v173-kpis>div,.qg-v173-report-box{border:1px solid #bbb;border-radius:8px;padding:10px}.qg-v164-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #ddd}.qg-v164-badge{font-size:10px}.note,.qg-v173-note,small{color:#555;font-size:11px}@media print{body{padding:0}}</style></head><body><h1>QG DAS URNAS — Dossiê executivo</h1><p>Gerado em '+qgV164Esc(new Date().toLocaleString('pt-BR'))+'</p>'+box.innerHTML+'<script>setTimeout(()=>window.print(),250)<\/script></body></html>');w.document.close()}
+function qgV173PrintReport(){const box=document.getElementById('qgV173ExecutiveReport');if(!box)return;const w=window.open('','_blank','noopener,noreferrer');if(!w){alert('O navegador bloqueou a janela de impressão.');return}w.document.open();w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>QG DAS URNAS — Dossiê Executivo</title><style>body{font-family:Arial,sans-serif;color:#111;padding:24px}button{display:none}.qg-v173-kpis,.qg-v173-report-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.qg-v173-kpis>div,.qg-v173-report-box{border:1px solid #bbb;border-radius:8px;padding:10px}.qg-v164-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #ddd}.qg-v164-badge{font-size:10px}.note,.qg-v173-note,small{color:#555;font-size:11px}@media print{body{padding:0}}</style></head><body><h1>QG DAS URNAS — Dossiê executivo</h1><p>Gerado em '+qgV164Esc(new Date().toLocaleString('pt-BR'))+'</p>'+box.innerHTML+'</body></html>');w.document.close();setTimeout(()=>{try{w.focus();w.print()}catch(e){}},250)}
 
 /* ---------------- DADOS E SISTEMA: DRY-RUN DA MIGRAÇÃO CANÔNICA ---------------- */
 function qgV173MigrationDryRun(){const rows=qgV173Rows(),synthetic=(state.subs||[]).filter(r=>typeof qgV165SyntheticRecord==='function'&&qgV165SyntheticRecord(r)),groups=new Map();rows.forEach(r=>{const k=qgV173Bu(r);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(r)});const reasonCount=new Map(),items=[];groups.forEach((g,key)=>{const reasons=[],first=g[0]||{},territory=!!String(first.municipio||'').trim()&&Number(first.zona||0)>0&&Number(first.secao||0)>0;if(!territory)reasons.push('território incompleto');if(!g.some(r=>String(r.cargo||'').trim()))reasons.push('cargo ausente');if(g.some(r=>Number(r.votos||0)<0))reasons.push('voto negativo');if(g.some(r=>Number(r.votos||0)>0&&!String(r.candidateNumber||r.candidateId||r.numero||'').trim()))reasons.push('número de candidato ausente');const seen=new Map();let conflict=false;g.forEach(r=>{const ck=qgV164Norm(r.cargo)+'|'+String(r.candidateNumber||r.candidateId||r.numero||'');if(!ck.endsWith('|')){if(seen.has(ck)&&Number(seen.get(ck))!==Number(r.votos||0))conflict=true;else seen.set(ck,Number(r.votos||0))}});if(conflict)reasons.push('conflito cargo/candidato no mesmo BU');const protocol=!!g.some(r=>String(r.buProtocol||r.protocolo||'').trim()),time=!!g.some(r=>String(r.time||r.receivedAt||r.created_at||'').trim()),identity=!!g.some(r=>String(r.canonicalKeyV164||r.buIdentityV115||'').trim());if(!protocol)reasons.push('protocolo ausente');if(!time)reasons.push('horário ausente');if(!identity)reasons.push('identidade canônica/BU dependente de fallback');reasons.forEach(x=>reasonCount.set(x,(reasonCount.get(x)||0)+1));const hard=reasons.some(x=>['território incompleto','cargo ausente','voto negativo','número de candidato ausente','conflito cargo/candidato no mesmo BU'].includes(x));items.push({key,ready:!hard,hardIssues:hard,reasons,cargos:[...new Set(g.map(r=>String(r.cargo||'')).filter(Boolean))],rows:g.length,protocol,time,identity,municipio:first.municipio||'',zona:first.zona||'',secao:first.secao||''})});const ready=items.filter(x=>x.ready).length,total=items.length,score=total?ready/total*100:0,out={generatedAt:new Date().toISOString(),version:173,networkUsed:false,supabaseChanged:false,productionRows:rows.length,syntheticRowsExcluded:synthetic.length,totalBus:total,readyBus:ready,reviewBus:total-ready,readinessPct:score,reasons:[...reasonCount.entries()].map(([reason,count])=>({reason,count})).sort((a,b)=>b.count-a.count),items:items.slice(0,500)};window.__qgV173.lastMigrationDryRun=out;return out}
@@ -32998,16 +32961,7 @@ function qgV233RemoveCoordHero(){
   if(hero)hero.remove();
 }
 
-function qgV233FixPrintReport(){
-  window.qgV168PrintReport=function(){
-    const body=document.getElementById('qgV166ReportBody');
-    if(!body)return;
-    const w=window.open('','_blank','noopener,noreferrer');
-    if(!w){alert('O navegador bloqueou a janela de impressão.');return}
-    w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>QG DAS URNAS — Relatório</title><style>body{font-family:Arial,sans-serif;color:#111;padding:24px}h1{font-size:20px}.qg-v166-mini-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.qg-v166-mini{border:1px solid #ccc;padding:8px}.qg-v164-table{width:100%;border-collapse:collapse;font-size:11px}.qg-v164-table th,.qg-v164-table td{border:1px solid #ccc;padding:5px;text-align:left}.qg-v164-card-head,.qg-v166-source-banner,.qg-v166-note{margin:8px 0}button{display:none}@media print{body{padding:0}}</style></head><body><h1>QG DAS URNAS — Relatório analítico</h1><p>Gerado em '+qgV233Esc(new Date().toLocaleString('pt-BR'))+'</p>'+body.innerHTML+'<script>setTimeout(()=>window.print(),250)<\/script></body></html>');
-    w.document.close();
-  };
-}
+function qgV233FixPrintReport(){window.qgV168PrintReport=function(){const body=document.getElementById('qgV166ReportBody');if(!body)return;const w=window.open('','_blank','noopener,noreferrer');if(!w){alert('O navegador bloqueou a janela de impressão.');return}w.document.open();w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>QG DAS URNAS — Relatório</title><style>body{font-family:Arial,sans-serif;color:#111;padding:24px}h1{font-size:20px}.qg-v166-mini-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.qg-v166-mini{border:1px solid #ccc;padding:8px}.qg-v164-table{width:100%;border-collapse:collapse;font-size:11px}.qg-v164-table th,.qg-v164-table td{border:1px solid #ccc;padding:5px;text-align:left}.qg-v164-card-head,.qg-v166-source-banner,.qg-v166-note{margin:8px 0}button{display:none}@media print{body{padding:0}}</style></head><body><h1>QG DAS URNAS — Relatório analítico</h1><p>Gerado em '+qgV233Esc(new Date().toLocaleString('pt-BR'))+'</p>'+body.innerHTML+'</body></html>');w.document.close();setTimeout(()=>{try{w.focus();w.print()}catch(e){}},250)}}
 
 function qgV233LooksRogue(text){
   const t=String(text||'').trim();
@@ -33086,4 +33040,303 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 <!-- QG_V233_PADRONIZACAO_TOTAL_END -->
+
+<script id="qg-v234-final-finish-js">
+(function(){
+'use strict';
+window.QG_APP_PATCH_V234=Object.freeze({release:'v234',base:'v233',scope:'final-padronizacao-hero-audio-clean'});
+function qgV234Esc(v){return String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]))}
+function qgV234Role(){try{return String(window.state?.role||'')}catch(_){return ''}}
+function qgV234Tenant(){try{return typeof qgCurrentTenantV97==='function'?qgCurrentTenantV97():null}catch(_){return null}}
+function qgV234Initials(name){return String(name||'QG').trim().split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase()||'QG'}
+function qgV234Photo(t){for(const k of ['foto','photo','logo','imagem','logoData','fotoPerfil','image']){const v=String(t?.[k]||'').trim();if(v)return v}return ''}
+function qgV234Cargos(t){const arr=Array.isArray(t?.cargos)&&t.cargos.length?t.cargos:['Deputado Federal','Deputado Estadual','Senador','Governador','Presidente'];return arr.slice(0,5)}
+function qgV234SyncLabel(){try{const raw=String(document.getElementById('syncText')?.textContent||'').trim();if(raw)return raw}catch(_){ }try{if(navigator.onLine===false)return 'SEM CONEXÃO';if(window.__qgV216?.channelStatus==='SUBSCRIBED')return 'SINCRONIZADO'}catch(_){ }return 'SINCRONIZANDO'}
+function qgV234SyncClass(label){const s=String(label||'').toUpperCase();if(s.includes('SEM CONEX'))return 'bad';if(s==='SINCRONIZADO')return 'ok';if(s.includes('AGUARDANDO')||s.includes('SINCRONIZANDO'))return 'warn';return ''}
+function qgV234RealtimeLabel(){try{const raw=String(document.getElementById('rtBadgeText')?.textContent||'').trim();if(raw)return raw}catch(_){ }return window.__qgV216?.channelStatus==='SUBSCRIBED'?'REALTIME • ATIVO':'REALTIME • CONECTANDO'}
+function qgV234StopAudio(){try{const a=document.getElementById('qgIntroAudioV228');if(!a)return;a.pause();a.currentTime=0}catch(_){ }}
+function qgV234HeroHtml(){const t=qgV234Tenant()||{};const name=String(t.nome||t.nomeCampanha||'Candidato Z');const uf=String(t.uf||t.estado||'Brasil');const numero=String(t.numero||t.numeroCandidato||'0000');const cargos=qgV234Cargos(t);const photo=qgV234Photo(t);const sync=qgV234SyncLabel();const rt=qgV234RealtimeLabel();const syncCls=qgV234SyncClass(sync);return '<div class="qg-v233-tenant-main">'+'<div class="qg-v233-tenant-avatar">'+(photo?'<img src="'+qgV234Esc(photo)+'" alt="Foto do cliente" onerror="this.remove();this.parentElement.innerHTML=\'<b>'+qgV234Esc(qgV234Initials(name))+'</b>\'">':'<b>'+qgV234Esc(qgV234Initials(name))+'</b>')+'</div>'+'<div class="qg-v233-tenant-copy"><div class="qg-v233-tenant-name">'+qgV234Esc(name)+'</div><div class="qg-v233-tenant-meta">Nº '+qgV234Esc(numero)+' • '+qgV234Esc(uf)+'</div><div class="qg-v233-tenant-chips">'+cargos.map(c=>'<span class="qg-v233-tenant-chip">'+qgV234Esc(c)+'</span>').join('')+'</div></div></div>'+'<div class="qg-v233-tenant-side"><span class="qg-v233-pill '+qgV234Esc(syncCls)+'"><i></i>'+qgV234Esc(sync)+'</span><span class="qg-v233-pill"><i></i>'+qgV234Esc(rt)+'</span></div>'}
+function qgV234EnsureHero(){const role=qgV234Role();if(!['coordenacao','admin'].includes(role)){document.body.classList.remove('qg-v234-role-hero');document.getElementById('qgV234RoleHero')?.remove();return false}const main=document.querySelector('.main');if(!main)return false;document.body.classList.add('qg-v234-role-hero');let hero=document.getElementById('qgV234RoleHero');if(!hero){hero=document.createElement('div');hero.id='qgV234RoleHero';hero.className='qg-v233-tenant-hero'}hero.innerHTML=qgV234HeroHtml();const top=main.querySelector(':scope > .top');if(top){if(hero.previousElementSibling!==top)top.insertAdjacentElement('afterend',hero)}else if(main.firstElementChild!==hero){main.prepend(hero)}return true}
+function qgV234LooksRogue(text){const t=String(text||'').trim();return !!(t&&t.length>120&&/qgV168PureTests|QG_V230_SUPABASE|function qgV168|Testes frontend v168|window\.QG_APP_PATCH_V230/.test(t))}
+function qgV234CleanRogue(){const body=document.body;if(!body)return 0;let n=0;[...body.childNodes].forEach(node=>{if(node.nodeType===3&&qgV234LooksRogue(node.nodeValue)){node.remove();n++;}});[...body.querySelectorAll('div,section,article,p,pre')].forEach(el=>{if(el.closest('script,style,#qgV168Audit,#qgV166Preflight,#qgV167Checklist'))return;const txt=(el.textContent||'').trim();if(qgV234LooksRogue(txt)){el.remove();n++;}});return n}
+function qgV234WireStops(){if(document.body?.dataset.qgV234AudioBound==='1')return;if(document.body)document.body.dataset.qgV234AudioBound='1';document.addEventListener('click',ev=>{const btn=ev.target&&ev.target.closest?ev.target.closest('.role-enter,#qgAdminLoginBtnV140,.btn.role-enter,button[onclick*="qgTenantRoleLoginV102"],button[onclick*="qgAdminLoginV140"]'):null;if(btn)qgV234StopAudio()},true)}
+function qgV234Refresh(){qgV234EnsureHero();qgV234CleanRogue()}
+function qgV234Boot(){qgV234WireStops();qgV234Refresh();setTimeout(qgV234Refresh,120);setTimeout(qgV234Refresh,600);if(document.body&&!document.body.__qgV234Obs){document.body.__qgV234Obs=new MutationObserver(()=>{clearTimeout(window.__qgV234T);window.__qgV234T=setTimeout(qgV234Refresh,80)});document.body.__qgV234Obs.observe(document.body,{childList:true,subtree:true})}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',qgV234Boot,{once:true});else qgV234Boot();['online','offline','qg:bu-updated','qg:canonical-updated','qg:canonical-signal','qg:simulation-updated','qg:simulation-final-ready'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(qgV234Refresh,50),{passive:true}));
+})();
+</script>
+<!-- QG_V234_FINAL_FINISH_END -->
+
+<!-- QG_V235_RESPONSIVIDADE_FLUIDA_START -->
+<style id="qg-v235-responsive-fluid">
+/* v235 — SOMENTE RESPONSIVIDADE / AUTODIMENSIONAMENTO.
+   Sem alteração de lógica, autenticação, dados, Supabase, apuração ou fluxos. */
+
+html,body{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  overflow-x:hidden!important;
+}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{min-height:100dvh!important}
+*,*::before,*::after{box-sizing:border-box!important}
+
+/* Estrutura principal sempre elástica ao tamanho real da janela. */
+.app{
+  width:100%!important;
+  max-width:100vw!important;
+  min-width:0!important;
+  grid-template-columns:clamp(205px,17.5vw,250px) minmax(0,1fr)!important;
+}
+.side,.main,.section,.card,
+#dash,#qgCoordIntelV164,
+[id^="admin"],[id^="qgV"]{
+  min-width:0!important;
+  max-width:100%!important;
+}
+.main{
+  width:auto!important;
+  min-width:0!important;
+  overflow-x:hidden!important;
+}
+.section{width:100%!important}
+
+/* Elementos de mídia nunca forçam largura maior que a tela. */
+img,svg,canvas,video{max-width:100%!important}
+img,video{height:auto}
+iframe{max-width:100%!important}
+
+/* Controles acompanham a largura disponível sem cortar conteúdo. */
+input,select,textarea,button,.btn,.ghost{
+  max-width:100%!important;
+}
+input,select,textarea{min-width:0!important}
+button,.btn,.ghost{touch-action:manipulation}
+
+/* Barras superiores e blocos de identidade podem quebrar de forma controlada. */
+.top,.topbar,.qg-v217-topstack,.qg-v233-tenant-side,.qg-v185-campaign-actions,
+.qg-v164-actions,.qg-v164-card-head,.qg-v166-toolbar{
+  min-width:0!important;
+  max-width:100%!important;
+}
+.qg-v233-tenant-hero,.qg-v185-campaignbar{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+}
+.qg-v233-tenant-copy,.qg-v185-campaign-copy{min-width:0!important}
+.qg-v233-tenant-name,.qg-v185-campaign-copy .campaign strong{
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+
+/* Grades críticas: desktop grande permanece igual; telas menores reorganizam sem sobreposição. */
+.qg-v185-kpis,
+.qg-v166-mini-grid,
+.qg-v170-kpis,
+.qg-v170-cargo-grid,
+.qg-v173-kpis,
+.qg-v173-report-grid{
+  min-width:0!important;
+}
+.qg-v185-hero-grid,
+.qg-v186-dashboard,
+.qg-v168-factor-grid,
+.qg-v170-question-grid{
+  min-width:0!important;
+  max-width:100%!important;
+}
+
+/* Tabelas largas rolam apenas dentro do próprio cartão, nunca na página inteira. */
+.qg-v164-table-wrap,
+.qg-v166-table-wrap,
+.table-wrap,
+[class*="table-wrap"]{
+  width:100%!important;
+  max-width:100%!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  -webkit-overflow-scrolling:touch;
+}
+table{max-width:none}
+
+/* Desktop/notebook menor: reduz densidade sem mudar organização funcional. */
+@media (max-width:1280px){
+  .app{grid-template-columns:clamp(190px,16.5vw,225px) minmax(0,1fr)!important}
+  .main{padding-left:10px!important;padding-right:10px!important}
+  .qg-v185-kpis{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .qg-v185-hero-grid{grid-template-columns:minmax(0,1fr)!important}
+  .qg-v186-dashboard{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+  .qg-v186-dashboard>*{grid-column:span 3!important}
+  .qg-v186-map,.qg-v186-summary{grid-column:span 6!important}
+}
+
+/* Tablet / janela minimizada: menu passa para faixa superior horizontal. */
+@media (max-width:960px){
+  .app{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    width:100%!important;
+  }
+  .side{
+    position:sticky!important;
+    top:0!important;
+    z-index:100!important;
+    width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:visible!important;
+    padding:9px 10px!important;
+    border-right:0!important;
+    border-bottom:1px solid rgba(24,217,255,.14)!important;
+  }
+  .side>select{
+    width:auto!important;
+    min-width:160px!important;
+    max-width:240px!important;
+    margin:0 0 7px!important;
+  }
+  #nav{
+    display:flex!important;
+    flex-direction:row!important;
+    flex-wrap:nowrap!important;
+    gap:7px!important;
+    width:100%!important;
+    max-width:100%!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    padding:0 0 3px!important;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:thin;
+  }
+  #nav button{
+    flex:0 0 auto!important;
+    width:auto!important;
+    min-width:max-content!important;
+    max-width:none!important;
+    min-height:42px!important;
+    padding:9px 13px!important;
+    white-space:nowrap!important;
+  }
+  .qg-v185-side-brand,.qg-v185-side-footer{display:none!important}
+  .main{
+    width:100%!important;
+    padding:10px!important;
+    margin:0!important;
+  }
+  .main>.top{
+    width:100%!important;
+    max-width:100%!important;
+  }
+  .qg-v233-tenant-hero{
+    margin:8px 0 12px!important;
+    padding:12px!important;
+    gap:10px!important;
+  }
+  .qg-v185-campaignbar{
+    margin:0 0 10px!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:10px!important;
+  }
+  .qg-v185-live,.qg-v185-campaign-actions{
+    border-left:0!important;
+    border-right:0!important;
+    padding-left:0!important;
+    padding-right:0!important;
+  }
+  .qg-v185-campaign-actions{flex-wrap:wrap!important}
+  .qg-v185-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .qg-v166-mini-grid,.qg-v170-kpis,.qg-v170-cargo-grid,.qg-v173-kpis,.qg-v173-report-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  .qg-v170-question-grid{grid-template-columns:minmax(0,1fr)!important}
+  .qg-v186-dashboard{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .qg-v186-dashboard>*{grid-column:span 1!important}
+  .qg-v186-map,.qg-v186-summary{grid-column:span 2!important}
+  .qg-v186-map-shell{grid-template-columns:minmax(0,1fr)!important}
+}
+
+/* Celular: conteúdo em uma coluna, mantendo todas as funções acessíveis. */
+@media (max-width:640px){
+  body{font-size:14px}
+  .side{padding:8px!important}
+  .side>select{min-width:140px!important;max-width:190px!important}
+  #nav{gap:6px!important}
+  #nav button{min-height:40px!important;padding:8px 11px!important;font-size:11px!important}
+  .main{padding:8px!important}
+  .card,.qg-v185-panel,.qg-v186-card{padding:10px!important;border-radius:12px!important}
+  .qg-v233-tenant-hero{
+    flex-direction:column!important;
+    align-items:stretch!important;
+  }
+  .qg-v233-tenant-main{align-items:center!important}
+  .qg-v233-tenant-avatar{width:58px!important;height:58px!important;flex-basis:58px!important}
+  .qg-v233-tenant-side{width:100%!important;justify-content:flex-start!important;gap:7px!important}
+  .qg-v233-pill{font-size:8.5px!important;min-height:30px!important;padding:0 9px!important}
+  .qg-v185-kpis,
+  .qg-v166-mini-grid,
+  .qg-v170-kpis,
+  .qg-v170-cargo-grid,
+  .qg-v173-kpis,
+  .qg-v173-report-grid,
+  .qg-v186-dashboard{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+  .qg-v186-dashboard>*{grid-column:span 1!important}
+  .qg-v185-kpi{min-height:84px!important;padding:11px 12px 10px 58px!important}
+  .qg-v185-kpi .val{font-size:23px!important}
+  .qg-v185-thermo-body{grid-template-columns:minmax(0,1fr)!important}
+  .qg-v185-seat-summary{grid-template-columns:minmax(0,1fr)!important}
+  .qg-v186-cover-wrap{grid-template-columns:minmax(0,1fr)!important}
+  .qg-v168-tools{grid-template-columns:minmax(0,1fr)!important}
+  .qg-v164-card-head,.qg-v166-toolbar{flex-wrap:wrap!important}
+  .qg-v164-card-head>*{min-width:0!important}
+  h1{font-size:clamp(20px,7vw,28px)!important}
+  h2{font-size:clamp(17px,5vw,22px)!important}
+  h3{font-size:clamp(15px,4.5vw,19px)!important}
+}
+
+/* Telas muito estreitas / modo janela reduzida. */
+@media (max-width:420px){
+  .main{padding:6px!important}
+  .side{padding:6px!important}
+  #nav button{font-size:10px!important;padding:7px 9px!important}
+  .qg-v233-tenant-avatar{width:52px!important;height:52px!important;flex-basis:52px!important}
+  .qg-v233-tenant-name{font-size:15px!important}
+  .qg-v233-tenant-meta{font-size:9px!important}
+  .qg-v233-tenant-chips{gap:4px!important}
+  .qg-v233-tenant-chip{font-size:7.5px!important;padding:3px 6px!important}
+}
+
+/* Maximização/minimização da janela: nenhuma largura fixa residual pode estourar o viewport. */
+@media (min-width:1600px){
+  .app{grid-template-columns:250px minmax(0,1fr)!important}
+  .main{max-width:none!important}
+}
+</style>
+<!-- QG_V235_RESPONSIVIDADE_FLUIDA_END -->
+
+<script id="qg-v236-tail-integrity-fix">
+(function(){
+'use strict';
+window.QG_APP_PATCH_V236=Object.freeze({release:'v236',base:'v235',scope:'tail-code-integrity-fix'});
+function qgV236BadText(t){t=String(t||'').trim();return t.length>100&&(/qgV168PureTests|function\s+qgV168|QG_PROFILE_MENUS\.fiscal|window\.QG_APP_PATCH_V230|qgV168AuditPanel/.test(t));}
+function qgV236Clean(){
+  const b=document.body;if(!b)return 0;let n=0;
+  const walker=document.createTreeWalker(b,NodeFilter.SHOW_TEXT,null);const kill=[];
+  while(walker.nextNode()){
+    const x=walker.currentNode;
+    const parent=x.parentElement;
+    if(parent&&['SCRIPT','STYLE','TEXTAREA'].includes(parent.tagName))continue;
+    if(qgV236BadText(x.nodeValue))kill.push(x);
+  }
+  kill.forEach(x=>{try{x.remove();n++}catch(_){x.nodeValue='';n++}});
+  return n;
+}
+function boot(){qgV236Clean();setTimeout(qgV236Clean,100);setTimeout(qgV236Clean,500);if(document.body&&!document.body.__qgV236Obs){document.body.__qgV236Obs=new MutationObserver(()=>{clearTimeout(window.__qgV236T);window.__qgV236T=setTimeout(qgV236Clean,60)});document.body.__qgV236Obs.observe(document.body,{childList:true,subtree:true,characterData:true});}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
+</script>
 </body></html>
