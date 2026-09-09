@@ -1,26 +1,13 @@
-QG DAS URNAS — v213 BASELINE CONGELADA
-PACOTE PARA GITHUB PAGES
+QG DAS URNAS v215 — PACOTE COMPLETO PARA GITHUB PAGES
 
-Conteúdo:
-- index.html: cópia BYTE A BYTE da v213 congelada.
-- manifest.webmanifest: metadados PWA.
-- sw.js: service worker para instalação/offline básico.
-- favicon.ico e icons/: ícones derivados do logo já embutido na v213.
-- .nojekyll: impede processamento Jekyll no GitHub Pages.
-- baseline/: cópia nominal da baseline congelada para conferência/arquivo.
+1. Extraia este ZIP no computador.
+2. Abra o repositório no GitHub.
+3. Na raiz do repositório, substitua os arquivos pelo conteúdo deste pacote.
+4. O arquivo index.html precisa ficar diretamente na raiz.
+5. Preserve a pasta icons/ com seus três arquivos.
+6. Em Settings > Pages, use Deploy from a branch > main > /(root).
+7. Após o deploy, faça Ctrl+F5 uma vez para garantir que o novo Service Worker v215 assumiu o cache.
 
-PUBLICAÇÃO NO GITHUB PAGES
-1. Crie um repositório no GitHub.
-2. Envie TODO o conteúdo deste pacote para a raiz do repositório.
-3. No GitHub: Settings > Pages.
-4. Em Build and deployment, escolha:
-   Source: Deploy from a branch
-   Branch: main
-   Folder: /(root)
-5. Salve e aguarde a URL HTTPS do GitHub Pages.
-
-IMPORTANTE
-- Não renomeie/remova manifest.webmanifest, sw.js, favicon.ico ou a pasta icons.
-- O Supabase permanece sendo o backend central; nenhuma chave service_role foi adicionada.
-- O app precisa de internet para sincronização Supabase. O service worker oferece a camada PWA/offline do frontend.
-- Para preservar a baseline, não edite index.html diretamente sem criar uma nova versão.
+ALTERAÇÃO v215 SOBRE v214:
+- Apenas recolocado o acesso visual à função já existente "GERAR APURAÇÃO FINAL 100%" em Administrador > Dados e sistema.
+- Motor de simulação, Supabase, Fiscal, Coordenação, autenticação e demais funções não foram alterados.
