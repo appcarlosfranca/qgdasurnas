@@ -1,4 +1,4 @@
-QG DAS URNAS v230
+QG DAS URNAS v231
 
 Publicação GitHub Pages:
 1. Envie todo o conteúdo desta pasta para a raiz do repositório.
@@ -6,4 +6,4 @@ Publicação GitHub Pages:
 3. Após o deploy, faça Ctrl+F5 uma vez no notebook e atualize/feche-reabra no tablet.
 4. Teste os logins Fiscal/Coordenação já cadastrados.
 
-Correção v230: chamadas RPC com sb_publishable usam o header apikey sem Authorization Bearer opaco.
+Correção v231: chamadas RPC com sb_publishable usam o header apikey sem Authorization Bearer opaco.

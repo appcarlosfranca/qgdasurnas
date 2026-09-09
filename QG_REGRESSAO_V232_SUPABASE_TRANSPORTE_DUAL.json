@@ -1,0 +1,27 @@
+{
+  "release": "v232",
+  "base": "v231",
+  "scope": "Supabase dual-key RPC transport for Fiscal/Coordenação login",
+  "changes": [
+    "RPC auth no longer depends on supabase-js SDK/CDN",
+    "Primary attempt uses project publishable key with apikey header only",
+    "Automatic fallback uses active legacy anon JWT with apikey + Authorization",
+    "Exact transport/HTTP error is exposed on login failure",
+    "Realtime v216, QR, Sala de Guerra, Supabase schema and tenant data unchanged"
+  ],
+  "backend_checked": {
+    "project": "ttrzfhesfmhhqsildrbf",
+    "status": "ACTIVE_HEALTHY",
+    "active_clients": 1,
+    "active_accounts": 2,
+    "blocked_logins": 0,
+    "publishable_key_active": true,
+    "legacy_anon_key_active": true,
+    "login_rpc": "qg_open_tenant_session_v214"
+  },
+  "validation": {
+    "v232_patch_node_check": "PASS",
+    "full_html_size_bytes": 2720173
+  },
+  "sha256": "274b8ab5070bee1e1a8ab1117ff902c7897e6a32a5f641afac884d12090ad878"
+}

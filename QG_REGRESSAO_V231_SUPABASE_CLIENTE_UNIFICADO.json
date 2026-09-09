@@ -1,0 +1,22 @@
+{
+  "release": "v231",
+  "base": "v230",
+  "scope": "Fiscal/Coordenação authentication via the same supabase-js client used by Realtime",
+  "changes": [
+    "qgRpcV164 now uses supabase-js RPC as the primary transport",
+    "supabase-js is preloaded on the access screen",
+    "Fiscal/Coordenação online login is server-authoritative",
+    "legacy manual fetch remains only as transport fallback",
+    "Realtime, electoral logic, QR, BU, Admin and War Room are unchanged"
+  ],
+  "backend_verified": {
+    "tenant_profiles": 1,
+    "tenant_accounts": 2,
+    "rpc_qg_open_tenant_session_v214": true,
+    "anon_execute_privilege": true
+  },
+  "static_validation": {
+    "v231_patch_node_check": "PASS"
+  },
+  "device_e2e_note": "Final cross-device acceptance still depends on the deployed GitHub Pages build and the user's real browser/network."
+}
