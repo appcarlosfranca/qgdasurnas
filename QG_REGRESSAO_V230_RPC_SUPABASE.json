@@ -1,0 +1,32 @@
+{
+  "release": "v230",
+  "base": "v229",
+  "scope": "correcao transporte RPC Supabase com chave publishable + badge sincronizacao",
+  "root_cause": "Chamadas RPC manuais enviavam sb_publishable também em Authorization Bearer; gateway pode bloquear antes do Postgres. Agora sb_publishable é enviado somente em apikey; Authorization é preservado apenas para chave JWT legada.",
+  "backend_state_observed": {
+    "tenant_profiles": 1,
+    "tenant_accounts": 2,
+    "known_logins": [
+      "fiscalz",
+      "coordz"
+    ]
+  },
+  "changes": [
+    "qgRpcV164 usa apikey-only para chaves sb_*",
+    "JWT legado continua com Authorization Bearer",
+    "badge fila 0 + Realtime SUBSCRIBED exibe SINCRONIZADO e resiste a sobrescrita legada"
+  ],
+  "unchanged": [
+    "Supabase schema/RLS",
+    "RPCs v214",
+    "Realtime v216",
+    "QR/BU",
+    "Sala de Guerra",
+    "autenticacao e dados cadastrados"
+  ],
+  "verification": [
+    "marcador v230 presente",
+    "header antigo removido",
+    "pacote PWA cache v230"
+  ]
+}

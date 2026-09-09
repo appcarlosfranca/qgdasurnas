@@ -20281,7 +20281,7 @@ async function qgRpcV164(name,args={},timeout=15000){
   const ctrl=new AbortController();const timer=setTimeout(()=>ctrl.abort(),timeout);
   try{
     const res=await fetch(url,{method:'POST',cache:'no-store',signal:ctrl.signal,headers:{
-      'apikey':cfg.anon,...(String(cfg.anon||'').startsWith('sb_')?{}:{'Authorization':'Bearer '+cfg.anon}),'Content-Type':'application/json','Accept':'application/json','Cache-Control':'no-cache'
+      'apikey':cfg.anon,'Authorization':'Bearer '+cfg.anon,'Content-Type':'application/json','Accept':'application/json','Cache-Control':'no-cache'
     },body:JSON.stringify(args||{})});
     const txt=await res.text();
     if(!res.ok)throw new Error('RPC '+name+' '+res.status+': '+txt.slice(0,500));
@@ -21340,44 +21340,7 @@ function qgV168ScenarioTimeline(){const body=document.getElementById('qgCoordInt
 
 function qgV168EnhanceReports(){const p=document.getElementById('qgV166Reports');if(!p||document.getElementById('qgV168ReportButtons'))return;const bar=p.querySelector('.qg-v166-toolbar');if(!bar)return;const s=document.createElement('span');s.id='qgV168ReportButtons';s.className='qg-v168-inline-actions';s.innerHTML='<button class="ghost" onclick="qgV168ExportReportJson()">JSON</button><button class="ghost" onclick="qgV168PrintReport()">IMPRIMIR / PDF</button>';bar.appendChild(s)}
 function qgV168ExportReportJson(){let rows=window.__qgV166?.reportRows||[];if(!rows.length){qgV166BuildReport?.();rows=window.__qgV166?.reportRows||[]}if(!rows.length)return;const payload={generatedAt:new Date().toISOString(),role:state.role,tenant:qgV167CurrentTenantId(),filters:{cargo:document.getElementById('qgV166RepCargo')?.value||'',municipio:document.getElementById('qgV166RepMun')?.value||'',zona:document.getElementById('qgV166RepZona')?.value||'',secao:document.getElementById('qgV166RepSec')?.value||''},records:rows};qgV166Download('qg_relatorio_analitico_'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(payload,null,2),'application/json;charset=utf-8')}
-function qgV168PrintReport(){const body=document.getElementById('qgV166ReportBody');if(!body)return;const w=window.open('','_blank','noopener,noreferrer');if(!w){alert('O navegador bloqueou a janela de impressão.');return}w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>QG DAS URNAS — Relatório</title><style>body{font-family:Arial,sans-serif;color:#111;padding:24px}h1{font-size:20px}.qg-v166-mini-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.qg-v166-mini{border:1px solid #ccc;padding:8px}.qg-v164-table{width:100%;border-collapse:collapse;font-size:11px}.qg-v164-table th,.qg-v164-table td{border:1px solid #ccc;padding:5px;text-align:left}.qg-v164-card-head,.qg-v166-source-banner,.qg-v166-note{margin:8px 0}button{display:none}@media print{body{padding:0}}</style></head><body><h1>QG DAS URNAS — Relatório analítico</h1><p>Gerado em '+qgV164Esc(new Date().toLocaleString('pt-BR'))+'</p>'+body.innerHTML+'<script>setTimeout(()=>window.print(),250)<\/script>
-<!-- QG_V230_SUPABASE_PUBLISHABLE_RPC_FIX_START -->
-<script id="qg-v230-supabase-publishable-rpc-fix">
-window.QG_APP_PATCH_V230=Object.freeze({release:'v230',base:'v229',scope:'supabase-publishable-rpc-transport',publishableKeyHeader:'apikey-only',legacyJwtAuthorization:'preserved',syncBadgeStable:true});
-(function(){
-  function paint(){
-    try{
-      const badge=document.getElementById('syncBadge'),txt=document.getElementById('syncText');
-      if(!badge||!txt)return;
-      const q=typeof qgV229Pending==='function'?qgV229Pending():0;
-      const rt=String(window.__qgV216?.channelStatus||'OFF');
-      let desired,cls;
-      if(navigator.onLine===false){desired='SEM CONEXÃO';cls='bad'}
-      else if(q>0){desired=q+' AGUARDANDO SINCRONIZAÇÃO';cls='warn'}
-      else if(rt==='SUBSCRIBED'){desired='SINCRONIZADO';cls='ok'}
-      else {desired='SINCRONIZANDO';cls='warn'}
-      if(txt.textContent!==desired)txt.textContent=desired;
-      badge.classList.toggle('pending',cls!=='ok');
-      badge.classList.toggle('qg-v229-ok',cls==='ok');
-      badge.classList.toggle('qg-v229-warn',cls==='warn');
-      badge.classList.toggle('qg-v229-bad',cls==='bad');
-    }catch(_){ }
-  }
-  function boot(){
-    paint();
-    const txt=document.getElementById('syncText');
-    if(txt&&!txt.__qgV230Observed){
-      txt.__qgV230Observed=true;
-      new MutationObserver(()=>queueMicrotask(paint)).observe(txt,{childList:true,characterData:true,subtree:true});
-    }
-    ['online','offline','qg:bu-updated','qg:canonical-updated','qg:canonical-signal'].forEach(ev=>window.addEventListener(ev,paint,{passive:true}));
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
-})();
-</script>
-<!-- QG_V230_SUPABASE_PUBLISHABLE_RPC_FIX_END -->
-
-</body></html>');w.document.close()}
+function qgV168PrintReport(){const body=document.getElementById('qgV166ReportBody');if(!body)return;const w=window.open('','_blank','noopener,noreferrer');if(!w){alert('O navegador bloqueou a janela de impressão.');return}w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>QG DAS URNAS — Relatório</title><style>body{font-family:Arial,sans-serif;color:#111;padding:24px}h1{font-size:20px}.qg-v166-mini-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.qg-v166-mini{border:1px solid #ccc;padding:8px}.qg-v164-table{width:100%;border-collapse:collapse;font-size:11px}.qg-v164-table th,.qg-v164-table td{border:1px solid #ccc;padding:5px;text-align:left}.qg-v164-card-head,.qg-v166-source-banner,.qg-v166-note{margin:8px 0}button{display:none}@media print{body{padding:0}}</style></head><body><h1>QG DAS URNAS — Relatório analítico</h1><p>Gerado em '+qgV164Esc(new Date().toLocaleString('pt-BR'))+'</p>'+body.innerHTML+'<script>setTimeout(()=>window.print(),250)<\/script></body></html>');w.document.close()}
 
 function qgV168PureTests(){const fixture='ANO_ELEICAO;DS_CARGO;NR_CANDIDATO;NM_MUNICIPIO;NR_ZONA;NR_LOCAL_VOTACAO;NR_SECAO;QT_VOTOS_NOMINAIS\n2022;Deputado Federal;5555;LAGARTO;12;10;1;100\n2022;Deputado Federal;5555;LAGARTO;12;10;1;20\n2022;Deputado Federal;5555;ARACAJU;1;20;2;50';let hist=false;try{const d=qgV168ParseHistoryText(fixture,'fixture.csv',2022);hist=d.aggregatedRows===2&&d.rows.reduce((a,r)=>a+r.votos,0)===170}catch(e){}const menus=(QG_PROFILE_MENUS.fiscal||[]).length===4&&(QG_PROFILE_MENUS.coordenacao||[]).length===6&&(QG_PROFILE_MENUS.admin||[]).length===6;const prod=qgV166ProductionRows().every(r=>!qgV166IsSynthetic(r));return {ok:hist&&menus&&prod,tests:[{name:'Parser histórico agrega linhas sem duplicar território/candidato',ok:hist},{name:'Menus congelados/definidos preservados',ok:menus},{name:'Filtro produção exclui sintéticos',ok:prod},{name:'Nenhuma dependência Supabase introduzida pela v168',ok:true}]}}
 function qgV168AuditPanel(){const host=document.getElementById('adminAuditDiagV164');if(!host||document.getElementById('qgV168Audit'))return;const x=document.createElement('div');x.id='qgV168Audit';x.className='card qg-v168-panel';const legacy=host.querySelector('.qg-v164-legacy');host.insertBefore(x,legacy);const t=qgV168PureTests();window.__qgV168.tests=t;x.innerHTML='<div class="qg-v164-card-head"><div><span class="qg-v164-badge fact">PRÉ-HOMOLOGAÇÃO</span><h3>Testes frontend v168</h3></div><b class="'+(t.ok?'qg-v168-ok-text':'qg-v168-warn-text')+'">'+(t.ok?'OK':'ATENÇÃO')+'</b></div>'+t.tests.map(a=>'<div class="qg-v166-preflight"><span>'+qgV164Esc(a.name)+'</span><b class="qg-v166-status '+(a.ok?'ok':'warn')+'">'+(a.ok?'OK':'FALHA')+'</b></div>').join('')+'<div class="qg-v166-note">RLS/backend continua deliberadamente fora desta etapa. Estes testes não substituem a homologação final do Supabase.</div>'}

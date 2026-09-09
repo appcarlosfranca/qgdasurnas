@@ -1,18 +1,9 @@
-QG DAS URNAS v228 — ÁUDIO DE ABERTURA
+QG DAS URNAS v230
 
-QG DAS URNAS v227 — ACESSOS SUPABASE CONFIRMADOS
+Publicação GitHub Pages:
+1. Envie todo o conteúdo desta pasta para a raiz do repositório.
+2. Confirme que index.html, sw.js, manifest.webmanifest, qg_intro_audio.mpeg e icons/ estão na raiz/estrutura indicada.
+3. Após o deploy, faça Ctrl+F5 uma vez no notebook e atualize/feche-reabra no tablet.
+4. Teste os logins Fiscal/Coordenação já cadastrados.
 
-Envie todo o conteúdo desta pasta para a raiz do repositório GitHub Pages.
-O index.html precisa ficar na raiz.
-Após o commit/deploy, faça Ctrl+F5 uma vez.
-
-Teste recomendado:
-1. Entre como Administrador.
-2. Cadastre um cliente com login de Coordenação.
-3. Confirme a mensagem: "SALVOS NO SUPABASE".
-4. Em outro aparelho, abra o mesmo link e autentique a Coordenação.
-
-A v227 não aceita mais cadastro somente local como sucesso.
-
-
-IMPORTANTE: mantenha qg_intro_audio.mpeg na raiz junto ao index.html. O áudio é iniciado pelo clique em ACESSE AQUI.
+Correção v230: chamadas RPC com sb_publishable usam o header apikey sem Authorization Bearer opaco.
