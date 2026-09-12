@@ -1,31 +1,43 @@
 {
-  "name": "QG DAS URNAS",
-  "short_name": "QG Urnas",
-  "description": "QG DAS URNAS — inteligência eleitoral e apuração particular.",
   "id": "./",
+  "name": "AGHU Notes",
+  "short_name": "AGHU Notes",
+  "description": "Aplicativo particular de anotações sincronizadas.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#020817",
-  "theme_color": "#071426",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "orientation": "any",
+  "prefer_related_applications": false,
   "icons": [
     {
-      "src": "./icons/qg-icon-192.png",
+      "src": "./icon-192-v16.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "./icons/qg-icon-512.png",
+      "src": "./icon-512-v16.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "./icons/apple-touch-icon.png",
-      "sizes": "180x180",
-      "type": "image/png"
+      "src": "./maskable-192-v16.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./maskable-512-v16.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

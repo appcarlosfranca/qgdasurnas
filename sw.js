@@ -1,35 +1,53 @@
-/* QG DAS URNAS v238 — Service Worker para GitHub Pages */
-const CACHE = 'qg-das-urnas-v238-static-1';
-const CORE = [
-  './',
-  './index.html',
-  './manifest.webmanifest',
-  './favicon.ico',
-  './icons/qg-icon-192.png',
-  './icons/qg-icon-512.png',
-  './icons/apple-touch-icon.png',
-  './qg_intro_audio.mpeg'
+const CACHE = "aghu-notes-cloud-v41";
+const ASSETS = [
+  "./",
+  "./index.html",
+  "./manifest.webmanifest",
+  "./favicon.ico",
+  "./favicon-96-v16.png",
+  "./favicon-48-v16.png",
+  "./icon-192-v16.png",
+  "./icon-512-v16.png",
+  "./maskable-192-v16.png",
+  "./maskable-512-v16.png",
+  "./apple-touch-icon-v16.png"
 ];
-self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(CORE)).then(() => self.skipWaiting()));
+
+self.addEventListener("install", event => {
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
+  self.skipWaiting();
 });
-self.addEventListener('activate', event => {
-  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+
+self.addEventListener("activate", event => {
+  event.waitUntil(
+    caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+  );
+  self.clients.claim();
 });
-self.addEventListener('fetch', event => {
-  const req=event.request;if(req.method!=='GET')return;
-  const url=new URL(req.url);
-  if(req.mode==='navigate'){
-    event.respondWith(fetch(req,{cache:'no-store'}).then(res=>{
-      const copy=res.clone();caches.open(CACHE).then(c=>c.put('./index.html',copy)).catch(()=>{});return res;
-    }).catch(()=>caches.match('./index.html')));
+
+self.addEventListener("fetch", event => {
+  if(event.request.method !== "GET") return;
+  const url = new URL(event.request.url);
+  if(url.origin !== self.location.origin) return;
+
+  if(event.request.mode === "navigate"){
+    event.respondWith(
+      fetch(event.request)
+        .then(resp => {
+          if(resp && resp.ok) caches.open(CACHE).then(c => c.put("./index.html",resp.clone()));
+          return resp;
+        })
+        .catch(() => caches.match("./index.html"))
+    );
     return;
   }
-  if(url.origin===self.location.origin){
-    event.respondWith(caches.match(req).then(hit=>hit||fetch(req).then(res=>{
-      if(res&&res.ok){const copy=res.clone();caches.open(CACHE).then(c=>c.put(req,copy)).catch(()=>{});}return res;
-    })));
-    return;
-  }
-  event.respondWith(fetch(req).catch(()=>caches.match(req)));
+
+  event.respondWith(
+    caches.match(event.request).then(cached =>
+      cached || fetch(event.request).then(resp => {
+        if(resp && resp.ok) caches.open(CACHE).then(c => c.put(event.request,resp.clone()));
+        return resp;
+      })
+    )
+  );
 });
