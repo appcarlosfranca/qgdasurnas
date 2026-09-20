@@ -1,0 +1,34 @@
+QG DAS URNAS v239 — DATA SAFETY
+
+Pacote completo para publicação na raiz do hosting estático.
+
+Arquivos essenciais na raiz:
+- index.html
+- sw.js
+- manifest.webmanifest
+- favicon.ico
+- qg_intro_audio.mpeg
+- icons/
+
+Camada v239:
+- OUTBOX durável antes da tentativa remota;
+- recuperação após F5/fechamento/reabertura;
+- promoção da fila offline legada para a fila canônica;
+- remoção somente após ACK positivo;
+- atualização não destrutiva de dados operacionais.
+
+Base funcional: v238.
+
+BACKEND SUPABASE NOVO — 20/09/2026
+- Project ref: irazzcdmhzyxtuedwkbp
+- URL: https://irazzcdmhzyxtuedwkbp.supabase.co
+- Campanha padrão: sergipe-2026
+- O frontend usa somente chave pública/publishable; nenhuma service_role ou senha PostgreSQL é incluída.
+- Configurações persistidas dos projetos Supabase anteriores são reconhecidas como legadas e migradas para o projeto atual.
+- Realtime final: qg_realtime_signal_v179.
+- Persistência canônica: qg_bu_canonical_v179.
+- Acesso multicliente: RPCs v214, com filtro de cargos por pacote.
+- Fila local/offline da v239 permanece independente do Supabase e só é removida após ACK positivo.
+
+IMPORTANTE
+O Supabase é o backend do aplicativo. O conteúdo deste ZIP continua sendo um frontend estático, pronto para publicação na raiz de GitHub Pages ou outro hosting estático compatível.

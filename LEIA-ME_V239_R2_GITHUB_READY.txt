@@ -1,0 +1,23 @@
+QG DAS URNAS — v239 R2 DATA SAFETY — GITHUB READY
+Data: 20/09/2026
+
+Reauditoria pré-publicação concluída.
+
+Correções finais desta revisão:
+1. Camada DATA SAFETY v239 reposicionada para o final do index.html, depois das patches legadas, para impedir sobrescrita dos wrappers de segurança.
+2. Função de relatório/PDF v168 restaurada; o HTML anterior tinha a patch v239 inserida no meio de um script inline.
+3. OUTBOX durável integrada também ao comando administrativo v212 “LIMPAR TUDO”, impedindo reidratação de BUs excluídos após reload.
+4. Cache do Service Worker alterado para qg-das-urnas-v239-r2-shell, forçando atualização do shell publicado.
+5. Backend Supabase revalidado e índices de chaves estrangeiras adicionados para campanhas, metas e histórico.
+
+Supabase canônico:
+Project ref: irazzcdmhzyxtuedwkbp
+Campaign: sergipe-2026
+
+Publicação GitHub Pages:
+- Extraia o conteúdo deste ZIP diretamente na raiz do repositório/site.
+- index.html, sw.js, manifest.webmanifest, favicon.ico, icons/ e qg_intro_audio.mpeg devem permanecer na raiz/caminhos atuais.
+- Não coloque o ZIP inteiro dentro de uma subpasta se o GitHub Pages estiver configurado para a raiz.
+
+Observação de auditoria:
+O ambiente isolado usado na revisão bloqueia navegação do Chromium, portanto o smoke test gráfico automatizado não pôde ser executado. Foram concluídos parsing de 177 scripts JavaScript sem erro sintático, verificação estrutural do HTML, assets locais, handlers, Supabase/RPCs, RLS, Realtime, transporte de BUs e limpeza dos dados de QA.

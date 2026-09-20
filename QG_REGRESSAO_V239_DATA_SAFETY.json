@@ -1,0 +1,16 @@
+{
+  "release": "v239",
+  "base": "v238",
+  "scope": "data-safety-durable-outbox",
+  "ui": "UNCHANGED",
+  "businessRules": "UNCHANGED",
+  "electoralEngine": "UNCHANGED",
+  "safety": [
+    "OUTBOX persisted before remote publication",
+    "Recovery after refresh/close/reopen",
+    "Legacy offline queue promoted into canonical sync queue",
+    "Pending item removed only after positive ACK",
+    "Automatic upgrade does not erase BU operational data",
+    "Administrator-confirmed delete also clears durable OUTBOX"
+  ]
+}

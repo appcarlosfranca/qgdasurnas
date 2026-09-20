@@ -1,0 +1,28 @@
+{
+  "release": "v239 DATA SAFETY",
+  "date": "2026-09-20",
+  "supabase_project_ref": "irazzcdmhzyxtuedwkbp",
+  "campaign": "sergipe-2026",
+  "checks": {
+    "project_active_healthy": true,
+    "core_schema_applied": true,
+    "rls_enabled": true,
+    "canonical_direct_anon_select_revoked": true,
+    "realtime_signal_anon_select_enabled": true,
+    "realtime_publication_configured": true,
+    "custom_session_rpc_layer": true,
+    "tenant_package_filter_test": true,
+    "tenant_raw_payload_hidden_test": true,
+    "canonical_upsert_test": true,
+    "canonical_aggregate_test": true,
+    "backup_selftest_insert_update_delete": true,
+    "test_data_removed_after_homologation": true,
+    "frontend_default_points_to_new_project": true,
+    "old_projects_retained_only_as_legacy_detection": true
+  },
+  "notes": [
+    "O Supabase funciona como backend. O frontend permanece estatico e pode ser publicado na raiz do GitHub Pages ou hosting equivalente.",
+    "As RPCs expostas ao frontend usam a publishable key e exigem token de sessao proprio do QG para operacoes autenticadas.",
+    "A fila offline/OUTBOX v239 permanece local e so remove itens apos ACK remoto positivo."
+  ]
+}

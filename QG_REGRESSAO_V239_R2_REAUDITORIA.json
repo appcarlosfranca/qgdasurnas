@@ -1,0 +1,31 @@
+{
+  "release": "v239 R2 DATA SAFETY",
+  "date": "2026-09-20",
+  "scope": "pre-publication re-audit",
+  "fixes": [
+    "V239 DATA SAFETY moved to final patch position so later legacy patches cannot overwrite its wrappers",
+    "Restored qgV168PrintReport JavaScript after detecting malformed inline-script insertion point",
+    "Durable OUTBOX is now cleared by both EXCLUIR TODOS OS BUs and v212 LIMPAR TUDO after explicit administrator action",
+    "Service Worker cache bumped to qg-das-urnas-v239-r2-shell to prevent stale shell reuse"
+  ],
+  "checks": {
+    "inline_javascript_syntax_177_of_177": true,
+    "duplicate_dom_ids": 0,
+    "inline_handler_missing_symbols": 0,
+    "local_asset_references_missing": 0,
+    "supabase_required_rpcs_37_of_37_present": true,
+    "supabase_transport_upsert_and_pull_test": true,
+    "supabase_invalid_admin_login_rejected": true,
+    "supabase_invalid_tenant_login_rejected": true,
+    "supabase_invalid_session_rejected": true,
+    "rls_enabled_core_tables": true,
+    "anon_direct_canonical_select_revoked": true,
+    "realtime_signal_select_allowed": true,
+    "test_data_removed": true,
+    "supabase_fk_indexes_added": true,
+    "service_worker_cache_bumped_v239_r2": true
+  },
+  "limitations": [
+    "A real browser end-to-end smoke run could not be executed in the isolated audit environment because Chromium navigation is administratively blocked; static JavaScript parsing and live Supabase database/RPC checks were executed instead."
+  ]
+}
